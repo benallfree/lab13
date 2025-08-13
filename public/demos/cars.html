@@ -227,28 +227,44 @@
 
       // Update car position based on keys
       function updateCar() {
-        if (!myId || !localState[myId]) return;
+        if (!myId) {
+          console.log("No myId yet, waiting for server...");
+          return;
+        }
+        if (!localState[myId]) {
+          console.log(
+            "No car in localState for myId:",
+            myId,
+            "localState:",
+            localState
+          );
+          return;
+        }
 
         const car = localState[myId];
         let moved = false;
 
         if (keys.ArrowUp) {
-          car.x += Math.cos(car.angle) * 3;
-          car.y += Math.sin(car.angle) * 3;
+          car.x -= Math.cos(car.angle) * 3;
+          car.y -= Math.sin(car.angle) * 3;
           moved = true;
+          console.log("Moving forward", car.x, car.y);
         }
         if (keys.ArrowDown) {
-          car.x -= Math.cos(car.angle) * 2;
-          car.y -= Math.sin(car.angle) * 2;
+          car.x += Math.cos(car.angle) * 2;
+          car.y += Math.sin(car.angle) * 2;
           moved = true;
+          console.log("Moving backward", car.x, car.y);
         }
         if (keys.ArrowLeft) {
           car.angle -= 0.1;
           moved = true;
+          console.log("Turning left", car.angle);
         }
         if (keys.ArrowRight) {
           car.angle += 0.1;
           moved = true;
+          console.log("Turning right", car.angle);
         }
 
         // Keep car within bounds
@@ -259,6 +275,8 @@
           // Send update to server
           const delta = { [myId]: car };
           socket.send(JSON.stringify({ delta }));
+          // Also update local state immediately for smooth movement
+          localState[myId] = { ...car };
         }
       }
 
@@ -286,27 +304,62 @@
         try {
           const data = JSON.parse(event.data);
 
-          if (data.state) {
+          if (data.id) {
+            // Received my own ID from server
+            myId = data.id;
+            console.log("Received my ID from server:", myId);
+
+            // Initialize my car if it doesn't exist in state
+            if (!localState[myId]) {
+              localState[myId] = {
+                x: canvas.width / 2,
+                y: canvas.height / 2,
+                angle: 0,
+              };
+              console.log("Initialized my car:", localState[myId]);
+              // Send initial position
+              const delta = { [myId]: localState[myId] };
+              socket.send(JSON.stringify({ delta }));
+              // Render immediately so my car shows up
+              renderState();
+            } else {
+              // If car already exists in state, just render it
+              renderState();
+            }
+          } else if (data.connect) {
+            // Another client connected
+            console.log("Client connected:", data.connect);
+            // No need to do anything special, they'll send their car data via delta
+          } else if (data.disconnect) {
+            // A client disconnected
+            console.log("Client disconnected:", data.disconnect);
+            // Remove their car from local state
+            if (localState[data.disconnect]) {
+              delete localState[data.disconnect];
+              console.log(
+                "Removed car for disconnected client:",
+                data.disconnect
+              );
+            }
+          } else if (data.state) {
             // Initial state received
             console.log("Received initial state:", data.state);
             localState = data.state;
-
-            // Generate my ID if I don't have one
-            if (!myId) {
-              myId = Date.now().toString();
-              // Initialize my car if it doesn't exist
-              if (!localState[myId]) {
-                localState[myId] = {
-                  x: canvas.width / 2,
-                  y: canvas.height / 2,
-                  angle: 0,
-                };
-                // Send initial position
-                const delta = { [myId]: localState[myId] };
-                socket.send(JSON.stringify({ delta }));
-              }
+            // If we have our ID but no car in state, initialize it
+            if (myId && !localState[myId]) {
+              localState[myId] = {
+                x: canvas.width / 2,
+                y: canvas.height / 2,
+                angle: 0,
+              };
+              console.log(
+                "Initialized my car after state received:",
+                localState[myId]
+              );
+              // Send initial position
+              const delta = { [myId]: localState[myId] };
+              socket.send(JSON.stringify({ delta }));
             }
-
             renderState();
           } else if (data.delta) {
             // Delta received from another client
@@ -323,6 +376,7 @@
       document.addEventListener("keydown", (event) => {
         if (keys.hasOwnProperty(event.key)) {
           keys[event.key] = true;
+          console.log("Key pressed:", event.key);
           event.preventDefault();
         }
       });
@@ -330,6 +384,7 @@
       document.addEventListener("keyup", (event) => {
         if (keys.hasOwnProperty(event.key)) {
           keys[event.key] = false;
+          console.log("Key released:", event.key);
           event.preventDefault();
         }
       });
@@ -337,6 +392,7 @@
       // Game loop
       function gameLoop() {
         updateCar();
+        renderState();
         requestAnimationFrame(gameLoop);
       }
 

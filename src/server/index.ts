@@ -50,8 +50,14 @@ export class MyServer extends Server {
     url: ${new URL(ctx.request.url).pathname}`
     );
 
+    // Send the client their own ID
+    conn.send(JSON.stringify({ id: conn.id }));
+
     // Send initial state to new connection
     conn.send(JSON.stringify({ state: this.getRoomState() }));
+
+    // Broadcast connect event to all other clients
+    this.broadcast(JSON.stringify({ connect: conn.id }), [conn.id]);
   }
 
   onMessage(conn: Connection, message: WSMessage) {
@@ -74,6 +80,21 @@ export class MyServer extends Server {
     } catch (error) {
       console.error("Error parsing message:", error);
     }
+  }
+
+  onClose(conn: Connection) {
+    console.log(`Connection ${conn.id} disconnected`);
+
+    // Remove the disconnected client's data from state
+    const currentState = this.getRoomState();
+    if (currentState[conn.id]) {
+      delete currentState[conn.id];
+      this.setRoomState(currentState);
+      console.log(`Removed ${conn.id} from room state`);
+    }
+
+    // Broadcast disconnect event to all remaining clients
+    this.broadcast(JSON.stringify({ disconnect: conn.id }));
   }
 }
 
