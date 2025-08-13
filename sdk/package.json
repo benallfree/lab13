@@ -1,15 +1,20 @@
 {
   "name": "js13k-mmo-sdk",
-  "version": "0.0.1-rc.1",
+  "version": "0.0.1-rc.2",
   "description": "A simple client SDK for the JS13K MMO Challenge Series that abstracts away the WebSocket connection and state management",
   "type": "module",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "exports": {
-    ".": "./index.js",
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
     "./package.json": "./package.json"
   },
   "files": [
-    "index.js",
+    "dist",
     "README.md"
   ],
   "keywords": [
@@ -25,13 +30,19 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/benallfree/js13k-partykit.git"
+    "url": "https://github.com/benallfree/js13k-mmo-sdk.git"
   },
   "bugs": {
-    "url": "https://github.com/benallfree/js13k-partykit/issues"
+    "url": "https://github.com/benallfree/js13k-mmo-sdk/issues"
   },
-  "homepage": "https://github.com/benallfree/js13k-partykit#readme",
-  "peerDependencies": {
-    "partysocket": "^1.0.0"
+  "homepage": "https://github.com/benallfree/js13k-mmo-sdk#readme",
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch"
+  },
+  "devDependencies": {
+    "tsdown": "^0.14.1",
+    "typescript": "^5.0.0",
+    "partysocket": "^1.1.5"
   }
 }

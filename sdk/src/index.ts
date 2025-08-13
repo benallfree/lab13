@@ -1,10 +1,44 @@
-import PartySocket from 'https://esm.sh/partysocket'
+import PartySocket from 'partysocket'
+
+// Type definitions
+export interface DeltaEvaluator {
+  (
+    newDelta: any,
+    deltaBase: any,
+    key: string
+  ): {
+    check: boolean
+    commit: () => void
+  }
+}
+
+export interface ClientOptions {
+  host?: string
+  party?: string
+}
+
+export interface MessageData {
+  id?: string
+  connect?: string
+  disconnect?: string
+  state?: any
+  delta?: any
+}
+
+export interface PlayerState {
+  [playerId: string]: any
+}
+
+export interface GameState {
+  players?: PlayerState
+  [key: string]: any
+}
 
 // Helper function to create a delta throttler
-export function createDeltaThrottle(ms = 50) {
-  const lastSent = new Map()
+export function createDeltaThrottle(ms: number = 50): DeltaEvaluator {
+  const lastSent = new Map<string, number>()
 
-  return (newDelta, deltaBase, key) => {
+  return (newDelta: any, deltaBase: any, key: string) => {
     const now = Date.now()
     const lastTime = lastSent.get(key) || 0
 
@@ -25,8 +59,8 @@ export function createDeltaThrottle(ms = 50) {
 }
 
 // Helper function to create a 2D distance-based evaluator
-export function createDistance2DEvaluator(minDistance = 5) {
-  return (newDelta, deltaBase, key) => {
+export function createDistance2DEvaluator(minDistance: number = 5): DeltaEvaluator {
+  return (newDelta: any, deltaBase: any, key: string) => {
     if (!deltaBase || newDelta.x === undefined || newDelta.y === undefined) {
       return { check: true, commit: () => {} }
     }
@@ -40,8 +74,8 @@ export function createDistance2DEvaluator(minDistance = 5) {
 }
 
 // Helper function to create a 3D distance-based evaluator
-export function createDistance3DEvaluator(minDistance = 5) {
-  return (newDelta, deltaBase, key) => {
+export function createDistance3DEvaluator(minDistance: number = 5): DeltaEvaluator {
+  return (newDelta: any, deltaBase: any, key: string) => {
     if (!deltaBase || newDelta.x === undefined || newDelta.y === undefined || newDelta.z === undefined) {
       return { check: true, commit: () => {} }
     }
@@ -56,8 +90,8 @@ export function createDistance3DEvaluator(minDistance = 5) {
 }
 
 // Helper function to create a percentage-based evaluator
-export function createPercentageEvaluator(property, minPercentage = 0.1) {
-  return (newDelta, deltaBase, key) => {
+export function createPercentageEvaluator(property: string, minPercentage: number = 0.1): DeltaEvaluator {
+  return (newDelta: any, deltaBase: any, key: string) => {
     if (!deltaBase || newDelta[property] === undefined || deltaBase[property] === undefined) {
       return { check: true, commit: () => {} }
     }
@@ -70,7 +104,7 @@ export function createPercentageEvaluator(property, minPercentage = 0.1) {
 }
 
 // Helper function for deep value comparison
-function hasValueChanged(delta, base) {
+function hasValueChanged(delta: any, base: any): boolean {
   if (typeof delta !== typeof base) return true
 
   if (typeof delta !== 'object' || delta === null) {
@@ -88,7 +122,7 @@ function hasValueChanged(delta, base) {
 export const defaultThrottle = createDeltaThrottle(50)
 
 // Helper function to generate a deterministic key from delta structure
-function generateDeltaKey(delta, path = '') {
+function generateDeltaKey(delta: any, path: string = ''): string {
   if (typeof delta !== 'object' || delta === null) {
     return path
   }
@@ -110,13 +144,13 @@ function generateDeltaKey(delta, path = '') {
 }
 
 // Helper function to get nested value from state using delta structure
-function getNestedValue(state, delta) {
+function getNestedValue(state: any, delta: any): any {
   if (typeof delta !== 'object' || delta === null) {
     return state
   }
 
   // Recursively extract the nested structure that matches the delta
-  const result = {}
+  const result: any = {}
   for (const key of Object.keys(delta)) {
     if (state && typeof state === 'object' && key in state) {
       if (typeof delta[key] === 'object' && delta[key] !== null) {
@@ -134,7 +168,16 @@ function getNestedValue(state, delta) {
 }
 
 class Js13kClient {
-  constructor(room, options = {}) {
+  private room: string
+  private options: Required<ClientOptions>
+  private socket: PartySocket | null
+  private myId: string | null
+  private state: GameState
+  private eventListeners: Record<string, Function[]>
+  private connected: boolean
+  private deltaBases: Map<string, any>
+
+  constructor(room: string, options: ClientOptions = {}) {
     this.room = room
     this.options = {
       host: window.location.host,
@@ -150,23 +193,22 @@ class Js13kClient {
 
     // Delta change detection system
     this.deltaBases = new Map()
-    this.hasSignificantChange = options.hasSignificantChange || (() => true)
 
     this.connect()
   }
 
   // Save a base state for a given delta key
-  saveDeltaBase(key, deltaBaseState) {
+  saveDeltaBase(key: string, deltaBaseState: any): void {
     this.deltaBases.set(key, JSON.parse(JSON.stringify(deltaBaseState)))
   }
 
   // Get the base state for a given delta key
-  getDeltaBase(key) {
+  getDeltaBase(key: string): any {
     return this.deltaBases.get(key)
   }
 
   // Automatically get or create delta base from current state
-  getOrCreateDeltaBase(delta) {
+  getOrCreateDeltaBase(delta: any): { key: string; baseState: any } {
     const key = generateDeltaKey(delta)
 
     // Check if we already have a saved base
@@ -186,16 +228,13 @@ class Js13kClient {
   }
 
   // Check if a delta has significant changes
-  checkSignificantChange(delta, evaluator = null) {
+  checkSignificantChange(delta: any, evaluator: DeltaEvaluator | null = null): boolean {
     const { key, baseState } = this.getOrCreateDeltaBase(delta)
 
-    if (!evaluator) {
-      // Use default throttler
-      evaluator = defaultThrottle(delta, baseState, key)
-    }
+    const finalEvaluator = evaluator || defaultThrottle
 
     // Handle result object evaluators
-    const result = evaluator(delta, baseState, key)
+    const result = finalEvaluator(delta, baseState, key)
 
     if (result.check) {
       result.commit()
@@ -205,7 +244,7 @@ class Js13kClient {
     return false
   }
 
-  connect() {
+  connect(): void {
     this.socket = new PartySocket({
       host: this.options.host,
       party: this.options.party,
@@ -224,7 +263,7 @@ class Js13kClient {
 
     this.socket.addEventListener('message', (event) => {
       try {
-        const data = JSON.parse(event.data)
+        const data: MessageData = JSON.parse(event.data)
         this.handleMessage(data)
       } catch (error) {
         console.error('Error parsing message:', error)
@@ -232,7 +271,7 @@ class Js13kClient {
     })
   }
 
-  handleMessage(data) {
+  handleMessage(data: MessageData): void {
     if (data.id) {
       // Received my own ID from server
       this.myId = data.id
@@ -259,7 +298,7 @@ class Js13kClient {
   }
 
   // Simple recursive merge function (same as server)
-  mergeState(target, source) {
+  mergeState(target: any, source: any): any {
     if (typeof source !== 'object' || source === null) {
       return source
     }
@@ -278,14 +317,14 @@ class Js13kClient {
   }
 
   // Event handling
-  on(event, callback) {
+  on(event: string, callback: Function): void {
     if (!this.eventListeners[event]) {
       this.eventListeners[event] = []
     }
     this.eventListeners[event].push(callback)
   }
 
-  off(event, callback) {
+  off(event: string, callback: Function): void {
     if (this.eventListeners[event]) {
       const index = this.eventListeners[event].indexOf(callback)
       if (index > -1) {
@@ -294,7 +333,7 @@ class Js13kClient {
     }
   }
 
-  emit(event, data) {
+  emit(event: string, data?: any): void {
     if (this.eventListeners[event]) {
       this.eventListeners[event].forEach((callback) => {
         try {
@@ -307,32 +346,32 @@ class Js13kClient {
   }
 
   // State management
-  getState() {
+  getState(): GameState {
     return this.state
   }
 
-  getMyId() {
+  getMyId(): string | null {
     return this.myId
   }
 
-  getMyState(copy = false) {
+  getMyState(copy: boolean = false): any {
     if (!this.myId || !this.state.players) return null
     const state = this.state.players[this.myId]
     return copy ? JSON.parse(JSON.stringify(state)) : state
   }
 
-  getPlayerState(playerId, copy = false) {
+  getPlayerState(playerId: string, copy: boolean = false): any {
     if (!this.state.players || !this.state.players[playerId]) return null
     const state = this.state.players[playerId]
     return copy ? JSON.parse(JSON.stringify(state)) : state
   }
 
-  isConnected() {
+  isConnected(): boolean {
     return this.connected
   }
 
   // Send updates to server
-  sendDelta(delta, evaluator = null) {
+  sendDelta(delta: any, evaluator: DeltaEvaluator | null = null): void {
     if (this.socket && this.connected) {
       this.state = this.mergeState(this.state, delta)
 
@@ -347,7 +386,7 @@ class Js13kClient {
   }
 
   // Update my own data
-  updateMyData(delta, evaluator = null) {
+  updateMyData(delta: any, evaluator: DeltaEvaluator | null = null): void {
     if (this.myId) {
       this.sendDelta({ players: { [this.myId]: delta } }, evaluator)
     } else {
@@ -356,7 +395,7 @@ class Js13kClient {
   }
 
   // Disconnect
-  disconnect() {
+  disconnect(): void {
     if (this.socket) {
       this.socket.close()
     }
@@ -367,6 +406,12 @@ class Js13kClient {
 export default Js13kClient
 
 // Also make available globally for non-module usage
+declare global {
+  interface Window {
+    Js13kClient: typeof Js13kClient
+  }
+}
+
 if (typeof window !== 'undefined') {
   window.Js13kClient = Js13kClient
 }
