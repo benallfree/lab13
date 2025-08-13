@@ -59,34 +59,18 @@
     </style>
     <script type="module">
       import * as THREE from 'https://esm.sh/three'
-      import PartySocket from 'https://esm.sh/partysocket'
+      import Js13kClient from '../sdk.js'
 
-      // Status indicator
+      // Create status indicator
       const statusIndicator = document.createElement('div')
       statusIndicator.className = 'status-indicator status-connecting'
       statusIndicator.textContent = 'Connecting...'
       document.body.appendChild(statusIndicator)
 
-      // PartySocket setup
-      const socket = new PartySocket({
-        host: window.location.host,
-        party: 'js13k',
-        room: 'flight',
-      })
-
-      socket.addEventListener('open', () => {
-        statusIndicator.className = 'status-indicator status-connected'
-        statusIndicator.textContent = 'Connected'
-      })
-
-      socket.addEventListener('close', () => {
-        statusIndicator.className = 'status-indicator status-disconnected'
-        statusIndicator.textContent = 'Disconnected'
-      })
+      // Create client
+      const client = new Js13kClient('flight')
 
       // Game state
-      let localState = {}
-      let myId = null
       let keys = {}
 
       // Three.js setup
@@ -242,21 +226,19 @@
 
       // Aircraft instances
       const aircrafts = {}
-      let myAircraft = null
 
       // HUD elements
       const hudElement = document.querySelector('.hud')
 
       function updateHUD() {
-        if (!myAircraft) return
-        const pos = myAircraft.position
-        const rot = myAircraft.rotation
+        const myState = client.getMyState()
+        if (!myState) return
         hudElement.innerHTML = `
-          ALT: ${Math.max(0, Math.round(pos.y))}m<br>
-          SPD: ${Math.round(myAircraft.userData.speed || 0)}<br>
-          HDG: ${Math.round(((rot.y * 180) / Math.PI + 360) % 360)}°<br>
-          PITCH: ${Math.round((rot.x * 180) / Math.PI)}°<br>
-          ROLL: ${Math.round((rot.z * 180) / Math.PI)}°
+          ALT: ${Math.max(0, Math.round(myState.y))}m<br>
+          SPD: ${Math.round(myState.s || 0)}<br>
+          HDG: ${Math.round(((myState.ry * 180) / Math.PI + 360) % 360)}°<br>
+          PITCH: ${Math.round((myState.rx * 180) / Math.PI)}°<br>
+          ROLL: ${Math.round((myState.rz * 180) / Math.PI)}°
         `
       }
 
@@ -270,141 +252,75 @@
 
       // Aircraft physics
       function updateMyAircraft() {
-        if (!myAircraft || !myId) return
+        const myState = client.getMyState(true) // get a deep copy of the state
+        if (!myState) return
 
-        const aircraft = myAircraft
         let moved = false
-
-        // Initialize physics data
-        if (!aircraft.userData.velocity) aircraft.userData.velocity = new THREE.Vector3()
-        if (!aircraft.userData.speed) aircraft.userData.speed = 0
-
-        const velocity = aircraft.userData.velocity
         const maxSpeed = 200
         const acceleration = 2
         const drag = 0.98
 
         // Thrust
         if (keys.KeyW || keys.ArrowUp) {
-          aircraft.userData.speed = Math.min(maxSpeed, aircraft.userData.speed + acceleration)
+          myState.s = Math.min(maxSpeed, myState.s + acceleration)
           moved = true
         }
         if (keys.KeyS || keys.ArrowDown) {
-          aircraft.userData.speed = Math.max(0, aircraft.userData.speed - acceleration)
+          myState.s = Math.max(0, myState.s - acceleration)
           moved = true
         }
 
         // Controls
         if (keys.KeyA || keys.ArrowLeft) {
-          aircraft.rotation.y += 0.02
-          aircraft.rotation.z = Math.max(-Math.PI / 2 - 0.3, aircraft.rotation.z - 0.02)
+          myState.ry += 0.02
+          myState.rz = Math.max(-Math.PI / 2 - 0.3, myState.rz - 0.02)
           moved = true
         } else if (keys.KeyD || keys.ArrowRight) {
-          aircraft.rotation.y -= 0.02
-          aircraft.rotation.z = Math.min(-Math.PI / 2 + 0.3, aircraft.rotation.z + 0.02)
+          myState.ry -= 0.02
+          myState.rz = Math.min(-Math.PI / 2 + 0.3, myState.rz + 0.02)
           moved = true
         } else {
-          aircraft.rotation.z += (-Math.PI / 2 - aircraft.rotation.z) * 0.05
+          myState.rz += (-Math.PI / 2 - myState.rz) * 0.05
         }
 
         if (keys.KeyQ) {
-          aircraft.rotation.x = Math.min(0.3, aircraft.rotation.x + 0.02)
+          myState.rx = Math.min(0.3, myState.rx + 0.02)
           moved = true
         } else if (keys.KeyE) {
-          aircraft.rotation.x = Math.max(-0.3, aircraft.rotation.x - 0.02)
+          myState.rx = Math.max(-0.3, myState.rx - 0.02)
           moved = true
         } else {
-          aircraft.rotation.x *= 0.95
+          myState.rx *= 0.95
         }
 
         // Apply physics
-        velocity.set(0, 0, aircraft.userData.speed)
-        velocity.applyEuler(aircraft.rotation)
-        aircraft.position.add(velocity.clone().multiplyScalar(0.016))
+        const velocity = new THREE.Vector3(0, 0, myState.s)
+        const rotation = new THREE.Euler(myState.rx, myState.ry, myState.rz)
+        velocity.applyEuler(rotation)
+
+        myState.x += velocity.x * 0.016
+        myState.y += velocity.y * 0.016
+        myState.z += velocity.z * 0.016
 
         // Ground collision
-        aircraft.position.y = Math.max(2, aircraft.position.y)
+        myState.y = Math.max(2, myState.y)
 
         // Apply drag
-        aircraft.userData.speed *= drag
+        myState.s *= drag
 
-        if (moved || velocity.length() > 0.1) {
-          const state = {
-            x: aircraft.position.x,
-            y: aircraft.position.y,
-            z: aircraft.position.z,
-            rx: aircraft.rotation.x,
-            ry: aircraft.rotation.y,
-            rz: aircraft.rotation.z,
-            s: aircraft.userData.speed,
-          }
-          socket.send(JSON.stringify({ delta: { [myId]: state } }))
-          localState[myId] = state
+        if (moved || myState.s > 0.1) {
+          console.log('myState', myState)
+          client.updateMyData(myState)
         }
       }
-
-      // Merge state function
-      function mergeState(target, source) {
-        if (typeof source !== 'object' || source === null) return source
-        if (typeof target !== 'object' || target === null) target = {}
-        for (const key in source) {
-          if (source.hasOwnProperty(key)) {
-            target[key] = mergeState(target[key], source[key])
-          }
-        }
-        return target
-      }
-
-      // Handle messages
-      socket.addEventListener('message', (event) => {
-        try {
-          const data = JSON.parse(event.data)
-
-          if (data.id) {
-            myId = data.id
-            // Create my aircraft
-            const color = aircraftColors[parseInt(myId) % aircraftColors.length]
-            myAircraft = createAircraft(color)
-            myAircraft.position.set(0, 50, 0)
-            scene.add(myAircraft)
-            aircrafts[myId] = myAircraft
-
-            // Send initial state - set initial roll to match visual orientation
-            const state = {
-              x: 0,
-              y: 50,
-              z: 0,
-              rx: 0,
-              ry: 0,
-              rz: -Math.PI / 2,
-              s: 0,
-            }
-            socket.send(JSON.stringify({ delta: { [myId]: state } }))
-            localState[myId] = state
-          } else if (data.state) {
-            localState = data.state
-            updateAircrafts()
-          } else if (data.delta) {
-            localState = mergeState(localState, data.delta)
-            updateAircrafts()
-          } else if (data.disconnect) {
-            if (aircrafts[data.disconnect] && data.disconnect !== myId) {
-              scene.remove(aircrafts[data.disconnect])
-              delete aircrafts[data.disconnect]
-              delete localState[data.disconnect]
-            }
-          }
-        } catch (error) {
-          console.error('Error parsing message:', error)
-        }
-      })
 
       // Update other aircrafts
       function updateAircrafts() {
-        for (const playerId in localState) {
-          if (playerId === myId) continue
+        const state = client.getState()
+        if (!state.players) return
 
-          const state = localState[playerId]
+        for (const playerId in state.players) {
+          const playerState = state.players[playerId]
           if (!aircrafts[playerId]) {
             const color = aircraftColors[parseInt(playerId) % aircraftColors.length]
             aircrafts[playerId] = createAircraft(color)
@@ -412,27 +328,92 @@
           }
 
           const aircraft = aircrafts[playerId]
-          aircraft.position.set(state.x, state.y, state.z)
-          aircraft.rotation.set(state.rx, state.ry, state.rz)
-          aircraft.userData.speed = state.s
+          aircraft.position.set(playerState.x, playerState.y, playerState.z)
+          aircraft.rotation.set(playerState.rx, playerState.ry, playerState.rz)
+          aircraft.userData.speed = playerState.s
         }
       }
 
       // Camera follow
       function updateCamera() {
-        if (!myAircraft) return
+        const myState = client.getMyState()
+        if (!myState) return
+
+        const position = new THREE.Vector3(myState.x, myState.y, myState.z)
+        const rotation = new THREE.Euler(myState.rx, myState.ry, myState.rz)
 
         const offset = new THREE.Vector3(0, 15, -40)
-        offset.applyEuler(myAircraft.rotation)
+        offset.applyEuler(rotation)
 
-        camera.position.copy(myAircraft.position).add(offset)
-        camera.lookAt(myAircraft.position)
+        camera.position.copy(position).add(offset)
+        camera.lookAt(position)
       }
+
+      // Handle SDK events
+      client.on('connected', () => {
+        console.log('connected')
+        statusIndicator.className = 'status-indicator status-connected'
+        statusIndicator.textContent = 'Connected'
+      })
+
+      client.on('disconnected', () => {
+        console.log('disconnected')
+        statusIndicator.className = 'status-indicator status-disconnected'
+        statusIndicator.textContent = 'Disconnected'
+      })
+
+      client.on('id', (id) => {
+        console.log('Received my ID from server:', id)
+
+        // Create my aircraft visual representation
+        const color = aircraftColors[parseInt(id) % aircraftColors.length]
+        const myAircraft = createAircraft(color)
+        myAircraft.position.set(0, 50, 0)
+        scene.add(myAircraft)
+        aircrafts[id] = myAircraft
+
+        // Send initial state - set initial roll to match visual orientation
+        const state = {
+          x: 0,
+          y: 50,
+          z: 0,
+          rx: 0,
+          ry: 0,
+          rz: -Math.PI / 2,
+          s: 0,
+        }
+        client.updateMyData(state)
+      })
+
+      client.on('connect', (playerId) => {
+        console.log('Client connected:', playerId)
+        // No need to do anything special, they'll send their aircraft data via delta
+      })
+
+      client.on('disconnect', (playerId) => {
+        console.log('Client disconnected:', playerId)
+        // SDK automatically handles removing disconnected players from state
+        if (aircrafts[playerId] && playerId !== client.getMyId()) {
+          scene.remove(aircrafts[playerId])
+          delete aircrafts[playerId]
+        }
+      })
+
+      client.on('state', (state) => {
+        console.log('Received initial state:', state)
+        updateAircrafts()
+      })
+
+      client.on('delta', (delta) => {
+        console.log('Received delta:', delta)
+        updateAircrafts()
+      })
 
       // Animation loop
       function animate() {
         requestAnimationFrame(animate)
         updateMyAircraft()
+        updateAircrafts()
         updateCamera()
         updateHUD()
         renderer.render(scene, camera)

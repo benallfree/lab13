@@ -81,7 +81,7 @@
       }
     </style>
     <script type="module">
-      import PartySocket from 'https://esm.sh/partysocket'
+      import Js13kClient from '../sdk.js'
 
       // Create status indicator
       const statusIndicator = document.createElement('div')
@@ -89,23 +89,8 @@
       statusIndicator.textContent = 'Connecting...'
       document.body.appendChild(statusIndicator)
 
-      const socket = new PartySocket({
-        host: window.location.host,
-        party: 'js13k',
-        room: 'paint',
-      })
-
-      socket.addEventListener('open', () => {
-        console.log('connected')
-        statusIndicator.className = 'status-indicator status-connected'
-        statusIndicator.textContent = 'Connected'
-      })
-
-      socket.addEventListener('close', () => {
-        console.log('disconnected')
-        statusIndicator.className = 'status-indicator status-disconnected'
-        statusIndicator.textContent = 'Disconnected'
-      })
+      // Create client
+      const client = new Js13kClient('paint')
 
       // Color selection functionality
       let currentColor = '#000000'
@@ -130,9 +115,6 @@
       const canvas = document.getElementById('paintCanvas')
       const ctx = canvas.getContext('2d')
 
-      // Local state to track all pixels
-      let localState = {}
-
       // Set canvas size to fill container
       function resizeCanvas() {
         const container = canvas.parentElement
@@ -154,9 +136,10 @@
         ctx.clearRect(0, 0, canvas.width, canvas.height)
 
         // Render all pixels from state
-        for (const x in localState) {
-          for (const y in localState[x]) {
-            const color = localState[x][y]
+        const state = client.getState()
+        for (const x in state) {
+          for (const y in state[x]) {
+            const color = state[x][y]
             ctx.fillStyle = color
             ctx.fillRect(parseInt(x) - 2, parseInt(y) - 2, 4, 4)
           }
@@ -165,58 +148,52 @@
 
       // Single function to draw a pixel
       function drawPixel(x, y) {
-        // Update local state
-        if (!localState[x]) localState[x] = {}
-        localState[x][y] = currentColor
-
-        // Render to canvas
+        // Render to canvas immediately for smooth feedback
         ctx.fillStyle = currentColor
         ctx.fillRect(x - 2, y - 2, 4, 4)
         console.log(`Drew pixel at (${x}, ${y}) with color ${currentColor}`)
 
         // Send delta message to server
         const delta = { [x]: { [y]: currentColor } }
-        socket.send(JSON.stringify({ delta }))
+        client.sendDelta(delta)
       }
 
-      // Simple recursive merge function (same as server)
-      function mergeState(target, source) {
-        if (typeof source !== 'object' || source === null) {
-          return source
-        }
+      // Handle SDK events
+      client.on('connected', () => {
+        console.log('connected')
+        statusIndicator.className = 'status-indicator status-connected'
+        statusIndicator.textContent = 'Connected'
+      })
 
-        if (typeof target !== 'object' || target === null) {
-          target = {}
-        }
+      client.on('disconnected', () => {
+        console.log('disconnected')
+        statusIndicator.className = 'status-indicator status-disconnected'
+        statusIndicator.textContent = 'Disconnected'
+      })
 
-        for (const key in source) {
-          if (source.hasOwnProperty(key)) {
-            target[key] = mergeState(target[key], source[key])
-          }
-        }
+      client.on('id', (id) => {
+        console.log('Received my ID from server:', id)
+        // No special initialization needed for paint demo
+      })
 
-        return target
-      }
+      client.on('connect', (playerId) => {
+        console.log('Client connected:', playerId)
+        // No need to do anything special, they'll send their pixels via delta
+      })
 
-      // Handle incoming messages
-      socket.addEventListener('message', (event) => {
-        try {
-          const data = JSON.parse(event.data)
+      client.on('disconnect', (playerId) => {
+        console.log('Client disconnected:', playerId)
+        // SDK automatically handles removing disconnected players from state
+      })
 
-          if (data.state) {
-            // Initial state received
-            console.log('Received initial state:', data.state)
-            localState = data.state
-            renderState()
-          } else if (data.delta) {
-            // Delta received from another client
-            console.log('Received delta:', data.delta)
-            localState = mergeState(localState, data.delta)
-            renderState()
-          }
-        } catch (error) {
-          console.error('Error parsing message:', error)
-        }
+      client.on('state', (state) => {
+        console.log('Received initial state:', state)
+        renderState()
+      })
+
+      client.on('delta', (delta) => {
+        console.log('Received delta:', delta)
+        renderState()
       })
 
       // Handle canvas clicks
