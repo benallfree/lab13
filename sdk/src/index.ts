@@ -371,24 +371,31 @@ class Js13kClient {
   }
 
   // Send updates to server
-  sendDelta(delta: any, evaluator: DeltaEvaluator | null = null): void {
-    if (this.socket && this.connected) {
-      this.state = this.mergeState(this.state, delta)
+  sendDelta(delta: any): void {
+    if (!this.socket || !this.connected) {
+      console.warn('Not connected to server, skipping delta')
+      return
+    }
 
-      // Check if this delta has significant changes
-      if (!this.checkSignificantChange(delta, evaluator)) {
-        // Update local state but don't send to server
-        return
-      }
+    this.socket.send(JSON.stringify({ delta }))
+  }
 
-      this.socket.send(JSON.stringify({ delta }))
+  // Send updates to server
+  updateState(delta: any, evaluator: DeltaEvaluator | null = null): void {
+    const hasSignificantChange = this.checkSignificantChange(delta, evaluator)
+
+    this.state = this.mergeState(this.state, delta)
+
+    // Check if this delta has significant changes
+    if (hasSignificantChange) {
+      this.sendDelta(delta)
     }
   }
 
   // Update my own data
-  updateMyData(delta: any, evaluator: DeltaEvaluator | null = null): void {
+  updateMyState(delta: any, evaluator: DeltaEvaluator | null = null): void {
     if (this.myId) {
-      this.sendDelta({ players: { [this.myId]: delta } }, evaluator)
+      this.updateState({ players: { [this.myId]: delta } }, evaluator)
     } else {
       console.warn('No myId yet, waiting for server...')
     }

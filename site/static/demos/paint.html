@@ -107,7 +107,7 @@
 
           // Update current color
           currentColor = button.dataset.color
-          console.log('Selected color:', currentColor)
+          log('Selected color:', currentColor)
         })
       })
 
@@ -151,57 +151,56 @@
         // Render to canvas immediately for smooth feedback
         ctx.fillStyle = currentColor
         ctx.fillRect(x - 2, y - 2, 4, 4)
-        console.log(`Drew pixel at (${x}, ${y}) with color ${currentColor}`)
+        log(`Drew pixel at (${x}, ${y}) with color ${currentColor}`)
 
         // Send delta message to server
         const delta = { [x]: { [y]: currentColor } }
-        client.sendDelta(delta)
+        client.updateState(delta)
       }
 
       // Handle SDK events
       client.on('connected', () => {
-        console.log('connected')
+        log('connected')
         statusIndicator.className = 'status-indicator status-connected'
         statusIndicator.textContent = 'Connected'
       })
 
       client.on('disconnected', () => {
-        console.log('disconnected')
+        log('disconnected')
         statusIndicator.className = 'status-indicator status-disconnected'
         statusIndicator.textContent = 'Disconnected'
       })
 
+      let myId = null
+
+      const log = (...args) => {
+        console.log(`[${myId?.slice(-4) || null}]`, ...args)
+      }
+
       client.on('id', (id) => {
-        console.log('Received my ID from server:', id)
+        log('Received my ID from server:', id)
+        myId = id
         // No special initialization needed for paint demo
       })
 
       client.on('connect', (playerId) => {
-        console.log('Client connected:', playerId)
+        log('Client connected:', playerId)
         // No need to do anything special, they'll send their pixels via delta
       })
 
       client.on('disconnect', (playerId) => {
-        console.log('Client disconnected:', playerId)
+        log('Client disconnected:', playerId)
         // SDK automatically handles removing disconnected players from state
       })
 
       client.on('state', (state) => {
-        console.log('Received initial state:', state)
+        log('Received initial state:', state)
         renderState()
       })
 
       client.on('delta', (delta) => {
-        console.log('Received delta:', delta)
+        log('Received delta:', delta)
         renderState()
-      })
-
-      // Handle canvas clicks
-      canvas.addEventListener('click', (event) => {
-        const rect = canvas.getBoundingClientRect()
-        const x = event.clientX - rect.left
-        const y = event.clientY - rect.top
-        drawPixel(x, y)
       })
 
       // Handle mouse drag for continuous drawing
