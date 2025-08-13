@@ -18,8 +18,8 @@
   "durable_objects": {
     "bindings": [
       {
-        "name": "MyServer",
-        "class_name": "MyServer"
+        "name": "js13k",
+        "class_name": "Js13kServer"
       }
     ]
   },
@@ -27,6 +27,15 @@
     {
       "tag": "v1",
       "new_classes": ["MyServer"]
+    },
+    {
+      "tag": "v2",
+      "renamed_classes": [
+        {
+          "from": "MyServer",
+          "to": "JS13K"
+        }
+      ]
     }
   ]
 }

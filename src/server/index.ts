@@ -30,7 +30,7 @@ type RoomState = Record<string, any>;
 type State = Record<RoomName, RoomState>;
 
 // Define your Server
-export class MyServer extends Server {
+export class Js13kServer extends Server {
   private state: State = {};
 
   getRoomState() {
