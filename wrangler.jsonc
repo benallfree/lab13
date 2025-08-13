@@ -24,6 +24,11 @@
     },
   },
 
+  "assets": {
+    "directory": "./sdk",
+    "binding": "SDK",
+  },
+
   "observability": {
     "enabled": true,
   },

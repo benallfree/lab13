@@ -107,9 +107,12 @@ export default {
     const res = await routePartykitRequest(request, env as any)
     if (res) return res
 
-    console.log('request.url', request.url)
+    console.log('request.url', request.url, request.url.endsWith('sdk.js'))
     if (request.url.endsWith('sdk.js')) {
-      return env.SDK.fetch(request)
+      console.log('fetching sdk.js')
+      const url = new URL(request.url)
+      url.pathname = '/index.js'
+      return env.SDK.fetch(url.toString(), request)
     }
 
     if (env.ENVIRONMENT === 'development') {
