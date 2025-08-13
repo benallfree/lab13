@@ -7,11 +7,23 @@
   "name": "js13k-mmo",
   "compatibility_date": "2025-08-13",
 
-  "assets": {
-    // The path to the directory containing the `index.html` file to be served at `/`
-    "directory": "./site/build",
-    "binding": "ASSETS",
+  "vars": {
+    "ENVIRONMENT": "development",
   },
+
+  "env": {
+    "production": {
+      "assets": {
+        "directory": "./site/build",
+        "run_worker_first": false,
+        "binding": "ASSETS",
+      },
+      "vars": {
+        "ENVIRONMENT": "production",
+      },
+    },
+  },
+
   "observability": {
     "enabled": true,
   },

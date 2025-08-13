@@ -1,3 +1,5 @@
+/// <reference path="./worker-configuration.d.ts" />
+
 import { Connection, ConnectionContext, routePartykitRequest, Server, WSMessage } from 'partyserver'
 
 // Simple recursive merge function
@@ -94,7 +96,18 @@ export class Js13kServer extends Server {
 
 export default {
   // Set up your fetch handler to use configured Servers
-  async fetch(request, env) {
-    return (await routePartykitRequest(request, env)) || env.ASSETS.fetch(request)
+  async fetch(request: Request, env: Env) {
+    const res = await routePartykitRequest(request, env as any)
+    if (res) return res
+
+    if (env.ENVIRONMENT === 'development') {
+      const url = new URL(request.url)
+      const docusaurusUrl = `http://localhost:3000${url.pathname}${url.search}`
+      // console.log(`Forwarding request to Docusaurus dev server: ${docusaurusUrl}`)
+      return fetch(docusaurusUrl, request)
+    }
+
+    // @ts-ignore
+    return env.ASSETS.fetch(request)
   },
 }
