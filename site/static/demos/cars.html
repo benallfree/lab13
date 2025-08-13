@@ -95,7 +95,7 @@
       }
     </style>
     <script type="module">
-      import PartySocket from 'https://esm.sh/partysocket'
+      import Js13kClient from '../sdk.js'
 
       // Create status indicator
       const statusIndicator = document.createElement('div')
@@ -103,27 +103,10 @@
       statusIndicator.textContent = 'Connecting...'
       document.body.appendChild(statusIndicator)
 
-      const socket = new PartySocket({
-        host: window.location.host,
-        party: 'js13k',
-        room: 'cars',
-      })
-
-      socket.addEventListener('open', () => {
-        console.log('connected')
-        statusIndicator.className = 'status-indicator status-connected'
-        statusIndicator.textContent = 'Connected'
-      })
-
-      socket.addEventListener('close', () => {
-        console.log('disconnected')
-        statusIndicator.className = 'status-indicator status-disconnected'
-        statusIndicator.textContent = 'Disconnected'
-      })
+      // Create client
+      const client = new Js13kClient('cars')
 
       // Game state
-      let localState = {}
-      let myId = null
       let keys = {
         ArrowUp: false,
         ArrowDown: false,
@@ -205,26 +188,24 @@
         ctx.setLineDash([])
 
         // Render all cars from state
-        for (const playerId in localState) {
-          const car = localState[playerId]
-          const color = carColors[parseInt(playerId) % carColors.length]
-          const isMyCar = playerId === myId
-          drawCar(car.x, car.y, car.angle, color, isMyCar)
+        const state = client.getState()
+        if (state.players) {
+          for (const playerId in state.players) {
+            const car = state.players[playerId]
+            const color = carColors[parseInt(playerId) % carColors.length]
+            const isMyCar = playerId === client.getMyId()
+            drawCar(car.x, car.y, car.angle, color, isMyCar)
+          }
         }
       }
 
       // Update car position based on keys
       function updateCar() {
-        if (!myId) {
-          console.log('No myId yet, waiting for server...')
-          return
-        }
-        if (!localState[myId]) {
-          console.log('No car in localState for myId:', myId, 'localState:', localState)
+        const car = client.getMyState(true) // Get deep copy since we'll modify it
+        if (!car) {
           return
         }
 
-        const car = localState[myId]
         let moved = false
 
         if (keys.ArrowUp) {
@@ -256,97 +237,54 @@
 
         if (moved) {
           // Send update to server
-          const delta = { [myId]: car }
-          socket.send(JSON.stringify({ delta }))
-          // Also update local state immediately for smooth movement
-          localState[myId] = { ...car }
+          client.updateMyData(car)
         }
       }
 
-      // Simple recursive merge function (same as server)
-      function mergeState(target, source) {
-        if (typeof source !== 'object' || source === null) {
-          return source
+      // Handle SDK events
+      client.on('connected', () => {
+        console.log('connected')
+        statusIndicator.className = 'status-indicator status-connected'
+        statusIndicator.textContent = 'Connected'
+      })
+
+      client.on('disconnected', () => {
+        console.log('disconnected')
+        statusIndicator.className = 'status-indicator status-disconnected'
+        statusIndicator.textContent = 'Disconnected'
+      })
+
+      client.on('id', (id) => {
+        console.log('Received my ID from server:', id)
+
+        // Initialize my car
+        const initialCar = {
+          x: canvas.width / 2,
+          y: canvas.height / 2,
+          angle: 0,
         }
+        console.log('Initialized my car:', initialCar)
+        // Send initial position
+        client.updateMyData(initialCar)
+      })
 
-        if (typeof target !== 'object' || target === null) {
-          target = {}
-        }
+      client.on('connect', (playerId) => {
+        console.log('Client connected:', playerId)
+        // No need to do anything special, they'll send their car data via delta
+      })
 
-        for (const key in source) {
-          if (source.hasOwnProperty(key)) {
-            target[key] = mergeState(target[key], source[key])
-          }
-        }
+      client.on('disconnect', (playerId) => {
+        console.log('Client disconnected:', playerId)
+        // SDK automatically handles removing disconnected players from state
+      })
 
-        return target
-      }
+      client.on('state', (state) => {
+        console.log('Received initial state:', state)
+        // No need to do anything special, the client will initialize its own car upon receiving ID
+      })
 
-      // Handle incoming messages
-      socket.addEventListener('message', (event) => {
-        try {
-          const data = JSON.parse(event.data)
-
-          if (data.id) {
-            // Received my own ID from server
-            myId = data.id
-            console.log('Received my ID from server:', myId)
-
-            // Initialize my car if it doesn't exist in state
-            if (!localState[myId]) {
-              localState[myId] = {
-                x: canvas.width / 2,
-                y: canvas.height / 2,
-                angle: 0,
-              }
-              console.log('Initialized my car:', localState[myId])
-              // Send initial position
-              const delta = { [myId]: localState[myId] }
-              socket.send(JSON.stringify({ delta }))
-              // Render immediately so my car shows up
-              renderState()
-            } else {
-              // If car already exists in state, just render it
-              renderState()
-            }
-          } else if (data.connect) {
-            // Another client connected
-            console.log('Client connected:', data.connect)
-            // No need to do anything special, they'll send their car data via delta
-          } else if (data.disconnect) {
-            // A client disconnected
-            console.log('Client disconnected:', data.disconnect)
-            // Remove their car from local state
-            if (localState[data.disconnect]) {
-              delete localState[data.disconnect]
-              console.log('Removed car for disconnected client:', data.disconnect)
-            }
-          } else if (data.state) {
-            // Initial state received
-            console.log('Received initial state:', data.state)
-            localState = data.state
-            // If we have our ID but no car in state, initialize it
-            if (myId && !localState[myId]) {
-              localState[myId] = {
-                x: canvas.width / 2,
-                y: canvas.height / 2,
-                angle: 0,
-              }
-              console.log('Initialized my car after state received:', localState[myId])
-              // Send initial position
-              const delta = { [myId]: localState[myId] }
-              socket.send(JSON.stringify({ delta }))
-            }
-            renderState()
-          } else if (data.delta) {
-            // Delta received from another client
-            console.log('Received delta:', data.delta)
-            localState = mergeState(localState, data.delta)
-            renderState()
-          }
-        } catch (error) {
-          console.error('Error parsing message:', error)
-        }
+      client.on('delta', (delta) => {
+        console.log('Received delta:', delta)
       })
 
       // Handle key events
