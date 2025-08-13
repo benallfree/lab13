@@ -13,6 +13,11 @@ const demos = [
     filename: "cars.html",
     description: "JS13K MMO Demo Series - Cars Demo",
   },
+  {
+    name: "Flight Simulator",
+    filename: "flight.html",
+    description: "JS13K MMO Demo Series - Flight Simulator",
+  },
 ];
 
 // Track current demo and iframe count
@@ -27,7 +32,7 @@ function createLayout() {
   app.innerHTML = `
     <div class="layout">
       <aside class="sidebar">
-        <h2>Demos</h2>
+        <h2>JS13K MMO Demo Series</h2>
         <nav class="demo-nav">
           ${demos
             .map(

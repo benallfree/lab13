@@ -168,6 +168,11 @@ function updatePlayer(newData) {
 - State: `{ playerId: { x, y, angle } }` (car positions)
 - Players drive cars, movement synced across clients
 
+**Flight Simulator** - 3D multiplayer flight
+
+- State: `{ playerId: { x, y, z, rx, ry, rz, s } }` (aircraft position, rotation, speed)
+- Players fly aircraft in 3D space with realistic physics and controls
+
 ## Best Practices
 
 - **Render after every state change** - Keep display synchronized
