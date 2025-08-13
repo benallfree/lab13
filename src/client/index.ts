@@ -4,19 +4,19 @@ import "./styles.css";
 // Demo data
 const demos = [
   {
-    name: "Paint Demo",
+    name: "Paint",
     filename: "paint.html",
-    description: "JS13K MMO Demo Series - Paint Demo",
+    description: "Collaborative painting with friends.",
   },
   {
-    name: "Cars Demo",
+    name: "Cars",
     filename: "cars.html",
-    description: "JS13K MMO Demo Series - Cars Demo",
+    description: "Race with friends in a 2D car race.",
   },
   {
     name: "Flight Simulator",
     filename: "flight.html",
-    description: "JS13K MMO Demo Series - Flight Simulator",
+    description: "Fly with friends in a 3D flight simulator.",
   },
 ];
 
@@ -32,7 +32,7 @@ function createLayout() {
   app.innerHTML = `
     <div class="layout">
       <aside class="sidebar">
-        <h2>JS13K MMO Demo Series</h2>
+        <h2>JS13K MMO Challenge Series</h2>
         <nav class="demo-nav">
           ${demos
             .map(
@@ -48,6 +48,7 @@ function createLayout() {
       </aside>
       <main class="main-content">
         <div class="main-header">
+
           <button
             class="view-github-btn"
             id="view-github-btn"
