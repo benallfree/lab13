@@ -25,20 +25,33 @@ function mergeState(target: any, source: any): any {
   return target;
 }
 
+type RoomName = string;
+type RoomState = Record<string, any>;
+type State = Record<RoomName, RoomState>;
+
 // Define your Server
 export class MyServer extends Server {
-  private state: any = {};
+  private state: State = {};
+
+  getRoomState() {
+    return this.state[this.name] || {};
+  }
+
+  setRoomState(state: RoomState) {
+    this.state[this.name] = state;
+  }
 
   onConnect(conn: Connection, ctx: ConnectionContext) {
     // A websocket just connected!
     console.log(
       `Connected:
     id: ${conn.id}
+    room: ${this.name}
     url: ${new URL(ctx.request.url).pathname}`
     );
 
     // Send initial state to new connection
-    conn.send(JSON.stringify({ state: this.state }));
+    conn.send(JSON.stringify({ state: this.getRoomState() }));
   }
 
   onMessage(conn: Connection, message: WSMessage) {
@@ -47,7 +60,7 @@ export class MyServer extends Server {
 
       if (data.delta) {
         // Merge delta into state
-        this.state = mergeState(this.state, data.delta);
+        this.setRoomState(mergeState(this.getRoomState(), data.delta));
 
         // Broadcast delta to all other clients
         this.broadcast(message, [conn.id]);

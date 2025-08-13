@@ -8,6 +8,11 @@ const demos = [
     filename: "paint.html",
     description: "JS13K MMO Demo Series - Paint Demo",
   },
+  {
+    name: "Cars Demo",
+    filename: "cars.html",
+    description: "JS13K MMO Demo Series - Cars Demo",
+  },
 ];
 
 // Track current demo and iframe count

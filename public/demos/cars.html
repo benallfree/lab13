@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, shrink-to-fit=no"
+    />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>Cars Demo: JS13K MMO Demo Series</title>
+    <meta name="title" content="Cars Demo: JS13K MMO Demo Series" />
+    <meta name="description" content="Cars Demo: JS13K MMO Demo Series" />
+    <meta name="author" content="benallfree" />
+    <style>
+      .status-indicator {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        padding: 8px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: bold;
+        color: white;
+        transition: background-color 0.3s ease;
+      }
+
+      .status-connecting {
+        background-color: #f39c12;
+      }
+
+      .status-connected {
+        background-color: #27ae60;
+      }
+
+      .status-disconnected {
+        background-color: #e74c3c;
+      }
+
+      .controls {
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        display: flex;
+        gap: 8px;
+        padding: 8px;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .control-btn {
+        padding: 8px 12px;
+        border: 2px solid #ddd;
+        border-radius: 4px;
+        background: white;
+        cursor: pointer;
+        font-weight: bold;
+        transition: all 0.2s ease;
+      }
+
+      .control-btn:hover {
+        background: #f0f0f0;
+        border-color: #999;
+      }
+
+      .control-btn.active {
+        background: #007bff;
+        color: white;
+        border-color: #0056b3;
+      }
+
+      .game-container {
+        position: fixed;
+        top: 60px;
+        left: 10px;
+        right: 10px;
+        bottom: 10px;
+        background: #2c5e1e;
+        border-radius: 8px;
+        overflow: hidden;
+      }
+
+      #gameCanvas {
+        display: block;
+        cursor: crosshair;
+      }
+
+      .instructions {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 12px;
+        border-radius: 8px;
+        font-size: 14px;
+        max-width: 300px;
+      }
+    </style>
+    <script type="module">
+      import PartySocket from "https://esm.sh/partysocket";
+
+      // Create status indicator
+      const statusIndicator = document.createElement("div");
+      statusIndicator.className = "status-indicator status-connecting";
+      statusIndicator.textContent = "Connecting...";
+      document.body.appendChild(statusIndicator);
+
+      const socket = new PartySocket({
+        host: window.location.host,
+        party: "my-server",
+        room: "cars",
+      });
+
+      socket.addEventListener("open", () => {
+        console.log("connected");
+        statusIndicator.className = "status-indicator status-connected";
+        statusIndicator.textContent = "Connected";
+      });
+
+      socket.addEventListener("close", () => {
+        console.log("disconnected");
+        statusIndicator.className = "status-indicator status-disconnected";
+        statusIndicator.textContent = "Disconnected";
+      });
+
+      // Game state
+      let localState = {};
+      let myId = null;
+      let keys = {
+        ArrowUp: false,
+        ArrowDown: false,
+        ArrowLeft: false,
+        ArrowRight: false,
+      };
+
+      // Canvas setup
+      const canvas = document.getElementById("gameCanvas");
+      const ctx = canvas.getContext("2d");
+
+      // Set canvas size to fill container
+      function resizeCanvas() {
+        const container = canvas.parentElement;
+        canvas.width = container.clientWidth;
+        canvas.height = container.clientHeight;
+      }
+
+      // Initial resize
+      resizeCanvas();
+
+      // Resize on window resize
+      window.addEventListener("resize", resizeCanvas);
+
+      // Car colors for different players
+      const carColors = [
+        "#ff0000",
+        "#00ff00",
+        "#0000ff",
+        "#ffff00",
+        "#ff00ff",
+        "#00ffff",
+        "#ffa500",
+        "#800080",
+      ];
+
+      // Draw a car
+      function drawCar(x, y, angle, color, isMyCar = false) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(angle);
+
+        // Car body
+        ctx.fillStyle = color;
+        ctx.fillRect(-15, -8, 30, 16);
+
+        // Car roof
+        ctx.fillRect(-8, -12, 16, 8);
+
+        // Wheels
+        ctx.fillStyle = "#333";
+        ctx.fillRect(-12, -10, 4, 20);
+        ctx.fillRect(8, -10, 4, 20);
+
+        // Headlights
+        ctx.fillStyle = "#ffff00";
+        ctx.fillRect(-12, -6, 3, 3);
+        ctx.fillRect(-12, 3, 3, 3);
+
+        // My car gets a special indicator
+        if (isMyCar) {
+          ctx.fillStyle = "#fff";
+          ctx.font = "12px Arial";
+          ctx.textAlign = "center";
+          ctx.fillText("YOU", 0, -20);
+        }
+
+        ctx.restore();
+      }
+
+      // Render the current state to canvas
+      function renderState() {
+        // Clear canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw grass pattern
+        ctx.fillStyle = "#2c5e1e";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Draw some road lines
+        ctx.strokeStyle = "#fff";
+        ctx.lineWidth = 2;
+        ctx.setLineDash([20, 20]);
+        ctx.beginPath();
+        ctx.moveTo(canvas.width / 2, 0);
+        ctx.lineTo(canvas.width / 2, canvas.height);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Render all cars from state
+        for (const playerId in localState) {
+          const car = localState[playerId];
+          const color = carColors[parseInt(playerId) % carColors.length];
+          const isMyCar = playerId === myId;
+          drawCar(car.x, car.y, car.angle, color, isMyCar);
+        }
+      }
+
+      // Update car position based on keys
+      function updateCar() {
+        if (!myId || !localState[myId]) return;
+
+        const car = localState[myId];
+        let moved = false;
+
+        if (keys.ArrowUp) {
+          car.x += Math.cos(car.angle) * 3;
+          car.y += Math.sin(car.angle) * 3;
+          moved = true;
+        }
+        if (keys.ArrowDown) {
+          car.x -= Math.cos(car.angle) * 2;
+          car.y -= Math.sin(car.angle) * 2;
+          moved = true;
+        }
+        if (keys.ArrowLeft) {
+          car.angle -= 0.1;
+          moved = true;
+        }
+        if (keys.ArrowRight) {
+          car.angle += 0.1;
+          moved = true;
+        }
+
+        // Keep car within bounds
+        car.x = Math.max(20, Math.min(canvas.width - 20, car.x));
+        car.y = Math.max(20, Math.min(canvas.height - 20, car.y));
+
+        if (moved) {
+          // Send update to server
+          const delta = { [myId]: car };
+          socket.send(JSON.stringify({ delta }));
+        }
+      }
+
+      // Simple recursive merge function (same as server)
+      function mergeState(target, source) {
+        if (typeof source !== "object" || source === null) {
+          return source;
+        }
+
+        if (typeof target !== "object" || target === null) {
+          target = {};
+        }
+
+        for (const key in source) {
+          if (source.hasOwnProperty(key)) {
+            target[key] = mergeState(target[key], source[key]);
+          }
+        }
+
+        return target;
+      }
+
+      // Handle incoming messages
+      socket.addEventListener("message", (event) => {
+        try {
+          const data = JSON.parse(event.data);
+
+          if (data.state) {
+            // Initial state received
+            console.log("Received initial state:", data.state);
+            localState = data.state;
+
+            // Generate my ID if I don't have one
+            if (!myId) {
+              myId = Date.now().toString();
+              // Initialize my car if it doesn't exist
+              if (!localState[myId]) {
+                localState[myId] = {
+                  x: canvas.width / 2,
+                  y: canvas.height / 2,
+                  angle: 0,
+                };
+                // Send initial position
+                const delta = { [myId]: localState[myId] };
+                socket.send(JSON.stringify({ delta }));
+              }
+            }
+
+            renderState();
+          } else if (data.delta) {
+            // Delta received from another client
+            console.log("Received delta:", data.delta);
+            localState = mergeState(localState, data.delta);
+            renderState();
+          }
+        } catch (error) {
+          console.error("Error parsing message:", error);
+        }
+      });
+
+      // Handle key events
+      document.addEventListener("keydown", (event) => {
+        if (keys.hasOwnProperty(event.key)) {
+          keys[event.key] = true;
+          event.preventDefault();
+        }
+      });
+
+      document.addEventListener("keyup", (event) => {
+        if (keys.hasOwnProperty(event.key)) {
+          keys[event.key] = false;
+          event.preventDefault();
+        }
+      });
+
+      // Game loop
+      function gameLoop() {
+        updateCar();
+        requestAnimationFrame(gameLoop);
+      }
+
+      // Start game loop
+      gameLoop();
+    </script>
+  </head>
+  <body>
+    <div class="controls">
+      <div class="control-btn" id="up-btn">⬆️ Up</div>
+      <div class="control-btn" id="down-btn">⬇️ Down</div>
+      <div class="control-btn" id="left-btn">⬅️ Left</div>
+      <div class="control-btn" id="right-btn">➡️ Right</div>
+    </div>
+    <div class="game-container">
+      <canvas id="gameCanvas"></canvas>
+    </div>
+    <div class="instructions">
+      <strong>Controls:</strong><br />
+      Arrow keys to drive<br />
+      Each player gets a unique colored car<br />
+      Your car is marked with "YOU"
+    </div>
+  </body>
+</html>
