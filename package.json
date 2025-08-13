@@ -1,0 +1,20 @@
+{
+  "name": "my-first-worker",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "npm run build && vite preview",
+    "deploy": "npm run build && wrangler deploy"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.11.3",
+    "vite": "^7.1.2",
+    "wrangler": "^4.29.0"
+  },
+  "dependencies": {
+    "partyserver": "^0.0.72"
+  }
+}
