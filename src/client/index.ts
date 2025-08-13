@@ -1,33 +1,33 @@
-import "./normalize.css";
-import "./styles.css";
+import './normalize.css'
+import './styles.css'
 
 // Demo data
 const demos = [
   {
-    name: "Paint",
-    filename: "paint.html",
-    description: "Collaborative painting with friends.",
+    name: 'Paint',
+    filename: 'paint.html',
+    description: 'Collaborative painting with friends.',
   },
   {
-    name: "Cars",
-    filename: "cars.html",
-    description: "Race with friends in a 2D car race.",
+    name: 'Cars',
+    filename: 'cars.html',
+    description: 'Race with friends in a 2D car race.',
   },
   {
-    name: "Flight Simulator",
-    filename: "flight.html",
-    description: "Fly with friends in a 3D flight simulator.",
+    name: 'Flight Simulator',
+    filename: 'flight.html',
+    description: 'Fly with friends in a 3D flight simulator.',
   },
-];
+]
 
 // Track current demo and iframe count
-let currentDemo = "";
-let iframeCount = 1;
+let currentDemo = ''
+let iframeCount = 1
 
 // Create the main layout
 function createLayout() {
-  const app = document.getElementById("app");
-  if (!app) return;
+  const app = document.getElementById('app')
+  if (!app) return
 
   app.innerHTML = `
     <div class="layout">
@@ -43,7 +43,7 @@ function createLayout() {
             </button>
           `
             )
-            .join("")}
+            .join('')}
         </nav>
         <div>
           <a
@@ -109,91 +109,88 @@ function createLayout() {
         </button>
       </main>
     </div>
-  `;
+  `
 
   // Add event listeners
-  const demoButtons = document.querySelectorAll(".demo-item");
+  const demoButtons = document.querySelectorAll('.demo-item')
   demoButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      const filename = button.getAttribute("data-demo");
+    button.addEventListener('click', () => {
+      const filename = button.getAttribute('data-demo')
       if (filename) {
-        loadDemo(filename);
+        loadDemo(filename)
 
         // Update active state
-        demoButtons.forEach((btn) => btn.classList.remove("active"));
-        button.classList.add("active");
+        demoButtons.forEach((btn) => btn.classList.remove('active'))
+        button.classList.add('active')
 
         // Show GitHub button
-        const viewGithubBtn = document.getElementById("view-github-btn");
+        const viewGithubBtn = document.getElementById('view-github-btn')
         if (viewGithubBtn) {
-          viewGithubBtn.style.display = "block";
+          viewGithubBtn.style.display = 'block'
         }
       }
-    });
-  });
+    })
+  })
 
   // Add iframe button event listener
-  const addIframeBtn = document.getElementById("add-iframe-btn");
-  addIframeBtn?.addEventListener("click", addNewIframe);
+  const addIframeBtn = document.getElementById('add-iframe-btn')
+  addIframeBtn?.addEventListener('click', addNewIframe)
 
   // Add GitHub button event listener
-  const viewGithubBtn = document.getElementById("view-github-btn");
-  viewGithubBtn?.addEventListener("click", viewOnGithub);
+  const viewGithubBtn = document.getElementById('view-github-btn')
+  viewGithubBtn?.addEventListener('click', viewOnGithub)
 
   // Load first demo by default
   if (demos.length > 0) {
-    loadDemo(demos[0].filename);
-    demoButtons[0]?.classList.add("active");
+    loadDemo(demos[0].filename)
+    demoButtons[0]?.classList.add('active')
   }
 }
 
 function loadDemo(filename: string) {
-  currentDemo = filename;
-  iframeCount = 1;
+  currentDemo = filename
+  iframeCount = 1
 
   // Clear existing iframes and create one new one
-  const container = document.getElementById("iframes-container");
+  const container = document.getElementById('iframes-container')
   if (container) {
     container.innerHTML = `
       <div class="iframe-container">
         <iframe class="demo-iframe" src="/demos/${filename}" width="640" height="400" frameborder="0"></iframe>
       </div>
-    `;
+    `
   }
 
   // Show GitHub button
-  const viewGithubBtn = document.getElementById("view-github-btn");
+  const viewGithubBtn = document.getElementById('view-github-btn')
   if (viewGithubBtn) {
-    viewGithubBtn.style.display = "block";
+    viewGithubBtn.style.display = 'block'
   }
 }
 
 function addNewIframe() {
-  if (!currentDemo) return;
+  if (!currentDemo) return
 
-  iframeCount++;
-  const container = document.getElementById("iframes-container");
+  iframeCount++
+  const container = document.getElementById('iframes-container')
   if (container) {
-    const newIframe = document.createElement("div");
-    newIframe.className = "iframe-container";
+    const newIframe = document.createElement('div')
+    newIframe.className = 'iframe-container'
     newIframe.innerHTML = `
       <iframe class="demo-iframe" src="/demos/${currentDemo}" width="640" height="400" frameborder="0"></iframe>
-    `;
-    container.appendChild(newIframe);
+    `
+    container.appendChild(newIframe)
   }
 }
 
 function viewOnGithub() {
-  if (!currentDemo) return;
-  window.open(
-    `https://github.com/benallfree/js13k-mmo/tree/main/public/demos/${currentDemo}`,
-    "_blank"
-  );
+  if (!currentDemo) return
+  window.open(`https://github.com/benallfree/js13k-mmo/tree/main/public/demos/${currentDemo}`, '_blank')
 }
 
 // Initialize when DOM is ready
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", createLayout);
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', createLayout)
 } else {
-  createLayout();
+  createLayout()
 }

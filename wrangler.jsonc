@@ -9,33 +9,33 @@
 
   "assets": {
     // The path to the directory containing the `index.html` file to be served at `/`
-    "directory": "./public"
+    "directory": "./public",
   },
   "observability": {
-    "enabled": true
+    "enabled": true,
   },
   "main": "src/server/index.ts",
   "durable_objects": {
     "bindings": [
       {
         "name": "js13k",
-        "class_name": "Js13kServer"
-      }
-    ]
+        "class_name": "Js13kServer",
+      },
+    ],
   },
   "migrations": [
     {
       "tag": "v1",
-      "new_classes": ["MyServer"]
+      "new_classes": ["MyServer"],
     },
     {
       "tag": "v2",
       "renamed_classes": [
         {
           "from": "MyServer",
-          "to": "Js13kServer"
-        }
-      ]
-    }
-  ]
+          "to": "Js13kServer",
+        },
+      ],
+    },
+  ],
 }

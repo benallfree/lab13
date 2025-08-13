@@ -1,11 +1,8 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, shrink-to-fit=no"
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <title>Paint Demo: JS13K MMO Challenge Series</title>
     <meta name="title" content="Paint Demo: JS13K MMO Challenge Series" />
@@ -84,84 +81,84 @@
       }
     </style>
     <script type="module">
-      import PartySocket from "https://esm.sh/partysocket";
+      import PartySocket from 'https://esm.sh/partysocket'
 
       // Create status indicator
-      const statusIndicator = document.createElement("div");
-      statusIndicator.className = "status-indicator status-connecting";
-      statusIndicator.textContent = "Connecting...";
-      document.body.appendChild(statusIndicator);
+      const statusIndicator = document.createElement('div')
+      statusIndicator.className = 'status-indicator status-connecting'
+      statusIndicator.textContent = 'Connecting...'
+      document.body.appendChild(statusIndicator)
 
       const socket = new PartySocket({
         host: window.location.host,
-        party: "js13k",
-        room: "paint",
-      });
+        party: 'js13k',
+        room: 'paint',
+      })
 
-      socket.addEventListener("open", () => {
-        console.log("connected");
-        statusIndicator.className = "status-indicator status-connected";
-        statusIndicator.textContent = "Connected";
-      });
+      socket.addEventListener('open', () => {
+        console.log('connected')
+        statusIndicator.className = 'status-indicator status-connected'
+        statusIndicator.textContent = 'Connected'
+      })
 
-      socket.addEventListener("close", () => {
-        console.log("disconnected");
-        statusIndicator.className = "status-indicator status-disconnected";
-        statusIndicator.textContent = "Disconnected";
-      });
+      socket.addEventListener('close', () => {
+        console.log('disconnected')
+        statusIndicator.className = 'status-indicator status-disconnected'
+        statusIndicator.textContent = 'Disconnected'
+      })
 
       // Color selection functionality
-      let currentColor = "#000000";
+      let currentColor = '#000000'
 
-      document.querySelectorAll(".color-button").forEach((button) => {
-        button.addEventListener("click", () => {
+      document.querySelectorAll('.color-button').forEach((button) => {
+        button.addEventListener('click', () => {
           // Remove active class from all buttons
-          document.querySelectorAll(".color-button").forEach((btn) => {
-            btn.classList.remove("active");
-          });
+          document.querySelectorAll('.color-button').forEach((btn) => {
+            btn.classList.remove('active')
+          })
 
           // Add active class to clicked button
-          button.classList.add("active");
+          button.classList.add('active')
 
           // Update current color
-          currentColor = button.dataset.color;
-          console.log("Selected color:", currentColor);
-        });
-      });
+          currentColor = button.dataset.color
+          console.log('Selected color:', currentColor)
+        })
+      })
 
       // Canvas setup and drawing functionality
-      const canvas = document.getElementById("paintCanvas");
-      const ctx = canvas.getContext("2d");
+      const canvas = document.getElementById('paintCanvas')
+      const ctx = canvas.getContext('2d')
 
       // Local state to track all pixels
-      let localState = {};
+      let localState = {}
 
       // Set canvas size to fill container
       function resizeCanvas() {
-        const container = canvas.parentElement;
-        canvas.width = container.clientWidth;
-        canvas.height = container.clientHeight;
+        const container = canvas.parentElement
+        canvas.width = container.clientWidth
+        canvas.height = container.clientHeight
         // Re-render all pixels after resize
-        renderState();
+        renderState()
       }
 
       // Initial resize
-      resizeCanvas();
+      resizeCanvas()
 
       // Resize on window resize
-      window.addEventListener("resize", resizeCanvas);
+      window.addEventListener('resize', resizeCanvas)
 
       // Render the current state to canvas
       function renderState() {
         // Clear canvas
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
 
         // Render all pixels from state
         for (const x in localState) {
           for (const y in localState[x]) {
-            const color = localState[x][y];
-            ctx.fillStyle = color;
-            ctx.fillRect(parseInt(x) - 2, parseInt(y) - 2, 4, 4);
+            const color = localState[x][y]
+            ctx.fillStyle = color
+            ctx.fillRect(parseInt(x) - 2, parseInt(y) - 2, 4, 4)
           }
         }
       }
@@ -169,138 +166,106 @@
       // Single function to draw a pixel
       function drawPixel(x, y) {
         // Update local state
-        if (!localState[x]) localState[x] = {};
-        localState[x][y] = currentColor;
+        if (!localState[x]) localState[x] = {}
+        localState[x][y] = currentColor
 
         // Render to canvas
-        ctx.fillStyle = currentColor;
-        ctx.fillRect(x - 2, y - 2, 4, 4);
-        console.log(`Drew pixel at (${x}, ${y}) with color ${currentColor}`);
+        ctx.fillStyle = currentColor
+        ctx.fillRect(x - 2, y - 2, 4, 4)
+        console.log(`Drew pixel at (${x}, ${y}) with color ${currentColor}`)
 
         // Send delta message to server
-        const delta = { [x]: { [y]: currentColor } };
-        socket.send(JSON.stringify({ delta }));
+        const delta = { [x]: { [y]: currentColor } }
+        socket.send(JSON.stringify({ delta }))
       }
 
       // Simple recursive merge function (same as server)
       function mergeState(target, source) {
-        if (typeof source !== "object" || source === null) {
-          return source;
+        if (typeof source !== 'object' || source === null) {
+          return source
         }
 
-        if (typeof target !== "object" || target === null) {
-          target = {};
+        if (typeof target !== 'object' || target === null) {
+          target = {}
         }
 
         for (const key in source) {
           if (source.hasOwnProperty(key)) {
-            target[key] = mergeState(target[key], source[key]);
+            target[key] = mergeState(target[key], source[key])
           }
         }
 
-        return target;
+        return target
       }
 
       // Handle incoming messages
-      socket.addEventListener("message", (event) => {
+      socket.addEventListener('message', (event) => {
         try {
-          const data = JSON.parse(event.data);
+          const data = JSON.parse(event.data)
 
           if (data.state) {
             // Initial state received
-            console.log("Received initial state:", data.state);
-            localState = data.state;
-            renderState();
+            console.log('Received initial state:', data.state)
+            localState = data.state
+            renderState()
           } else if (data.delta) {
             // Delta received from another client
-            console.log("Received delta:", data.delta);
-            localState = mergeState(localState, data.delta);
-            renderState();
+            console.log('Received delta:', data.delta)
+            localState = mergeState(localState, data.delta)
+            renderState()
           }
         } catch (error) {
-          console.error("Error parsing message:", error);
+          console.error('Error parsing message:', error)
         }
-      });
+      })
 
       // Handle canvas clicks
-      canvas.addEventListener("click", (event) => {
-        const rect = canvas.getBoundingClientRect();
-        const x = event.clientX - rect.left;
-        const y = event.clientY - rect.top;
-        drawPixel(x, y);
-      });
+      canvas.addEventListener('click', (event) => {
+        const rect = canvas.getBoundingClientRect()
+        const x = event.clientX - rect.left
+        const y = event.clientY - rect.top
+        drawPixel(x, y)
+      })
 
       // Handle mouse drag for continuous drawing
-      let isDrawing = false;
+      let isDrawing = false
 
-      canvas.addEventListener("mousedown", (event) => {
-        isDrawing = true;
-        const rect = canvas.getBoundingClientRect();
-        const x = event.clientX - rect.left;
-        const y = event.clientY - rect.top;
-        drawPixel(x, y);
-      });
+      canvas.addEventListener('mousedown', (event) => {
+        isDrawing = true
+        const rect = canvas.getBoundingClientRect()
+        const x = event.clientX - rect.left
+        const y = event.clientY - rect.top
+        drawPixel(x, y)
+      })
 
-      canvas.addEventListener("mousemove", (event) => {
-        if (!isDrawing) return;
+      canvas.addEventListener('mousemove', (event) => {
+        if (!isDrawing) return
 
-        const rect = canvas.getBoundingClientRect();
-        const x = event.clientX - rect.left;
-        const y = event.clientY - rect.top;
-        drawPixel(x, y);
-      });
+        const rect = canvas.getBoundingClientRect()
+        const x = event.clientX - rect.left
+        const y = event.clientY - rect.top
+        drawPixel(x, y)
+      })
 
-      canvas.addEventListener("mouseup", () => {
-        isDrawing = false;
-      });
+      canvas.addEventListener('mouseup', () => {
+        isDrawing = false
+      })
 
-      canvas.addEventListener("mouseleave", () => {
-        isDrawing = false;
-      });
+      canvas.addEventListener('mouseleave', () => {
+        isDrawing = false
+      })
     </script>
   </head>
   <body>
     <div class="toolbar">
-      <div
-        class="color-button active"
-        data-color="#000000"
-        style="background-color: #000000"
-      ></div>
-      <div
-        class="color-button"
-        data-color="#ff0000"
-        style="background-color: #ff0000"
-      ></div>
-      <div
-        class="color-button"
-        data-color="#00ff00"
-        style="background-color: #00ff00"
-      ></div>
-      <div
-        class="color-button"
-        data-color="#0000ff"
-        style="background-color: #0000ff"
-      ></div>
-      <div
-        class="color-button"
-        data-color="#ffff00"
-        style="background-color: #ffff00"
-      ></div>
-      <div
-        class="color-button"
-        data-color="#ff00ff"
-        style="background-color: #ff00ff"
-      ></div>
-      <div
-        class="color-button"
-        data-color="#00ffff"
-        style="background-color: #00ffff"
-      ></div>
-      <div
-        class="color-button"
-        data-color="#ffa500"
-        style="background-color: #ffa500"
-      ></div>
+      <div class="color-button active" data-color="#000000" style="background-color: #000000"></div>
+      <div class="color-button" data-color="#ff0000" style="background-color: #ff0000"></div>
+      <div class="color-button" data-color="#00ff00" style="background-color: #00ff00"></div>
+      <div class="color-button" data-color="#0000ff" style="background-color: #0000ff"></div>
+      <div class="color-button" data-color="#ffff00" style="background-color: #ffff00"></div>
+      <div class="color-button" data-color="#ff00ff" style="background-color: #ff00ff"></div>
+      <div class="color-button" data-color="#00ffff" style="background-color: #00ffff"></div>
+      <div class="color-button" data-color="#ffa500" style="background-color: #ffa500"></div>
     </div>
     <div class="canvas-container">
       <canvas id="paintCanvas"></canvas>

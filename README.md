@@ -31,13 +31,13 @@ This is a **state relay server** for tiny multiplayer games. There's no game log
 ## Basic Setup
 
 ```javascript
-import PartySocket from "https://esm.sh/partysocket";
+import PartySocket from 'https://esm.sh/partysocket'
 
 const socket = new PartySocket({
-  host: "mmo.js13kgames.com",
-  party: "js13k",
-  room: "my-unique-game-name", // Must be unique to your game
-});
+  host: 'mmo.js13kgames.com',
+  party: 'js13k',
+  room: 'my-unique-game-name', // Must be unique to your game
+})
 ```
 
 ## Message Types
@@ -48,7 +48,7 @@ The server sends 5 types of messages:
 
 ```javascript
 {
-  id: "unique-connection-id";
+  id: 'unique-connection-id'
 }
 ```
 
@@ -78,7 +78,7 @@ Sent when any player updates their state. Merge this into your local state.
 
 ```javascript
 {
-  connect: "new-player-id";
+  connect: 'new-player-id'
 }
 ```
 
@@ -88,7 +88,7 @@ Someone new joined. They'll send their initial state via delta.
 
 ```javascript
 {
-  disconnect: "player-id";
+  disconnect: 'player-id'
 }
 ```
 
@@ -102,57 +102,57 @@ Use this exact merge function (same as the server):
 
 ```javascript
 function mergeState(target, source) {
-  if (typeof source !== "object" || source === null) {
-    return source;
+  if (typeof source !== 'object' || source === null) {
+    return source
   }
-  if (typeof target !== "object" || target === null) {
-    target = {};
+  if (typeof target !== 'object' || target === null) {
+    target = {}
   }
   for (const key in source) {
     if (source.hasOwnProperty(key)) {
-      target[key] = mergeState(target[key], source[key]);
+      target[key] = mergeState(target[key], source[key])
     }
   }
-  return target;
+  return target
 }
 ```
 
 ### Message Handling
 
 ```javascript
-let localState = {};
-let myId = null;
+let localState = {}
+let myId = null
 
-socket.addEventListener("message", (event) => {
-  const data = JSON.parse(event.data);
+socket.addEventListener('message', (event) => {
+  const data = JSON.parse(event.data)
 
   if (data.id) {
-    myId = data.id;
+    myId = data.id
     // Initialize your player data
     if (!localState[myId]) {
-      localState[myId] = { x: 100, y: 100 }; // Your game data
-      socket.send(JSON.stringify({ delta: { [myId]: localState[myId] } }));
+      localState[myId] = { x: 100, y: 100 } // Your game data
+      socket.send(JSON.stringify({ delta: { [myId]: localState[myId] } }))
     }
   } else if (data.state) {
-    localState = data.state;
-    render();
+    localState = data.state
+    render()
   } else if (data.delta) {
-    localState = mergeState(localState, data.delta);
-    render();
+    localState = mergeState(localState, data.delta)
+    render()
   } else if (data.disconnect) {
-    delete localState[data.disconnect];
-    render();
+    delete localState[data.disconnect]
+    render()
   }
-});
+})
 ```
 
 ### Sending Updates
 
 ```javascript
 function updatePlayer(newData) {
-  localState[myId] = { ...localState[myId], ...newData };
-  socket.send(JSON.stringify({ delta: { [myId]: localState[myId] } }));
-  render(); // Immediate feedback
+  localState[myId] = { ...localState[myId], ...newData }
+  socket.send(JSON.stringify({ delta: { [myId]: localState[myId] } }))
+  render() // Immediate feedback
 }
 ```
 
@@ -210,11 +210,11 @@ This design allows you to:
 ## Error Handling
 
 ```javascript
-socket.addEventListener("error", (error) => {
-  console.error("Connection error:", error);
-});
+socket.addEventListener('error', (error) => {
+  console.error('Connection error:', error)
+})
 
-socket.addEventListener("close", () => {
+socket.addEventListener('close', () => {
   // Handle reconnection or show offline state
-});
+})
 ```

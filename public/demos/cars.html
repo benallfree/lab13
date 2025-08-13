@@ -1,11 +1,8 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, shrink-to-fit=no"
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <title>Cars Demo: JS13K MMO Challenge Series</title>
     <meta name="title" content="Cars Demo: JS13K MMO Challenge Series" />
@@ -98,216 +95,202 @@
       }
     </style>
     <script type="module">
-      import PartySocket from "https://esm.sh/partysocket";
+      import PartySocket from 'https://esm.sh/partysocket'
 
       // Create status indicator
-      const statusIndicator = document.createElement("div");
-      statusIndicator.className = "status-indicator status-connecting";
-      statusIndicator.textContent = "Connecting...";
-      document.body.appendChild(statusIndicator);
+      const statusIndicator = document.createElement('div')
+      statusIndicator.className = 'status-indicator status-connecting'
+      statusIndicator.textContent = 'Connecting...'
+      document.body.appendChild(statusIndicator)
 
       const socket = new PartySocket({
         host: window.location.host,
-        party: "js13k",
-        room: "cars",
-      });
+        party: 'js13k',
+        room: 'cars',
+      })
 
-      socket.addEventListener("open", () => {
-        console.log("connected");
-        statusIndicator.className = "status-indicator status-connected";
-        statusIndicator.textContent = "Connected";
-      });
+      socket.addEventListener('open', () => {
+        console.log('connected')
+        statusIndicator.className = 'status-indicator status-connected'
+        statusIndicator.textContent = 'Connected'
+      })
 
-      socket.addEventListener("close", () => {
-        console.log("disconnected");
-        statusIndicator.className = "status-indicator status-disconnected";
-        statusIndicator.textContent = "Disconnected";
-      });
+      socket.addEventListener('close', () => {
+        console.log('disconnected')
+        statusIndicator.className = 'status-indicator status-disconnected'
+        statusIndicator.textContent = 'Disconnected'
+      })
 
       // Game state
-      let localState = {};
-      let myId = null;
+      let localState = {}
+      let myId = null
       let keys = {
         ArrowUp: false,
         ArrowDown: false,
         ArrowLeft: false,
         ArrowRight: false,
-      };
+      }
 
       // Canvas setup
-      const canvas = document.getElementById("gameCanvas");
-      const ctx = canvas.getContext("2d");
+      const canvas = document.getElementById('gameCanvas')
+      const ctx = canvas.getContext('2d')
 
       // Set canvas size to fill container
       function resizeCanvas() {
-        const container = canvas.parentElement;
-        canvas.width = container.clientWidth;
-        canvas.height = container.clientHeight;
+        const container = canvas.parentElement
+        canvas.width = container.clientWidth
+        canvas.height = container.clientHeight
       }
 
       // Initial resize
-      resizeCanvas();
+      resizeCanvas()
 
       // Resize on window resize
-      window.addEventListener("resize", resizeCanvas);
+      window.addEventListener('resize', resizeCanvas)
 
       // Car colors for different players
-      const carColors = [
-        "#ff0000",
-        "#00ff00",
-        "#0000ff",
-        "#ffff00",
-        "#ff00ff",
-        "#00ffff",
-        "#ffa500",
-        "#800080",
-      ];
+      const carColors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff', '#ffa500', '#800080']
 
       // Draw a car
       function drawCar(x, y, angle, color, isMyCar = false) {
-        ctx.save();
-        ctx.translate(x, y);
-        ctx.rotate(angle);
+        ctx.save()
+        ctx.translate(x, y)
+        ctx.rotate(angle)
 
         // Car body
-        ctx.fillStyle = color;
-        ctx.fillRect(-15, -8, 30, 16);
+        ctx.fillStyle = color
+        ctx.fillRect(-15, -8, 30, 16)
 
         // Car roof
-        ctx.fillRect(-8, -12, 16, 8);
+        ctx.fillRect(-8, -12, 16, 8)
 
         // Wheels
-        ctx.fillStyle = "#333";
-        ctx.fillRect(-12, -10, 4, 20);
-        ctx.fillRect(8, -10, 4, 20);
+        ctx.fillStyle = '#333'
+        ctx.fillRect(-12, -10, 4, 20)
+        ctx.fillRect(8, -10, 4, 20)
 
         // Headlights
-        ctx.fillStyle = "#ffff00";
-        ctx.fillRect(-12, -6, 3, 3);
-        ctx.fillRect(-12, 3, 3, 3);
+        ctx.fillStyle = '#ffff00'
+        ctx.fillRect(-12, -6, 3, 3)
+        ctx.fillRect(-12, 3, 3, 3)
 
         // My car gets a special indicator
         if (isMyCar) {
-          ctx.fillStyle = "#fff";
-          ctx.font = "12px Arial";
-          ctx.textAlign = "center";
-          ctx.fillText("YOU", 0, -20);
+          ctx.fillStyle = '#fff'
+          ctx.font = '12px Arial'
+          ctx.textAlign = 'center'
+          ctx.fillText('YOU', 0, -20)
         }
 
-        ctx.restore();
+        ctx.restore()
       }
 
       // Render the current state to canvas
       function renderState() {
         // Clear canvas
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
 
         // Draw grass pattern
-        ctx.fillStyle = "#2c5e1e";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#2c5e1e'
+        ctx.fillRect(0, 0, canvas.width, canvas.height)
 
         // Draw some road lines
-        ctx.strokeStyle = "#fff";
-        ctx.lineWidth = 2;
-        ctx.setLineDash([20, 20]);
-        ctx.beginPath();
-        ctx.moveTo(canvas.width / 2, 0);
-        ctx.lineTo(canvas.width / 2, canvas.height);
-        ctx.stroke();
-        ctx.setLineDash([]);
+        ctx.strokeStyle = '#fff'
+        ctx.lineWidth = 2
+        ctx.setLineDash([20, 20])
+        ctx.beginPath()
+        ctx.moveTo(canvas.width / 2, 0)
+        ctx.lineTo(canvas.width / 2, canvas.height)
+        ctx.stroke()
+        ctx.setLineDash([])
 
         // Render all cars from state
         for (const playerId in localState) {
-          const car = localState[playerId];
-          const color = carColors[parseInt(playerId) % carColors.length];
-          const isMyCar = playerId === myId;
-          drawCar(car.x, car.y, car.angle, color, isMyCar);
+          const car = localState[playerId]
+          const color = carColors[parseInt(playerId) % carColors.length]
+          const isMyCar = playerId === myId
+          drawCar(car.x, car.y, car.angle, color, isMyCar)
         }
       }
 
       // Update car position based on keys
       function updateCar() {
         if (!myId) {
-          console.log("No myId yet, waiting for server...");
-          return;
+          console.log('No myId yet, waiting for server...')
+          return
         }
         if (!localState[myId]) {
-          console.log(
-            "No car in localState for myId:",
-            myId,
-            "localState:",
-            localState
-          );
-          return;
+          console.log('No car in localState for myId:', myId, 'localState:', localState)
+          return
         }
 
-        const car = localState[myId];
-        let moved = false;
+        const car = localState[myId]
+        let moved = false
 
         if (keys.ArrowUp) {
-          car.x -= Math.cos(car.angle) * 3;
-          car.y -= Math.sin(car.angle) * 3;
-          moved = true;
-          console.log("Moving forward", car.x, car.y);
+          car.x -= Math.cos(car.angle) * 3
+          car.y -= Math.sin(car.angle) * 3
+          moved = true
+          console.log('Moving forward', car.x, car.y)
         }
         if (keys.ArrowDown) {
-          car.x += Math.cos(car.angle) * 2;
-          car.y += Math.sin(car.angle) * 2;
-          moved = true;
-          console.log("Moving backward", car.x, car.y);
+          car.x += Math.cos(car.angle) * 2
+          car.y += Math.sin(car.angle) * 2
+          moved = true
+          console.log('Moving backward', car.x, car.y)
         }
         if (keys.ArrowLeft) {
-          car.angle -= 0.1;
-          moved = true;
-          console.log("Turning left", car.angle);
+          car.angle -= 0.1
+          moved = true
+          console.log('Turning left', car.angle)
         }
         if (keys.ArrowRight) {
-          car.angle += 0.1;
-          moved = true;
-          console.log("Turning right", car.angle);
+          car.angle += 0.1
+          moved = true
+          console.log('Turning right', car.angle)
         }
 
         // Keep car within bounds
-        car.x = Math.max(20, Math.min(canvas.width - 20, car.x));
-        car.y = Math.max(20, Math.min(canvas.height - 20, car.y));
+        car.x = Math.max(20, Math.min(canvas.width - 20, car.x))
+        car.y = Math.max(20, Math.min(canvas.height - 20, car.y))
 
         if (moved) {
           // Send update to server
-          const delta = { [myId]: car };
-          socket.send(JSON.stringify({ delta }));
+          const delta = { [myId]: car }
+          socket.send(JSON.stringify({ delta }))
           // Also update local state immediately for smooth movement
-          localState[myId] = { ...car };
+          localState[myId] = { ...car }
         }
       }
 
       // Simple recursive merge function (same as server)
       function mergeState(target, source) {
-        if (typeof source !== "object" || source === null) {
-          return source;
+        if (typeof source !== 'object' || source === null) {
+          return source
         }
 
-        if (typeof target !== "object" || target === null) {
-          target = {};
+        if (typeof target !== 'object' || target === null) {
+          target = {}
         }
 
         for (const key in source) {
           if (source.hasOwnProperty(key)) {
-            target[key] = mergeState(target[key], source[key]);
+            target[key] = mergeState(target[key], source[key])
           }
         }
 
-        return target;
+        return target
       }
 
       // Handle incoming messages
-      socket.addEventListener("message", (event) => {
+      socket.addEventListener('message', (event) => {
         try {
-          const data = JSON.parse(event.data);
+          const data = JSON.parse(event.data)
 
           if (data.id) {
             // Received my own ID from server
-            myId = data.id;
-            console.log("Received my ID from server:", myId);
+            myId = data.id
+            console.log('Received my ID from server:', myId)
 
             // Initialize my car if it doesn't exist in state
             if (!localState[myId]) {
@@ -315,89 +298,83 @@
                 x: canvas.width / 2,
                 y: canvas.height / 2,
                 angle: 0,
-              };
-              console.log("Initialized my car:", localState[myId]);
+              }
+              console.log('Initialized my car:', localState[myId])
               // Send initial position
-              const delta = { [myId]: localState[myId] };
-              socket.send(JSON.stringify({ delta }));
+              const delta = { [myId]: localState[myId] }
+              socket.send(JSON.stringify({ delta }))
               // Render immediately so my car shows up
-              renderState();
+              renderState()
             } else {
               // If car already exists in state, just render it
-              renderState();
+              renderState()
             }
           } else if (data.connect) {
             // Another client connected
-            console.log("Client connected:", data.connect);
+            console.log('Client connected:', data.connect)
             // No need to do anything special, they'll send their car data via delta
           } else if (data.disconnect) {
             // A client disconnected
-            console.log("Client disconnected:", data.disconnect);
+            console.log('Client disconnected:', data.disconnect)
             // Remove their car from local state
             if (localState[data.disconnect]) {
-              delete localState[data.disconnect];
-              console.log(
-                "Removed car for disconnected client:",
-                data.disconnect
-              );
+              delete localState[data.disconnect]
+              console.log('Removed car for disconnected client:', data.disconnect)
             }
           } else if (data.state) {
             // Initial state received
-            console.log("Received initial state:", data.state);
-            localState = data.state;
+            console.log('Received initial state:', data.state)
+            localState = data.state
             // If we have our ID but no car in state, initialize it
             if (myId && !localState[myId]) {
               localState[myId] = {
                 x: canvas.width / 2,
                 y: canvas.height / 2,
                 angle: 0,
-              };
-              console.log(
-                "Initialized my car after state received:",
-                localState[myId]
-              );
+              }
+              console.log('Initialized my car after state received:', localState[myId])
               // Send initial position
-              const delta = { [myId]: localState[myId] };
-              socket.send(JSON.stringify({ delta }));
+              const delta = { [myId]: localState[myId] }
+              socket.send(JSON.stringify({ delta }))
             }
-            renderState();
+            renderState()
           } else if (data.delta) {
             // Delta received from another client
-            console.log("Received delta:", data.delta);
-            localState = mergeState(localState, data.delta);
-            renderState();
+            console.log('Received delta:', data.delta)
+            localState = mergeState(localState, data.delta)
+            renderState()
           }
         } catch (error) {
-          console.error("Error parsing message:", error);
+          console.error('Error parsing message:', error)
         }
-      });
+      })
 
       // Handle key events
-      document.addEventListener("keydown", (event) => {
+      document.addEventListener('keydown', (event) => {
         if (keys.hasOwnProperty(event.key)) {
-          keys[event.key] = true;
-          console.log("Key pressed:", event.key);
-          event.preventDefault();
+          keys[event.key] = true
+          console.log('Key pressed:', event.key)
+          event.preventDefault()
         }
-      });
+      })
 
-      document.addEventListener("keyup", (event) => {
+      document.addEventListener('keyup', (event) => {
         if (keys.hasOwnProperty(event.key)) {
-          keys[event.key] = false;
-          console.log("Key released:", event.key);
-          event.preventDefault();
+          keys[event.key] = false
+          console.log('Key released:', event.key)
+          event.preventDefault()
         }
-      });
+      })
 
       // Game loop
       function gameLoop() {
-        updateCar();
-        renderState();
-        requestAnimationFrame(gameLoop);
+        updateCar()
+        renderState()
+        requestAnimationFrame(gameLoop)
       }
 
       // Start game loop
-      gameLoop();
+      gameLoop()
     </script>
   </head>
   <body>

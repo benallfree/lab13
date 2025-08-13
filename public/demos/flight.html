@@ -1,18 +1,12 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, shrink-to-fit=no"
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <title>Flight Simulator: JS13K MMO Challenge Series</title>
     <meta name="title" content="Flight Simulator: JS13K MMO Challenge Series" />
-    <meta
-      name="description"
-      content="Flight Simulator: JS13K MMO Challenge Series"
-    />
+    <meta name="description" content="Flight Simulator: JS13K MMO Challenge Series" />
     <meta name="author" content="benallfree" />
     <style>
       body {
@@ -64,311 +58,275 @@
       }
     </style>
     <script type="module">
-      import * as THREE from "https://esm.sh/three";
-      import PartySocket from "https://esm.sh/partysocket";
+      import * as THREE from 'https://esm.sh/three'
+      import PartySocket from 'https://esm.sh/partysocket'
 
       // Status indicator
-      const statusIndicator = document.createElement("div");
-      statusIndicator.className = "status-indicator status-connecting";
-      statusIndicator.textContent = "Connecting...";
-      document.body.appendChild(statusIndicator);
+      const statusIndicator = document.createElement('div')
+      statusIndicator.className = 'status-indicator status-connecting'
+      statusIndicator.textContent = 'Connecting...'
+      document.body.appendChild(statusIndicator)
 
       // PartySocket setup
       const socket = new PartySocket({
         host: window.location.host,
-        party: "js13k",
-        room: "flight",
-      });
+        party: 'js13k',
+        room: 'flight',
+      })
 
-      socket.addEventListener("open", () => {
-        statusIndicator.className = "status-indicator status-connected";
-        statusIndicator.textContent = "Connected";
-      });
+      socket.addEventListener('open', () => {
+        statusIndicator.className = 'status-indicator status-connected'
+        statusIndicator.textContent = 'Connected'
+      })
 
-      socket.addEventListener("close", () => {
-        statusIndicator.className = "status-indicator status-disconnected";
-        statusIndicator.textContent = "Disconnected";
-      });
+      socket.addEventListener('close', () => {
+        statusIndicator.className = 'status-indicator status-disconnected'
+        statusIndicator.textContent = 'Disconnected'
+      })
 
       // Game state
-      let localState = {};
-      let myId = null;
-      let keys = {};
+      let localState = {}
+      let myId = null
+      let keys = {}
 
       // Three.js setup
-      const scene = new THREE.Scene();
-      const camera = new THREE.PerspectiveCamera(
-        75,
-        window.innerWidth / window.innerHeight,
-        0.1,
-        10000
-      );
-      const renderer = new THREE.WebGLRenderer({ antialias: false });
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      renderer.setClearColor(0x87ceeb);
-      document.body.appendChild(renderer.domElement);
+      const scene = new THREE.Scene()
+      const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000)
+      const renderer = new THREE.WebGLRenderer({ antialias: false })
+      renderer.setSize(window.innerWidth, window.innerHeight)
+      renderer.setClearColor(0x87ceeb)
+      document.body.appendChild(renderer.domElement)
 
       // Lighting
-      const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
-      scene.add(ambientLight);
-      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-      directionalLight.position.set(100, 100, 50);
-      scene.add(directionalLight);
+      const ambientLight = new THREE.AmbientLight(0x404040, 0.6)
+      scene.add(ambientLight)
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8)
+      directionalLight.position.set(100, 100, 50)
+      scene.add(directionalLight)
 
       // Ground
-      const groundGeometry = new THREE.PlaneGeometry(5000, 5000);
-      const groundMaterial = new THREE.MeshLambertMaterial({ color: 0x90ee90 });
-      const ground = new THREE.Mesh(groundGeometry, groundMaterial);
-      ground.rotation.x = -Math.PI / 2;
-      scene.add(ground);
+      const groundGeometry = new THREE.PlaneGeometry(5000, 5000)
+      const groundMaterial = new THREE.MeshLambertMaterial({ color: 0x90ee90 })
+      const ground = new THREE.Mesh(groundGeometry, groundMaterial)
+      ground.rotation.x = -Math.PI / 2
+      scene.add(ground)
 
       // Add landmarks
       function createLandmarks() {
         // Runway
-        const runwayGeometry = new THREE.PlaneGeometry(200, 20);
+        const runwayGeometry = new THREE.PlaneGeometry(200, 20)
         const runwayMaterial = new THREE.MeshLambertMaterial({
           color: 0x333333,
-        });
-        const runway = new THREE.Mesh(runwayGeometry, runwayMaterial);
-        runway.rotation.x = -Math.PI / 2;
-        runway.position.set(0, 0.1, 0);
-        scene.add(runway);
+        })
+        const runway = new THREE.Mesh(runwayGeometry, runwayMaterial)
+        runway.rotation.x = -Math.PI / 2
+        runway.position.set(0, 0.1, 0)
+        scene.add(runway)
 
         // Runway markings
         for (let i = -8; i <= 8; i += 2) {
-          const markingGeometry = new THREE.PlaneGeometry(2, 15);
+          const markingGeometry = new THREE.PlaneGeometry(2, 15)
           const markingMaterial = new THREE.MeshLambertMaterial({
             color: 0xffffff,
-          });
-          const marking = new THREE.Mesh(markingGeometry, markingMaterial);
-          marking.rotation.x = -Math.PI / 2;
-          marking.position.set(i * 10, 0.2, 0);
-          scene.add(marking);
+          })
+          const marking = new THREE.Mesh(markingGeometry, markingMaterial)
+          marking.rotation.x = -Math.PI / 2
+          marking.position.set(i * 10, 0.2, 0)
+          scene.add(marking)
         }
 
         // Control tower
-        const towerGeometry = new THREE.CylinderGeometry(5, 8, 30, 8);
+        const towerGeometry = new THREE.CylinderGeometry(5, 8, 30, 8)
         const towerMaterial = new THREE.MeshLambertMaterial({
           color: 0x666666,
-        });
-        const tower = new THREE.Mesh(towerGeometry, towerMaterial);
-        tower.position.set(50, 15, 50);
-        scene.add(tower);
+        })
+        const tower = new THREE.Mesh(towerGeometry, towerMaterial)
+        tower.position.set(50, 15, 50)
+        scene.add(tower)
 
         // Tower top
-        const topGeometry = new THREE.BoxGeometry(12, 4, 12);
-        const topMaterial = new THREE.MeshLambertMaterial({ color: 0x444444 });
-        const top = new THREE.Mesh(topGeometry, topMaterial);
-        top.position.set(50, 32, 50);
-        scene.add(top);
+        const topGeometry = new THREE.BoxGeometry(12, 4, 12)
+        const topMaterial = new THREE.MeshLambertMaterial({ color: 0x444444 })
+        const top = new THREE.Mesh(topGeometry, topMaterial)
+        top.position.set(50, 32, 50)
+        scene.add(top)
 
         // Mountains in the distance
         for (let i = 0; i < 5; i++) {
-          const mountainGeometry = new THREE.ConeGeometry(
-            100 + Math.random() * 50,
-            200 + Math.random() * 100,
-            6
-          );
+          const mountainGeometry = new THREE.ConeGeometry(100 + Math.random() * 50, 200 + Math.random() * 100, 6)
           const mountainMaterial = new THREE.MeshLambertMaterial({
             color: 0x8b4513,
-          });
-          const mountain = new THREE.Mesh(mountainGeometry, mountainMaterial);
-          mountain.position.set(
-            (Math.random() - 0.5) * 2000,
-            100 + Math.random() * 100,
-            (Math.random() - 0.5) * 2000
-          );
-          scene.add(mountain);
+          })
+          const mountain = new THREE.Mesh(mountainGeometry, mountainMaterial)
+          mountain.position.set((Math.random() - 0.5) * 2000, 100 + Math.random() * 100, (Math.random() - 0.5) * 2000)
+          scene.add(mountain)
         }
 
         // Wind turbines
         for (let i = 0; i < 8; i++) {
-          const baseGeometry = new THREE.CylinderGeometry(2, 3, 20, 8);
+          const baseGeometry = new THREE.CylinderGeometry(2, 3, 20, 8)
           const baseMaterial = new THREE.MeshLambertMaterial({
             color: 0x888888,
-          });
-          const base = new THREE.Mesh(baseGeometry, baseMaterial);
-          base.position.set(
-            (Math.random() - 0.5) * 1000,
-            10,
-            (Math.random() - 0.5) * 1000
-          );
-          scene.add(base);
+          })
+          const base = new THREE.Mesh(baseGeometry, baseMaterial)
+          base.position.set((Math.random() - 0.5) * 1000, 10, (Math.random() - 0.5) * 1000)
+          scene.add(base)
 
           // Turbine blades
-          const bladeGeometry = new THREE.BoxGeometry(40, 2, 4);
+          const bladeGeometry = new THREE.BoxGeometry(40, 2, 4)
           const bladeMaterial = new THREE.MeshLambertMaterial({
             color: 0xcccccc,
-          });
+          })
           for (let j = 0; j < 3; j++) {
-            const blade = new THREE.Mesh(bladeGeometry, bladeMaterial);
-            blade.position.copy(base.position);
-            blade.position.y += 20;
-            blade.rotation.y = (j * Math.PI * 2) / 3;
-            scene.add(blade);
+            const blade = new THREE.Mesh(bladeGeometry, bladeMaterial)
+            blade.position.copy(base.position)
+            blade.position.y += 20
+            blade.rotation.y = (j * Math.PI * 2) / 3
+            scene.add(blade)
           }
         }
 
         // Water tower
-        const waterTowerGeometry = new THREE.CylinderGeometry(8, 8, 25, 8);
+        const waterTowerGeometry = new THREE.CylinderGeometry(8, 8, 25, 8)
         const waterTowerMaterial = new THREE.MeshLambertMaterial({
           color: 0x87ceeb,
-        });
-        const waterTower = new THREE.Mesh(
-          waterTowerGeometry,
-          waterTowerMaterial
-        );
-        waterTower.position.set(-100, 12.5, -100);
-        scene.add(waterTower);
+        })
+        const waterTower = new THREE.Mesh(waterTowerGeometry, waterTowerMaterial)
+        waterTower.position.set(-100, 12.5, -100)
+        scene.add(waterTower)
 
         // Water tower top
-        const waterTopGeometry = new THREE.SphereGeometry(10, 8, 6);
+        const waterTopGeometry = new THREE.SphereGeometry(10, 8, 6)
         const waterTopMaterial = new THREE.MeshLambertMaterial({
           color: 0x87ceeb,
-        });
-        const waterTop = new THREE.Mesh(waterTopGeometry, waterTopMaterial);
-        waterTop.position.set(-100, 35, -100);
-        scene.add(waterTop);
+        })
+        const waterTop = new THREE.Mesh(waterTopGeometry, waterTopMaterial)
+        waterTop.position.set(-100, 35, -100)
+        scene.add(waterTop)
       }
 
-      createLandmarks();
+      createLandmarks()
 
       // Aircraft colors
-      const aircraftColors = [
-        0xff0000, 0x00ff00, 0x0000ff, 0xffff00, 0xff00ff, 0x00ffff, 0xffa500,
-        0x800080,
-      ];
+      const aircraftColors = [0xff0000, 0x00ff00, 0x0000ff, 0xffff00, 0xff00ff, 0x00ffff, 0xffa500, 0x800080]
 
       // Create aircraft mesh
       function createAircraft(color = 0xff0000) {
-        const group = new THREE.Group();
-        group.rotation.z = -Math.PI / 2;
+        const group = new THREE.Group()
+        group.rotation.z = -Math.PI / 2
 
         // Fuselage
-        const fuselageGeometry = new THREE.CylinderGeometry(1, 2, 8, 8);
-        const fuselageMaterial = new THREE.MeshLambertMaterial({ color });
-        const fuselage = new THREE.Mesh(fuselageGeometry, fuselageMaterial);
-        fuselage.rotation.x = Math.PI / 2;
-        group.add(fuselage);
+        const fuselageGeometry = new THREE.CylinderGeometry(1, 2, 8, 8)
+        const fuselageMaterial = new THREE.MeshLambertMaterial({ color })
+        const fuselage = new THREE.Mesh(fuselageGeometry, fuselageMaterial)
+        fuselage.rotation.x = Math.PI / 2
+        group.add(fuselage)
 
         // Wings
-        const wingGeometry = new THREE.BoxGeometry(12, 0.5, 3);
-        const wingMaterial = new THREE.MeshLambertMaterial({ color });
-        const wings = new THREE.Mesh(wingGeometry, wingMaterial);
-        wings.rotation.z = Math.PI / 2;
-        group.add(wings);
+        const wingGeometry = new THREE.BoxGeometry(12, 0.5, 3)
+        const wingMaterial = new THREE.MeshLambertMaterial({ color })
+        const wings = new THREE.Mesh(wingGeometry, wingMaterial)
+        wings.rotation.z = Math.PI / 2
+        group.add(wings)
 
         // Tail
-        const tailGeometry = new THREE.BoxGeometry(0.5, 4, 2);
-        const tailMaterial = new THREE.MeshLambertMaterial({ color });
-        const tail = new THREE.Mesh(tailGeometry, tailMaterial);
-        tail.position.set(-3, 0, 0);
-        tail.rotation.z = Math.PI / 2;
-        group.add(tail);
+        const tailGeometry = new THREE.BoxGeometry(0.5, 4, 2)
+        const tailMaterial = new THREE.MeshLambertMaterial({ color })
+        const tail = new THREE.Mesh(tailGeometry, tailMaterial)
+        tail.position.set(-3, 0, 0)
+        tail.rotation.z = Math.PI / 2
+        group.add(tail)
 
-        return group;
+        return group
       }
 
       // Aircraft instances
-      const aircrafts = {};
-      let myAircraft = null;
+      const aircrafts = {}
+      let myAircraft = null
 
       // HUD elements
-      const hudElement = document.querySelector(".hud");
+      const hudElement = document.querySelector('.hud')
 
       function updateHUD() {
-        if (!myAircraft) return;
-        const pos = myAircraft.position;
-        const rot = myAircraft.rotation;
+        if (!myAircraft) return
+        const pos = myAircraft.position
+        const rot = myAircraft.rotation
         hudElement.innerHTML = `
           ALT: ${Math.max(0, Math.round(pos.y))}m<br>
           SPD: ${Math.round(myAircraft.userData.speed || 0)}<br>
           HDG: ${Math.round(((rot.y * 180) / Math.PI + 360) % 360)}°<br>
           PITCH: ${Math.round((rot.x * 180) / Math.PI)}°<br>
           ROLL: ${Math.round((rot.z * 180) / Math.PI)}°
-        `;
+        `
       }
 
       // Input handling
-      document.addEventListener("keydown", (e) => {
-        keys[e.code] = true;
-      });
-      document.addEventListener("keyup", (e) => {
-        keys[e.code] = false;
-      });
+      document.addEventListener('keydown', (e) => {
+        keys[e.code] = true
+      })
+      document.addEventListener('keyup', (e) => {
+        keys[e.code] = false
+      })
 
       // Aircraft physics
       function updateMyAircraft() {
-        if (!myAircraft || !myId) return;
+        if (!myAircraft || !myId) return
 
-        const aircraft = myAircraft;
-        let moved = false;
+        const aircraft = myAircraft
+        let moved = false
 
         // Initialize physics data
-        if (!aircraft.userData.velocity)
-          aircraft.userData.velocity = new THREE.Vector3();
-        if (!aircraft.userData.speed) aircraft.userData.speed = 0;
+        if (!aircraft.userData.velocity) aircraft.userData.velocity = new THREE.Vector3()
+        if (!aircraft.userData.speed) aircraft.userData.speed = 0
 
-        const velocity = aircraft.userData.velocity;
-        const maxSpeed = 200;
-        const acceleration = 2;
-        const drag = 0.98;
+        const velocity = aircraft.userData.velocity
+        const maxSpeed = 200
+        const acceleration = 2
+        const drag = 0.98
 
         // Thrust
         if (keys.KeyW || keys.ArrowUp) {
-          aircraft.userData.speed = Math.min(
-            maxSpeed,
-            aircraft.userData.speed + acceleration
-          );
-          moved = true;
+          aircraft.userData.speed = Math.min(maxSpeed, aircraft.userData.speed + acceleration)
+          moved = true
         }
         if (keys.KeyS || keys.ArrowDown) {
-          aircraft.userData.speed = Math.max(
-            0,
-            aircraft.userData.speed - acceleration
-          );
-          moved = true;
+          aircraft.userData.speed = Math.max(0, aircraft.userData.speed - acceleration)
+          moved = true
         }
 
         // Controls
         if (keys.KeyA || keys.ArrowLeft) {
-          aircraft.rotation.y += 0.02;
-          aircraft.rotation.z = Math.max(
-            -Math.PI / 2 - 0.3,
-            aircraft.rotation.z - 0.02
-          );
-          moved = true;
+          aircraft.rotation.y += 0.02
+          aircraft.rotation.z = Math.max(-Math.PI / 2 - 0.3, aircraft.rotation.z - 0.02)
+          moved = true
         } else if (keys.KeyD || keys.ArrowRight) {
-          aircraft.rotation.y -= 0.02;
-          aircraft.rotation.z = Math.min(
-            -Math.PI / 2 + 0.3,
-            aircraft.rotation.z + 0.02
-          );
-          moved = true;
+          aircraft.rotation.y -= 0.02
+          aircraft.rotation.z = Math.min(-Math.PI / 2 + 0.3, aircraft.rotation.z + 0.02)
+          moved = true
         } else {
-          aircraft.rotation.z += (-Math.PI / 2 - aircraft.rotation.z) * 0.05;
+          aircraft.rotation.z += (-Math.PI / 2 - aircraft.rotation.z) * 0.05
         }
 
         if (keys.KeyQ) {
-          aircraft.rotation.x = Math.min(0.3, aircraft.rotation.x + 0.02);
-          moved = true;
+          aircraft.rotation.x = Math.min(0.3, aircraft.rotation.x + 0.02)
+          moved = true
         } else if (keys.KeyE) {
-          aircraft.rotation.x = Math.max(-0.3, aircraft.rotation.x - 0.02);
-          moved = true;
+          aircraft.rotation.x = Math.max(-0.3, aircraft.rotation.x - 0.02)
+          moved = true
         } else {
-          aircraft.rotation.x *= 0.95;
+          aircraft.rotation.x *= 0.95
         }
 
         // Apply physics
-        velocity.set(0, 0, aircraft.userData.speed);
-        velocity.applyEuler(aircraft.rotation);
-        aircraft.position.add(velocity.clone().multiplyScalar(0.016));
+        velocity.set(0, 0, aircraft.userData.speed)
+        velocity.applyEuler(aircraft.rotation)
+        aircraft.position.add(velocity.clone().multiplyScalar(0.016))
 
         // Ground collision
-        aircraft.position.y = Math.max(2, aircraft.position.y);
+        aircraft.position.y = Math.max(2, aircraft.position.y)
 
         // Apply drag
-        aircraft.userData.speed *= drag;
+        aircraft.userData.speed *= drag
 
         if (moved || velocity.length() > 0.1) {
           const state = {
@@ -379,38 +337,37 @@
             ry: aircraft.rotation.y,
             rz: aircraft.rotation.z,
             s: aircraft.userData.speed,
-          };
-          socket.send(JSON.stringify({ delta: { [myId]: state } }));
-          localState[myId] = state;
+          }
+          socket.send(JSON.stringify({ delta: { [myId]: state } }))
+          localState[myId] = state
         }
       }
 
       // Merge state function
       function mergeState(target, source) {
-        if (typeof source !== "object" || source === null) return source;
-        if (typeof target !== "object" || target === null) target = {};
+        if (typeof source !== 'object' || source === null) return source
+        if (typeof target !== 'object' || target === null) target = {}
         for (const key in source) {
           if (source.hasOwnProperty(key)) {
-            target[key] = mergeState(target[key], source[key]);
+            target[key] = mergeState(target[key], source[key])
           }
         }
-        return target;
+        return target
       }
 
       // Handle messages
-      socket.addEventListener("message", (event) => {
+      socket.addEventListener('message', (event) => {
         try {
-          const data = JSON.parse(event.data);
+          const data = JSON.parse(event.data)
 
           if (data.id) {
-            myId = data.id;
+            myId = data.id
             // Create my aircraft
-            const color =
-              aircraftColors[parseInt(myId) % aircraftColors.length];
-            myAircraft = createAircraft(color);
-            myAircraft.position.set(0, 50, 0);
-            scene.add(myAircraft);
-            aircrafts[myId] = myAircraft;
+            const color = aircraftColors[parseInt(myId) % aircraftColors.length]
+            myAircraft = createAircraft(color)
+            myAircraft.position.set(0, 50, 0)
+            scene.add(myAircraft)
+            aircrafts[myId] = myAircraft
 
             // Send initial state - set initial roll to match visual orientation
             const state = {
@@ -421,75 +378,74 @@
               ry: 0,
               rz: -Math.PI / 2,
               s: 0,
-            };
-            socket.send(JSON.stringify({ delta: { [myId]: state } }));
-            localState[myId] = state;
+            }
+            socket.send(JSON.stringify({ delta: { [myId]: state } }))
+            localState[myId] = state
           } else if (data.state) {
-            localState = data.state;
-            updateAircrafts();
+            localState = data.state
+            updateAircrafts()
           } else if (data.delta) {
-            localState = mergeState(localState, data.delta);
-            updateAircrafts();
+            localState = mergeState(localState, data.delta)
+            updateAircrafts()
           } else if (data.disconnect) {
             if (aircrafts[data.disconnect] && data.disconnect !== myId) {
-              scene.remove(aircrafts[data.disconnect]);
-              delete aircrafts[data.disconnect];
-              delete localState[data.disconnect];
+              scene.remove(aircrafts[data.disconnect])
+              delete aircrafts[data.disconnect]
+              delete localState[data.disconnect]
             }
           }
         } catch (error) {
-          console.error("Error parsing message:", error);
+          console.error('Error parsing message:', error)
         }
-      });
+      })
 
       // Update other aircrafts
       function updateAircrafts() {
         for (const playerId in localState) {
-          if (playerId === myId) continue;
+          if (playerId === myId) continue
 
-          const state = localState[playerId];
+          const state = localState[playerId]
           if (!aircrafts[playerId]) {
-            const color =
-              aircraftColors[parseInt(playerId) % aircraftColors.length];
-            aircrafts[playerId] = createAircraft(color);
-            scene.add(aircrafts[playerId]);
+            const color = aircraftColors[parseInt(playerId) % aircraftColors.length]
+            aircrafts[playerId] = createAircraft(color)
+            scene.add(aircrafts[playerId])
           }
 
-          const aircraft = aircrafts[playerId];
-          aircraft.position.set(state.x, state.y, state.z);
-          aircraft.rotation.set(state.rx, state.ry, state.rz);
-          aircraft.userData.speed = state.s;
+          const aircraft = aircrafts[playerId]
+          aircraft.position.set(state.x, state.y, state.z)
+          aircraft.rotation.set(state.rx, state.ry, state.rz)
+          aircraft.userData.speed = state.s
         }
       }
 
       // Camera follow
       function updateCamera() {
-        if (!myAircraft) return;
+        if (!myAircraft) return
 
-        const offset = new THREE.Vector3(0, 15, -40);
-        offset.applyEuler(myAircraft.rotation);
+        const offset = new THREE.Vector3(0, 15, -40)
+        offset.applyEuler(myAircraft.rotation)
 
-        camera.position.copy(myAircraft.position).add(offset);
-        camera.lookAt(myAircraft.position);
+        camera.position.copy(myAircraft.position).add(offset)
+        camera.lookAt(myAircraft.position)
       }
 
       // Animation loop
       function animate() {
-        requestAnimationFrame(animate);
-        updateMyAircraft();
-        updateCamera();
-        updateHUD();
-        renderer.render(scene, camera);
+        requestAnimationFrame(animate)
+        updateMyAircraft()
+        updateCamera()
+        updateHUD()
+        renderer.render(scene, camera)
       }
 
       // Handle resize
-      window.addEventListener("resize", () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-      });
+      window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight
+        camera.updateProjectionMatrix()
+        renderer.setSize(window.innerWidth, window.innerHeight)
+      })
 
-      animate();
+      animate()
     </script>
   </head>
   <body>
