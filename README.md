@@ -156,6 +156,32 @@ function updatePlayer(newData) {
 }
 ```
 
+#### State Management Strategies
+
+The room state can contain both player-specific data and shared game state without conflicts:
+
+```javascript
+{
+  // Player-specific state (using connection IDs as keys)
+  "conn-123": { x: 100, y: 50, health: 80 },
+  "conn-456": { x: 200, y: 150, health: 100 },
+
+  // Shared game state (non-connection-ID keys)
+  "gameMode": "battle",
+  "round": 3,
+  "powerups": [{ x: 300, y: 200, type: "speed" }]
+}
+```
+
+**Automatic Player Cleanup**: When a player disconnects, the server checks if the state root contains a key matching their connection ID. If found, that player's state is automatically removed. Shared state keys (like `gameMode`, `round`, etc.) are never affected because connection IDs are guaranteed to be unique and won't collide with your chosen shared state keys.
+
+This design allows you to:
+
+- Store per-player data using connection IDs as root keys
+- Maintain shared game state alongside player data
+- Rely on automatic cleanup for disconnected players
+- Avoid naming conflicts between player and shared state
+
 ## Game Examples
 
 **Paint Demo** - Collaborative pixel art
