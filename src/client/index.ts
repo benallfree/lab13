@@ -45,6 +45,27 @@ function createLayout() {
             )
             .join("")}
         </nav>
+        <div>
+          <a
+            href="https://github.com/benallfree/js13k-mmo"
+            target="_blank"
+            style="
+              display: inline-block;
+              margin-top: 16px;
+              padding: 6px 16px;
+              background: #222;
+              color: #fff;
+              border-radius: 5px;
+              text-decoration: none;
+              font-weight: bold;
+              font-size: 15px;
+              transition: background 0.15s;
+            "
+            onmouseover="this.style.background='#444'"
+            onmouseout="this.style.background='#222'"
+          >Docs</a>
+        </div>
+
       </aside>
       <main class="main-content">
         <div class="main-header">
