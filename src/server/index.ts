@@ -95,6 +95,6 @@ export class Js13kServer extends Server {
 export default {
   // Set up your fetch handler to use configured Servers
   async fetch(request, env) {
-    return (await routePartykitRequest(request, env)) || new Response('Not Found', { status: 404 })
+    return (await routePartykitRequest(request, env)) || env.ASSETS.fetch(request)
   },
 }
