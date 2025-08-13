@@ -1,18 +1,17 @@
-# JS13K SDK
+# JS13K MMO SDK
 
 A simple client SDK for the JS13K MMO Challenge Series that abstracts away the WebSocket connection and state management.
 
-## Usage
-
-### Basic Setup
+## Installation
 
 ```html
 <script type="module">
-  import Js13kClient from './sdk.js'
-
-  const client = new Js13kClient('game-name')
+  import Js13kClient from 'https://esm.sh/js13k-mmo-sdk'
+  const client = new Js13kClient('room-name')
 </script>
 ```
+
+## Usage
 
 ### Event Handling
 
@@ -164,54 +163,10 @@ Disconnect from the server.
 - `connect`: Fired when another player connects (data: player ID)
 - `disconnect`: Fired when another player disconnects (data: player ID)
 
-## Example
+## Examples
 
-See `demos/sdk-example.html` for a complete working example.
+See [live demos](https://mmo.js13kgames.com/demos).
 
-## Migration from Raw PartySocket
+## License
 
-If you're migrating from the raw PartySocket implementation in the demos:
-
-**Before:**
-
-```javascript
-import PartySocket from 'https://esm.sh/partysocket'
-
-const socket = new PartySocket({
-  host: window.location.host,
-  party: 'js13k',
-  room: 'cars',
-})
-
-socket.addEventListener('message', (event) => {
-  const data = JSON.parse(event.data)
-  // Handle messages manually...
-})
-```
-
-**After:**
-
-```javascript
-import Js13kClient from './sdk.js'
-
-const client = new Js13kClient('cars')
-
-client.on('delta', (delta) => {
-  // Handle delta updates...
-})
-
-client.on('id', (myId) => {
-  // Handle player ID...
-})
-```
-
-## Global Usage
-
-The SDK is also available globally for non-module usage:
-
-```html
-<script src="./sdk.js"></script>
-<script>
-  const client = new Js13kClient('room-name')
-</script>
-```
+MIT

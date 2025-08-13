@@ -1,0 +1,37 @@
+{
+  "name": "js13k-mmo-sdk",
+  "version": "0.0.1-rc.1",
+  "description": "A simple client SDK for the JS13K MMO Challenge Series that abstracts away the WebSocket connection and state management",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "index.js",
+    "README.md"
+  ],
+  "keywords": [
+    "js13k",
+    "mmo",
+    "multiplayer",
+    "websocket",
+    "partysocket",
+    "game",
+    "sdk"
+  ],
+  "author": "benallfree",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/benallfree/js13k-partykit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/benallfree/js13k-partykit/issues"
+  },
+  "homepage": "https://github.com/benallfree/js13k-partykit#readme",
+  "peerDependencies": {
+    "partysocket": "^1.0.0"
+  }
+}
