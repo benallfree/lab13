@@ -107,6 +107,11 @@ export default {
     const res = await routePartykitRequest(request, env as any)
     if (res) return res
 
+    console.log('request.url', request.url)
+    if (request.url.endsWith('sdk.js')) {
+      return env.SDK.fetch(request)
+    }
+
     if (env.ENVIRONMENT === 'development') {
       const url = new URL(request.url)
       const docusaurusUrl = `http://localhost:3000${url.pathname}${url.search}`

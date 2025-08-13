@@ -27,7 +27,7 @@
   "observability": {
     "enabled": true,
   },
-  "main": "src/server/index.ts",
+  "main": "server/index.ts",
   "durable_objects": {
     "bindings": [
       {
