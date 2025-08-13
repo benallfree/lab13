@@ -33,7 +33,7 @@
       "renamed_classes": [
         {
           "from": "MyServer",
-          "to": "JS13K"
+          "to": "Js13kServer"
         }
       ]
     }
