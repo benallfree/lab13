@@ -4,10 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite dev",
-    "build": "vite build",
-    "preview": "npm run build && vite preview",
-    "deploy": "npm run build && wrangler deploy",
+    "dev": "wrangler dev -e=dev",
+    "deploy": "wrangler deploy -e=production",
+    "predeploy": "cd sdk && bun run build && cd ../site && bun run build",
     "lint": "prettier --check .",
     "lint:fix": "prettier --write ."
   },

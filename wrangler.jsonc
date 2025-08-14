@@ -7,40 +7,48 @@
   "name": "js13k-mmo",
   "compatibility_date": "2025-08-13",
 
-  "vars": {
-    "ENVIRONMENT": "development",
-  },
-
   "env": {
-    "production": {
+    "dev": {
+      "vars": {
+        "ENVIRONMENT": "development",
+      },
       "assets": {
-        "directory": "./site/build",
-        "run_worker_first": false,
+        "directory": "./site/static",
         "binding": "ASSETS",
       },
+      "durable_objects": {
+        "bindings": [
+          {
+            "name": "js13k",
+            "class_name": "Js13kServer",
+          },
+        ],
+      },
+    },
+    "production": {
       "vars": {
         "ENVIRONMENT": "production",
       },
+      "assets": {
+        "directory": "./site/build",
+        "binding": "ASSETS",
+      },
+      "durable_objects": {
+        "bindings": [
+          {
+            "name": "js13k",
+            "class_name": "Js13kServer",
+          },
+        ],
+      },
     },
-  },
-
-  "assets": {
-    "directory": "./sdk/dist",
-    "binding": "SDK",
   },
 
   "observability": {
     "enabled": true,
   },
   "main": "server/index.ts",
-  "durable_objects": {
-    "bindings": [
-      {
-        "name": "js13k",
-        "class_name": "Js13kServer",
-      },
-    ],
-  },
+
   "migrations": [
     {
       "tag": "v1",
