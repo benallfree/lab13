@@ -7,7 +7,7 @@ import { themes as prismThemes } from 'prism-react-renderer'
 const config: Config = {
   title: 'JS13K MMO',
   tagline: 'Turn your JS13K game into an MMO',
-  favicon: 'img/favicon.ico',
+  favicon: 'img/favicon.webp',
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
   future: {
@@ -74,7 +74,7 @@ const config: Config = {
       title: 'JS13K MMO',
       logo: {
         alt: 'JS13K MMO Logo',
-        src: 'img/logo.svg',
+        src: 'img/favicon.webp',
       },
       items: [
         {
