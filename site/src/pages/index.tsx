@@ -44,8 +44,8 @@ export default function Home(): ReactNode {
   const {siteConfig} = useDocusaurusContext();
   return (
     <Layout
-      title={`Hello from ${siteConfig.title}`}
-      description="Description will go into a meta tag in <head />">
+      title={`${siteConfig.title}`}
+      description="The official site for the JS13K MMO Challenge Series sponsored by Cloudflare">
       <HomepageHeader />
       <main>
         <HomepageFeatures />
