@@ -26,48 +26,11 @@ export interface MessageData {
   delta?: any
 }
 
-export interface PlayerState {
-  [playerId: string]: any
-}
+export type GameState = Record<string, any>
 
-export interface GameState {
-  players?: PlayerState
-  [key: string]: any
-}
+export type GetPlayerState<TState extends GameState> = TState['players'][string]
 
-export type PlayerStateValue<TState extends GameState = GameState> = TState['players'] extends {
-  [key: string]: infer P
-}
-  ? P
-  : any
-
-// Helper function to extract values from state that match delta structure
-function extractDeltaFromState(state: any, delta: any): any {
-  if (typeof delta !== 'object' || delta === null) {
-    return delta
-  }
-
-  const result: any = {}
-  for (const key of Object.keys(delta)) {
-    const deltaValue = delta[key]
-
-    if (typeof deltaValue === 'object' && deltaValue !== null) {
-      // Delta value is an object, go deeper recursively
-      const stateValue = state && typeof state === 'object' && key in state ? state[key] : {}
-      result[key] = extractDeltaFromState(stateValue, deltaValue)
-    } else {
-      // Delta value is a plain value, extract from state
-      if (state && typeof state === 'object' && key in state) {
-        result[key] = state[key]
-      } else {
-        result[key] = null
-      }
-    }
-  }
-  return result
-}
-
-class Js13kClient<TState extends GameState = GameState> {
+class Js13kClient<TState extends GameState> {
   private room: string
   private options: Required<
     ClientOptions<TState> & { deltaEvaluator: DeltaEvaluator<TState> | undefined; throttleMs: number }
@@ -223,13 +186,13 @@ class Js13kClient<TState extends GameState = GameState> {
     return this.myId
   }
 
-  getMyState(copy: boolean = false): any {
+  getMyState(copy: boolean = false): GetPlayerState<TState> | null {
     if (!this.myId || !this.state.players) return null
     const state = this.state.players[this.myId]
     return copy ? JSON.parse(JSON.stringify(state)) : state
   }
 
-  getPlayerState(playerId: string, copy: boolean = false): any {
+  getPlayerState(playerId: string, copy: boolean = false): GetPlayerState<TState> | null {
     if (!this.state.players || !this.state.players[playerId]) return null
     const state = this.state.players[playerId]
     return copy ? JSON.parse(JSON.stringify(state)) : state
@@ -306,10 +269,10 @@ class Js13kClient<TState extends GameState = GameState> {
   }
 
   // Update my own data
-  updateMyState(delta: PartialDeep<PlayerStateValue<TState>>): void {
+  updateMyState(delta: PartialDeep<GetPlayerState<TState>>): void {
     // console.log(`[${this.myId}] updateMyState`, JSON.stringify(delta))
     if (this.myId) {
-      this.updateState({ players: { [this.myId]: delta } } as PartialDeep<TState>)
+      this.updateState({ players: { [this.myId]: delta } } as unknown as PartialDeep<TState>)
     } else {
       console.warn('No myId yet, waiting for server...')
     }
