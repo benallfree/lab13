@@ -1,8 +1,18 @@
-# JS13K MMO SDK
+# JS13K MMO Client SDK
 
-A lightweight client SDK for the JS13K MMO Challenge Series that simplifies WebSocket connections and state management with intelligent delta compression for seamless multiplayer experiences.
+The official client SDK for the 2025 JS13K MMO Challenge.
 
-[Docs](https://mmo.js13kgames.com]) [Demos](https://mmo.js13kgames.com/demos)
+## Installation
+
+```html
+<script type="module">
+  import Js13kClient from 'https://esm.sh/js13k-mmo'
+</script>
+```
+
+📖 [Read the docs](https://mmo.js13kgames.com])
+
+🕹️ [Play the demo games](https://mmo.js13kgames.com/demos)
 
 ## License
 
