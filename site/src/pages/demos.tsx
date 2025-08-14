@@ -1,11 +1,18 @@
 import Layout from '@theme/Layout'
 import React from 'react'
+import { useLocation } from '@docusaurus/router'
 import DemoInterface from '../components/DemoInterface'
 
 export default function Demos() {
+  const location = useLocation()
+  
+  // Extract game name from query parameter (e.g., /demos?game=paint -> paint)
+  const searchParams = new URLSearchParams(location.search)
+  const initialDemo = searchParams.get('game') || undefined
+
   return (
     <Layout title="Demos">
-      <DemoInterface />
+      <DemoInterface initialDemo={initialDemo} />
     </Layout>
   )
 }   

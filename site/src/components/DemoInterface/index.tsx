@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useHistory } from '@docusaurus/router'
 import styles from './styles.module.css'
 
 // Demo data
@@ -20,23 +21,50 @@ const demos = [
   },
 ]
 
-export default function DemoInterface() {
+interface DemoInterfaceProps {
+  initialDemo?: string
+}
+
+export default function DemoInterface({ initialDemo }: DemoInterfaceProps) {
+  const history = useHistory()
   const [currentDemo, setCurrentDemo] = useState('')
   const [iframeCount, setIframeCount] = useState(1)
   const [activeDemo, setActiveDemo] = useState('')
 
-  // Load first demo by default
+  // Load initial demo based on prop or first demo by default
   useEffect(() => {
     if (demos.length > 0 && !currentDemo) {
-      setCurrentDemo(demos[0].filename)
-      setActiveDemo(demos[0].filename)
+      let demoToLoad = demos[0].filename
+      
+      if (initialDemo) {
+        // Find demo by name (case-insensitive), kebab-case name, or filename
+        const foundDemo = demos.find(demo => 
+          demo.name.toLowerCase() === initialDemo.toLowerCase() ||
+          demo.name.toLowerCase().replace(/\s+/g, '-') === initialDemo.toLowerCase() ||
+          demo.filename === `${initialDemo}.html` ||
+          demo.filename === initialDemo
+        )
+        if (foundDemo) {
+          demoToLoad = foundDemo.filename
+        }
+      }
+      
+      setCurrentDemo(demoToLoad)
+      setActiveDemo(demoToLoad)
     }
-  }, [currentDemo])
+  }, [currentDemo, initialDemo])
 
   const loadDemo = (filename: string) => {
     setCurrentDemo(filename)
     setActiveDemo(filename)
     setIframeCount(1)
+    
+    // Find the demo name to update the URL with query parameter
+    const demo = demos.find(d => d.filename === filename)
+    if (demo) {
+      const demoName = demo.name.toLowerCase().replace(/\s+/g, '-')
+      history.push(`/demos?game=${demoName}`)
+    }
   }
 
   const addNewIframe = () => {
