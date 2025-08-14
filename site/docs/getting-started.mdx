@@ -2,6 +2,8 @@
 sidebar_position: 2
 ---
 
+import UUIDGenerator from '@site/src/components/UUIDGenerator'
+
 # Getting Started
 
 The experimental MMO category is powered by our hosted version of [PartyServer](https://www.npmjs.com/package/partyserver), Cloudflare's PartyKit-inspired scalable server based on [Cloudflare Workers](https://developers.cloudflare.com/workers/).
@@ -191,26 +193,17 @@ Your `room` parameter creates a private space for your game. All communication i
 // Good room names
 const client = new Js13kClient('super-mario-battle-2025')
 const client = new Js13kClient('chess-masters-js13k')
-const client = new Js13kClient('my-game-' + generateUUID())
 
 // Avoid generic names that might conflict
 const client = new Js13kClient('game') // Too generic!
 const client = new Js13kClient('test') // Others might use this
 ```
 
-### Generate Unique Room Names
+### Generate Unique Room Key
 
-For guaranteed uniqueness, generate a UUID:
+If you're concerned that your room name might not be unique, you can use a room key instead. Here's a guaranteed unique room key just for your game:
 
-```js
-function generateUUID() {
-  return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, (c) =>
-    (c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))).toString(16)
-  )
-}
-
-const client = new Js13kClient('my-game-' + generateUUID())
-```
+<UUIDGenerator />
 
 ## What's Next?
 

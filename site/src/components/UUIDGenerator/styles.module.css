@@ -1,0 +1,58 @@
+.uuidGenerator {
+  margin: 1rem 0;
+}
+
+.codeBlock {
+  background: var(--ifm-code-background);
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.codeHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background: var(--ifm-color-emphasis-100);
+  border-bottom: 1px solid var(--ifm-color-emphasis-300);
+}
+
+.headerText {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--ifm-color-emphasis-700);
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.copyButton,
+.refreshButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: background-color 0.2s ease;
+}
+
+.copyButton:hover,
+.refreshButton:hover {
+  background: var(--ifm-color-emphasis-200);
+}
+
+.code {
+  margin: 0;
+  padding: 1rem;
+  background: transparent;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--ifm-color-content);
+  overflow-x: auto;
+}
