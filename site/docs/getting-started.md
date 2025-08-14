@@ -4,40 +4,216 @@ sidebar_position: 2
 
 # Getting Started
 
-The experimental MMO category is powered by our hosted version of [PartyServer](https://www.npmjs.com/package/partyserver), Cloudflare's PartyKit-inspired scalable server based on [Cloudflare Workers](https://developers.cloudflare.com/workers/). But don't worry; for JS13K you only need to write your game as you normally would and you don't need to know anything about server technologies. Just think of the MMO capability as "Powered by Cloudflare".
+The experimental MMO category is powered by our hosted version of [PartyServer](https://www.npmjs.com/package/partyserver), Cloudflare's PartyKit-inspired scalable server based on [Cloudflare Workers](https://developers.cloudflare.com/workers/).
 
-## Importing PartySocket
+The best part? You get a complete SDK that handles all the complexity for you. No server programming required!
 
-To get started, create an `index.html` and import [PartySocket](https://www.npmjs.com/package/partysocket). For the MMO category, PartySocket is free and does not count against your bundle size.
+## Installation
 
 ```html
-<!-- index.html -->
 <script type="module">
-  import PartySocket from 'https://esm.sh/partysocket'
-  window.PartySocket = PartySocket
+  import Js13kClient from 'https://esm.sh/js13k-mmo-sdk'
+
+  // Your game code here
+  const client = new Js13kClient('my-game-room')
 </script>
 ```
 
-## Connecting to the JS13K MMO Server
+## Your First MMO Game
 
-Once PartySocket is imported, you must connect to the JS13K MMO server powered by Cloudflare.
+Let's create a simple multiplayer game where players can move around and see each other:
 
-```js
-const socket = new PartySocket({
-  host: window.location.host,
-  party: 'js13k',
-  room: 'your-unique-room-slug', // This must be unique to your game
-})
+🔗 [Codesandbox Playground](https://codesandbox.io/p/sandbox/jmfms6)
+
+<iframe
+  width="640"
+  height="400"
+  src="https://www.youtube.com/embed/iq8yZbFNuJw"
+  title="YouTube video player"
+  frameBorder="0"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+  allowFullScreen
+></iframe>
+
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>My First MMO</title>
+    <style>
+      #game {
+        width: 640px;
+        height: 400px;
+        border: 1px solid #ccc;
+        position: relative;
+      }
+      .player {
+        width: 20px;
+        height: 20px;
+        background: blue;
+        position: absolute;
+        border-radius: 50%;
+      }
+      .me {
+        background: red;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="game"></div>
+    <div id="status">Connecting...</div>
+
+    <script type="module">
+      import Js13kClient from 'https://esm.sh/js13k-mmo-sdk'
+      // Define our game state type (optional, but helpful)
+      // Game state will look like: { players: { playerId: { x: 100, y: 200 } } }
+
+      const gameDiv = document.getElementById('game')
+      const statusDiv = document.getElementById('status')
+      const playerElements = new Map()
+
+      // Create client with a unique room name for your game
+      const client = new Js13kClient('my-awesome-game-v1', {
+        host: 'https://js13k-mmo.benallfree.com',
+      })
+
+      // Listen for connection events
+      client.on('connected', () => {
+        statusDiv.textContent = 'Connected! Move with arrow keys.'
+      })
+
+      client.on('id', (myId) => {
+        console.log('My player ID:', myId)
+        // Initialize my position
+        client.updateMyState({ x: 400, y: 300 })
+      })
+
+      // Listen for state changes
+      client.on('delta', (delta) => {
+        console.log('State changed:', delta)
+        renderPlayers()
+      })
+
+      client.on('state', (fullState) => {
+        console.log('Initial state received:', fullState)
+        renderPlayers()
+      })
+
+      // Handle player connections/disconnections
+      client.on('connect', (playerId) => {
+        console.log('Player connected:', playerId)
+      })
+
+      client.on('disconnect', (playerId) => {
+        console.log('Player disconnected:', playerId)
+        // Remove their visual element
+        const element = playerElements.get(playerId)
+        if (element) {
+          element.remove()
+          playerElements.delete(playerId)
+        }
+      })
+
+      // Render all players
+      function renderPlayers() {
+        const state = client.getState()
+        const myId = client.getMyId()
+
+        if (!state.players) return
+
+        Object.entries(state.players).forEach(([playerId, playerState]) => {
+          if (playerState.x == null || playerState.y == null) return
+
+          let element = playerElements.get(playerId)
+          if (!element) {
+            element = document.createElement('div')
+            element.className = 'player' + (playerId === myId ? ' me' : '')
+            gameDiv.appendChild(element)
+            playerElements.set(playerId, element)
+          }
+          // console.log(JSON.stringify(playerState));
+
+          element.style.left = playerState.x + 'px'
+          element.style.top = playerState.y + 'px'
+        })
+      }
+
+      // Handle keyboard input
+      const keys = new Set()
+      let moveSpeed = 3
+
+      document.addEventListener('keydown', (e) => {
+        keys.add(e.code)
+      })
+
+      document.addEventListener('keyup', (e) => {
+        keys.delete(e.code)
+      })
+
+      // Game loop
+      function gameLoop() {
+        const myState = client.getMyState()
+        if (!myState) {
+          requestAnimationFrame(gameLoop)
+          return
+        }
+
+        let dx = 0,
+          dy = 0
+
+        if (keys.has('ArrowLeft') || keys.has('KeyA')) dx = -moveSpeed
+        if (keys.has('ArrowRight') || keys.has('KeyD')) dx = moveSpeed
+        if (keys.has('ArrowUp') || keys.has('KeyW')) dy = -moveSpeed
+        if (keys.has('ArrowDown') || keys.has('KeyS')) dy = moveSpeed
+        // console.log({ dx, dy });
+        if (dx !== 0 || dy !== 0) {
+          const newX = Math.max(0, Math.min(620, myState.x + dx))
+          const newY = Math.max(0, Math.min(380, myState.y + dy))
+          console.log({ newX, newY })
+          client.updateMyState({ x: newX, y: newY })
+        }
+        renderPlayers()
+
+        requestAnimationFrame(gameLoop)
+      }
+
+      gameLoop()
+    </script>
+  </body>
+</html>
 ```
 
-`your-room-slug` is the way you create a private "room" for your game. All of your game communication and data will be isolated to this room, so choose a unique slug that is unlikely to collide with anyone else's.
+## Room Names
 
-A simple name is probably good enough, but if you want to be really sure your room name is unique, just paste this UUID generator code into your browser console:
+Your `room` parameter creates a private space for your game. All communication is isolated to this room, so choose a unique name:
 
 ```js
-console.log(
-  ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, (c) =>
+// Good room names
+const client = new Js13kClient('super-mario-battle-2025')
+const client = new Js13kClient('chess-masters-js13k')
+const client = new Js13kClient('my-game-' + generateUUID())
+
+// Avoid generic names that might conflict
+const client = new Js13kClient('game') // Too generic!
+const client = new Js13kClient('test') // Others might use this
+```
+
+### Generate Unique Room Names
+
+For guaranteed uniqueness, generate a UUID:
+
+```js
+function generateUUID() {
+  return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, (c) =>
     (c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))).toString(16)
   )
-)
+}
+
+const client = new Js13kClient('my-game-' + generateUUID())
 ```
+
+## What's Next?
+
+- Learn about [Initial Connection](./initial-connection.md) to understand the connection flow
+- Dive into [Game State Management](./game-state.md) for advanced state handling
+- Explore [Going Further](./going-further.md) for performance optimization and custom servers
