@@ -41,8 +41,9 @@
     "dev": "tsdown --watch"
   },
   "devDependencies": {
+    "@types/node": "^24.2.1",
+    "partysocket": "^1.1.5",
     "tsdown": "^0.14.1",
-    "typescript": "^5.0.0",
-    "partysocket": "^1.1.5"
+    "typescript": "^5.0.0"
   }
 }
