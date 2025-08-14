@@ -24,6 +24,17 @@ function HomepageHeader() {
             Play the demos - 5min ⏱️
           </Link>
         </div>
+      <div style={{ marginTop: 24, display: 'flex', justifyContent: 'center' }}>
+        <iframe
+          width="560"
+          height="315"
+          src="https://www.youtube.com/embed/PQosKXFfcmk"
+          title="YouTube video player"
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowFullScreen
+        ></iframe>
+      </div>
       </div>
     </header>
   );
