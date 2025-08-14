@@ -67,8 +67,40 @@
       statusIndicator.textContent = 'Connecting...'
       document.body.appendChild(statusIndicator)
 
-      // Create client
-      const client = new Js13kClient('flight')
+      // Create client with delta evaluator
+      const client = new Js13kClient('flight', {
+        deltaEvaluator: (delta, shadowState, playerId) => {
+          // If no base state, always send
+          if (!shadowState || !playerId) {
+            return true
+          }
+
+          // Get the player's previous state from the delta base
+          const playerBase = shadowState.players?.[playerId]
+          if (!playerBase) {
+            return true
+          }
+
+          // Check if position, rotation, or speed have changed significantly
+          const newX = delta.players?.[playerId]?.x
+          const newY = delta.players?.[playerId]?.y
+          const newZ = delta.players?.[playerId]?.z
+          const newRx = delta.players?.[playerId]?.rx
+          const newRy = delta.players?.[playerId]?.ry
+          const newRz = delta.players?.[playerId]?.rz
+          const newS = delta.players?.[playerId]?.s
+
+          const xChanged = newX != null && (playerBase.x == null || Math.abs(newX - playerBase.x) > 2)
+          const yChanged = newY != null && (playerBase.y == null || Math.abs(newY - playerBase.y) > 2)
+          const zChanged = newZ != null && (playerBase.z == null || Math.abs(newZ - playerBase.z) > 2)
+          const rxChanged = newRx != null && (playerBase.rx == null || Math.abs(newRx - playerBase.rx) > 0.05)
+          const ryChanged = newRy != null && (playerBase.ry == null || Math.abs(newRy - playerBase.ry) > 0.05)
+          const rzChanged = newRz != null && (playerBase.rz == null || Math.abs(newRz - playerBase.rz) > 0.05)
+          const sChanged = newS != null && (playerBase.s == null || Math.abs(newS - playerBase.s) > 1)
+
+          return xChanged || yChanged || zChanged || rxChanged || ryChanged || rzChanged || sChanged
+        },
+      })
 
       // Game state
       let keys = {}
@@ -309,8 +341,8 @@
         myState.s *= drag
 
         if (moved || myState.s > 0.1) {
-          console.log('myState', myState)
-          client.updateMyData(myState)
+          // console.log('myState', myState)
+          client.updateMyState(myState)
         }
       }
 
@@ -382,7 +414,7 @@
           rz: -Math.PI / 2,
           s: 0,
         }
-        client.updateMyData(state)
+        client.updateMyState(state)
       })
 
       client.on('connect', (playerId) => {

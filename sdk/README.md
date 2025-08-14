@@ -1,6 +1,6 @@
 # JS13K MMO SDK
 
-A simple client SDK for the JS13K MMO Challenge Series that abstracts away the WebSocket connection and state management.
+A simple client SDK for the JS13K MMO Challenge Series that abstracts away the WebSocket connection and state management with intelligent delta throttling for smooth multiplayer games.
 
 ## Installation
 
@@ -12,6 +12,24 @@ A simple client SDK for the JS13K MMO Challenge Series that abstracts away the W
 ```
 
 ## Usage
+
+### Basic Setup
+
+```javascript
+// Simple client
+const client = new Js13kClient('room-name')
+
+// With custom options
+const client = new Js13kClient('room-name', {
+  host: 'my-server.com',
+  party: 'my-game',
+  throttleMs: 50, // Custom throttle interval
+  deltaEvaluator: (delta, deltaBase) => {
+    // Custom logic to determine if delta should be sent
+    return true
+  },
+})
+```
 
 ### Event Handling
 
@@ -67,15 +85,15 @@ const otherPlayerStateCopy = client.getPlayerState('player-id', true)
 // Check connection status
 const isConnected = client.isConnected()
 
-// Update my data
-client.updateMyData({
+// Update my player state (throttled automatically)
+client.updateMyState({
   x: 100,
   y: 200,
   angle: 0.5,
 })
 
-// Send custom delta updates
-client.sendDelta({
+// Send custom delta updates (also throttled)
+client.updateState({
   players: {
     [myId]: { health: 50 },
     [otherPlayerId]: { position: { x: 150, y: 250 } },
@@ -93,18 +111,80 @@ client.disconnect()
 client.off('delta', myCallback)
 ```
 
+## Delta Throttling
+
+The SDK includes intelligent delta throttling that's perfect for games running at 60fps. Instead of sending every single update over the network, the SDK batches and throttles deltas for optimal performance.
+
+### How It Works
+
+1. **Throttle Window**: Deltas are collected during a configurable time window (default: 50ms)
+2. **Delta Merging**: Multiple deltas for the same state are merged into a single "uberdelta"
+3. **Smart Evaluation**: Optional evaluator function determines if the merged delta should be sent
+4. **Network Optimization**: Only significant changes are transmitted, reducing bandwidth usage
+
+### Configuration
+
+```javascript
+const client = new Js13kClient('room-name', {
+  throttleMs: 50, // Throttle window in milliseconds (default: 50)
+  deltaEvaluator: (delta, deltaBase, playerId) => {
+    // Return true if delta should be sent, false to skip
+    // delta: The merged delta to be sent
+    // deltaBase: The previous state for comparison
+    // playerId: The current player's ID (for player-specific evaluation)
+
+    // Example: Only send if position changed significantly
+    if (!deltaBase || !playerId) return true
+
+    // Get the player's previous state from the delta base
+    const playerBase = deltaBase.players?.[playerId]
+    if (!playerBase) return true
+
+    const xChanged = Math.abs((delta.players?.[playerId]?.x || 0) - (playerBase.x || 0)) > 2
+    const yChanged = Math.abs((delta.players?.[playerId]?.y || 0) - (playerBase.y || 0)) > 2
+
+    return xChanged || yChanged
+  },
+})
+```
+
+### Game Loop Integration
+
+```javascript
+// Perfect for 60fps game loops
+function gameLoop() {
+  // Update player position every frame
+  player.x += velocity.x
+  player.y += velocity.y
+
+  // SDK automatically throttles and batches these updates
+  client.updateMyState(player)
+
+  requestAnimationFrame(gameLoop)
+}
+```
+
+### Benefits
+
+- **Reduced Network Traffic**: Only significant changes are sent
+- **Smooth Gameplay**: No network lag from excessive updates
+- **Automatic Batching**: Multiple updates become single network messages
+- **Configurable**: Customize throttling behavior for your game's needs
+
 ## API Reference
 
 ### Constructor
 
 ```javascript
-new Js13kClient(room, options)
+new Js13kClient() < TState > (room, options)
 ```
 
 - `room` (string): The room name to join
 - `options` (object, optional): Configuration options
   - `host` (string): Server host (defaults to `window.location.host`)
   - `party` (string): Party name (defaults to `'js13k'`)
+  - `throttleMs` (number): Throttle window in milliseconds (default: 50)
+  - `deltaEvaluator` (function): Optional function to evaluate if delta should be sent
 
 ### Methods
 
@@ -116,40 +196,40 @@ Register an event listener.
 
 Remove an event listener.
 
-#### `getState()`
+#### `getState(): TState`
 
 Get the current game state.
 
-#### `getMyId()`
+#### `getMyId(): string | null`
 
 Get the current player's ID.
 
-#### `getMyState(copy = false)`
+#### `getMyState(copy = false): PlayerStateValue<TState> | null`
 
 Get the current player's state data.
 
 - `copy` (boolean): If true, returns a deep copy of the state
 
-#### `getPlayerState(playerId, copy = false)`
+#### `getPlayerState(playerId, copy = false): PlayerStateValue<TState> | null`
 
 Get a specific player's state data.
 
 - `playerId` (string): The ID of the player
 - `copy` (boolean): If true, returns a deep copy of the state
 
-#### `isConnected()`
+#### `isConnected(): boolean`
 
 Check if connected to the server.
 
-#### `updateMyData(data)`
+#### `updateMyState(delta: PartialDeep<PlayerStateValue<TState>>): void`
 
-Update the current player's data. This is a convenience method that wraps the data in the proper structure for `sendDelta`.
+Update the current player's state. Automatically throttled and batched.
 
-#### `sendDelta(delta)`
+#### `updateState(delta: PartialDeep<TState>): void`
 
-Send a delta update to the server. The delta should follow the same structure as the state object.
+Send a delta update to the server. Automatically throttled and batched.
 
-#### `disconnect()`
+#### `disconnect(): void`
 
 Disconnect from the server.
 
@@ -163,9 +243,76 @@ Disconnect from the server.
 - `connect`: Fired when another player connects (data: player ID)
 - `disconnect`: Fired when another player disconnects (data: player ID)
 
+### Types
+
+```typescript
+type PartialDeep<T> = {
+  [P in keyof T]?: T[P] extends object ? PartialDeep<T[P]> : T[P]
+}
+
+type PlayerStateValue<TState extends GameState> = TState['players'] extends {
+  [key: string]: infer P
+}
+  ? P
+  : any
+
+type DeltaEvaluator<TState = GameState> = (
+  delta: PartialDeep<TState>,
+  deltaBase: PartialDeep<TState>,
+  playerId?: string
+) => boolean
+```
+
 ## Examples
 
-See [live demos](https://mmo.js13kgames.com/demos).
+### Racing Game
+
+```javascript
+const client = new Js13kClient('racing', {
+  throttleMs: 33, // 30fps updates
+  deltaEvaluator: (delta, deltaBase, playerId) => {
+    if (!deltaBase || !playerId) return true
+
+    // Get the player's previous state from the delta base
+    const playerBase = deltaBase.players?.[playerId]
+    if (!playerBase) return true
+
+    // Only send if position changed by more than 1 unit
+    const distance = Math.sqrt(
+      Math.pow((delta.players?.[playerId]?.x || 0) - (playerBase.x || 0), 2) +
+        Math.pow((delta.players?.[playerId]?.y || 0) - (playerBase.y || 0), 2)
+    )
+
+    return distance > 1
+  },
+})
+
+// Update car position every frame
+function updateCar() {
+  car.x += velocity.x
+  car.y += velocity.y
+
+  // SDK handles throttling automatically
+  client.updateMyState(car)
+}
+```
+
+### Real-time Strategy Game
+
+```javascript
+const client = new Js13kClient('rts', {
+  throttleMs: 100, // Less frequent updates for RTS
+  deltaEvaluator: (delta, deltaBase, playerId) => {
+    // Always send unit commands immediately
+    if (delta.commands) return true
+
+    // Throttle position updates
+    return true // Simplified for this example
+  },
+})
+```
+
+See [live demos](https://mmo.js13kgames.com/demos) for more examples.
 
 ## License
 

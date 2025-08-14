@@ -103,8 +103,37 @@
       statusIndicator.textContent = 'Connecting...'
       document.body.appendChild(statusIndicator)
 
-      // Create client
-      const client = new Js13kClient('cars')
+      // Create client with delta evaluator
+      const client = new Js13kClient('cars', {
+        deltaEvaluator: (delta, shadowState, playerId) => {
+          console.log(`deltaEvaluator: ${JSON.stringify({ delta, shadowState, playerId }, null, 2)}`)
+          // If no base state, always send
+          if (!shadowState || !playerId) {
+            return true
+          }
+
+          // Get the player's previous state from the delta base
+          const playerBase = shadowState.players?.[playerId]
+          if (!playerBase) {
+            return true
+          }
+          console.log(`playerBase: ${JSON.stringify({ playerBase, delta, shadowState }, null, 2)}`)
+
+          // Check if x, y, or angle have changed significantly
+          const newX = delta.players?.[playerId]?.x
+          const newY = delta.players?.[playerId]?.y
+          const newAngle = delta.players?.[playerId]?.angle
+
+          const xChanged = newX != null && (playerBase.x == null || Math.abs(newX - playerBase.x) > 2)
+          const yChanged = newY != null && (playerBase.y == null || Math.abs(newY - playerBase.y) > 2)
+          const angleChanged =
+            newAngle != null && (playerBase.angle == null || Math.abs(newAngle - playerBase.angle) > 0.05)
+
+          const hasChanged = xChanged || yChanged || angleChanged
+          console.log(`hasChanged: ${hasChanged}`, { xChanged, yChanged, angleChanged })
+          return hasChanged
+        },
+      })
 
       // Game state
       let keys = {
@@ -237,7 +266,7 @@
 
         if (moved) {
           // Send update to server
-          client.updateMyData(car)
+          client.updateMyState(car)
         }
       }
 
@@ -265,7 +294,7 @@
         }
         console.log('Initialized my car:', initialCar)
         // Send initial position
-        client.updateMyData(initialCar)
+        client.updateMyState(initialCar)
       })
 
       client.on('connect', (playerId) => {

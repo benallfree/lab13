@@ -1,20 +1,21 @@
 import PartySocket from 'partysocket'
 
 // Type definitions
-export interface DeltaEvaluator {
-  (
-    newDelta: any,
-    deltaBase: any,
-    key: string
-  ): {
-    check: boolean
-    commit: () => void
-  }
+type PartialDeep<T> = {
+  [P in keyof T]?: T[P] extends object ? PartialDeep<T[P]> : T[P]
 }
 
-export interface ClientOptions {
+export type DeltaEvaluator<TState = GameState> = (
+  delta: PartialDeep<TState>,
+  deltaBase: PartialDeep<TState>,
+  playerId?: string
+) => boolean
+
+export interface ClientOptions<TState = GameState> {
   host?: string
   party?: string
+  deltaEvaluator?: DeltaEvaluator<TState>
+  throttleMs?: number
 }
 
 export interface MessageData {
@@ -34,214 +35,82 @@ export interface GameState {
   [key: string]: any
 }
 
-// Helper function to create a delta throttler
-export function createDeltaThrottle(ms: number = 50): DeltaEvaluator {
-  const lastSent = new Map<string, number>()
-
-  return (newDelta: any, deltaBase: any, key: string) => {
-    const now = Date.now()
-    const lastTime = lastSent.get(key) || 0
-
-    // Check if enough time has passed
-    const timeCheck = now - lastTime >= ms
-
-    // Check if values have actually changed (deep comparison)
-    const valueCheck = !deltaBase || hasValueChanged(newDelta, deltaBase)
-
-    return {
-      check: timeCheck && valueCheck,
-      commit: () => {
-        // Always reset the timer when commit is called
-        lastSent.set(key, Date.now())
-      },
-    }
-  }
+export type PlayerStateValue<TState extends GameState = GameState> = TState['players'] extends {
+  [key: string]: infer P
 }
+  ? P
+  : any
 
-// Helper function to create a 2D distance-based evaluator
-export function createDistance2DEvaluator(minDistance: number = 5): DeltaEvaluator {
-  return (newDelta: any, deltaBase: any, key: string) => {
-    if (!deltaBase || newDelta.x === undefined || newDelta.y === undefined) {
-      return { check: true, commit: () => {} }
-    }
-
-    const dx = newDelta.x - (deltaBase.x || 0)
-    const dy = newDelta.y - (deltaBase.y || 0)
-    const check = Math.sqrt(dx * dx + dy * dy) > minDistance
-
-    return { check, commit: () => {} }
-  }
-}
-
-// Helper function to create a 3D distance-based evaluator
-export function createDistance3DEvaluator(minDistance: number = 5): DeltaEvaluator {
-  return (newDelta: any, deltaBase: any, key: string) => {
-    if (!deltaBase || newDelta.x === undefined || newDelta.y === undefined || newDelta.z === undefined) {
-      return { check: true, commit: () => {} }
-    }
-
-    const dx = newDelta.x - (deltaBase.x || 0)
-    const dy = newDelta.y - (deltaBase.y || 0)
-    const dz = newDelta.z - (deltaBase.z || 0)
-    const check = Math.sqrt(dx * dx + dy * dy + dz * dz) > minDistance
-
-    return { check, commit: () => {} }
-  }
-}
-
-// Helper function to create a percentage-based evaluator
-export function createPercentageEvaluator(property: string, minPercentage: number = 0.1): DeltaEvaluator {
-  return (newDelta: any, deltaBase: any, key: string) => {
-    if (!deltaBase || newDelta[property] === undefined || deltaBase[property] === undefined) {
-      return { check: true, commit: () => {} }
-    }
-
-    const change = Math.abs(newDelta[property] - deltaBase[property])
-    const check = change > Math.abs(deltaBase[property]) * minPercentage
-
-    return { check, commit: () => {} }
-  }
-}
-
-// Helper function for deep value comparison
-function hasValueChanged(delta: any, base: any): boolean {
-  if (typeof delta !== typeof base) return true
-
+// Helper function to extract values from state that match delta structure
+function extractDeltaFromState(state: any, delta: any): any {
   if (typeof delta !== 'object' || delta === null) {
-    return delta !== base
+    return delta
   }
 
-  for (const key of Object.keys(delta)) {
-    if (!(key in base)) return true
-    if (hasValueChanged(delta[key], base[key])) return true
-  }
-
-  return false
-}
-
-export const defaultThrottle = createDeltaThrottle(50)
-
-// Helper function to generate a deterministic key from delta structure
-function generateDeltaKey(delta: any, path: string = ''): string {
-  if (typeof delta !== 'object' || delta === null) {
-    return path
-  }
-
-  const keys = Object.keys(delta).sort()
-  if (keys.length === 0) {
-    return path
-  }
-
-  const keyParts = keys.map((key) => {
-    const value = delta[key]
-    if (typeof value === 'object' && value !== null) {
-      return `${key}:${generateDeltaKey(value, path + key + '.')}`
-    }
-    return key
-  })
-
-  return path + keyParts.join('.')
-}
-
-// Helper function to get nested value from state using delta structure
-function getNestedValue(state: any, delta: any): any {
-  if (typeof delta !== 'object' || delta === null) {
-    return state
-  }
-
-  // Recursively extract the nested structure that matches the delta
   const result: any = {}
   for (const key of Object.keys(delta)) {
-    if (state && typeof state === 'object' && key in state) {
-      if (typeof delta[key] === 'object' && delta[key] !== null) {
-        // Recursively get nested values
-        result[key] = getNestedValue(state[key], delta[key])
-      } else {
-        // Leaf value
-        result[key] = state[key]
-      }
+    const deltaValue = delta[key]
+
+    if (typeof deltaValue === 'object' && deltaValue !== null) {
+      // Delta value is an object, go deeper recursively
+      const stateValue = state && typeof state === 'object' && key in state ? state[key] : {}
+      result[key] = extractDeltaFromState(stateValue, deltaValue)
     } else {
-      return undefined
+      // Delta value is a plain value, extract from state
+      if (state && typeof state === 'object' && key in state) {
+        result[key] = state[key]
+      } else {
+        result[key] = null
+      }
     }
   }
   return result
 }
 
-class Js13kClient {
+class Js13kClient<TState extends GameState = GameState> {
   private room: string
-  private options: Required<ClientOptions>
+  private options: Required<
+    ClientOptions<TState> & { deltaEvaluator: DeltaEvaluator<TState> | undefined; throttleMs: number }
+  >
   private socket: PartySocket | null
   private myId: string | null
-  private state: GameState
+  private state: TState
   private eventListeners: Record<string, Function[]>
   private connected: boolean
-  private deltaBases: Map<string, any>
+  private shadowState: PartialDeep<TState>
+  private pendingDelta: PartialDeep<TState>
+  private throttleTimer: ReturnType<typeof setTimeout> | null
 
-  constructor(room: string, options: ClientOptions = {}) {
+  constructor(room: string, options: ClientOptions<TState> = {}) {
     this.room = room
     this.options = {
       host: window.location.host,
       party: 'js13k',
+      deltaEvaluator: undefined,
+      throttleMs: 50,
       ...options,
     }
 
     this.socket = null
     this.myId = null
-    this.state = {}
+    this.state = {} as TState
     this.eventListeners = {}
     this.connected = false
 
     // Delta change detection system
-    this.deltaBases = new Map()
+    this.shadowState = {} as PartialDeep<TState>
+    this.pendingDelta = {} as PartialDeep<TState>
+    this.throttleTimer = null
 
     this.connect()
   }
 
-  // Save a base state for a given delta key
-  saveDeltaBase(key: string, deltaBaseState: any): void {
-    this.deltaBases.set(key, JSON.parse(JSON.stringify(deltaBaseState)))
-  }
-
-  // Get the base state for a given delta key
-  getDeltaBase(key: string): any {
-    return this.deltaBases.get(key)
-  }
-
-  // Automatically get or create delta base from current state
-  getOrCreateDeltaBase(delta: any): { key: string; baseState: any } {
-    const key = generateDeltaKey(delta)
-
-    // Check if we already have a saved base
-    let baseState = this.getDeltaBase(key)
-
-    if (!baseState) {
-      // Extract base state from current state using delta structure
-      baseState = getNestedValue(this.state, delta)
-
-      // Save the base state for future comparisons
-      if (baseState !== undefined) {
-        this.saveDeltaBase(key, baseState)
-      }
+  // Check if a delta should be sent based on evaluator function
+  shouldSendDelta(delta: PartialDeep<TState>): boolean {
+    if (!this.options.deltaEvaluator) {
+      return true // Always send if no evaluator provided
     }
-
-    return { key, baseState }
-  }
-
-  // Check if a delta has significant changes
-  checkSignificantChange(delta: any, evaluator: DeltaEvaluator | null = null): boolean {
-    const { key, baseState } = this.getOrCreateDeltaBase(delta)
-
-    const finalEvaluator = evaluator || defaultThrottle
-
-    // Handle result object evaluators
-    const result = finalEvaluator(delta, baseState, key)
-
-    if (result.check) {
-      result.commit()
-      return true
-    }
-
-    return false
+    return this.options.deltaEvaluator(delta, this.shadowState, this.myId || undefined)
   }
 
   connect(): void {
@@ -346,7 +215,7 @@ class Js13kClient {
   }
 
   // State management
-  getState(): GameState {
+  getState(): TState {
     return this.state
   }
 
@@ -371,31 +240,76 @@ class Js13kClient {
   }
 
   // Send updates to server
-  sendDelta(delta: any): void {
+  sendDelta(delta: PartialDeep<TState>): void {
     if (!this.socket || !this.connected) {
       console.warn('Not connected to server, skipping delta')
       return
     }
+    const deltaString = JSON.stringify({ delta })
+    // console.log(`[${this.myId}] sendDelta`, deltaString)
 
-    this.socket.send(JSON.stringify({ delta }))
+    this.socket.send(deltaString)
   }
 
-  // Send updates to server
-  updateState(delta: any, evaluator: DeltaEvaluator | null = null): void {
-    const hasSignificantChange = this.checkSignificantChange(delta, evaluator)
+  // Send updates to server with throttling
+  updateState(delta: PartialDeep<TState>): void {
+    // Merge into pending uberdelta
+    this.addToPendingDelta(delta)
+  }
 
+  // Merge delta into pending uberdelta
+  private addToPendingDelta(delta: PartialDeep<TState>): void {
+    // console.log(`[${this.myId}] addToPendingDelta`, JSON.stringify({ pendingDelta: this.pendingDelta, delta }, null, 2))
+    // If this is the first pending update, capture the current state as shadow state
+    if (Object.keys(this.pendingDelta).length === 0) {
+      this.shadowState = JSON.parse(JSON.stringify(this.state))
+      // console.log(
+      //   `[${this.myId}] initializing shadow state`,
+      //   JSON.stringify({ shadowState: this.shadowState }, null, 2)
+      // )
+    }
+
+    // Merge delta into the current state
     this.state = this.mergeState(this.state, delta)
 
-    // Check if this delta has significant changes
-    if (hasSignificantChange) {
-      this.sendDelta(delta)
+    // Merge delta into the pending uberdelta
+    this.pendingDelta = this.mergeState(this.pendingDelta, delta)
+
+    // Only create a new timer if one doesn't already exist (throttle, not debounce)
+    // console.log(`[${this.myId}] throttleTimer`, JSON.stringify({ throttleTimer: this.throttleTimer }, null, 2))
+    if (!this.throttleTimer) {
+      this.processPendingDelta()
+      this.throttleTimer = setTimeout(() => {
+        this.throttleTimer = null
+        this.processPendingDelta()
+      }, this.options.throttleMs)
     }
   }
 
+  // Process and send pending uberdelta
+  private processPendingDelta(): void {
+    // console.log(`[${this.myId}] processPendingDelta`, JSON.stringify({ pendingDelta: this.pendingDelta }, null, 2))
+    if (Object.keys(this.pendingDelta).length === 0) return
+
+    // Check if pending delta should be sent
+    if (this.shouldSendDelta(this.pendingDelta)) {
+      // console.log(`[${this.myId}] sending pending delta`, JSON.stringify({ pendingDelta: this.pendingDelta }, null, 2))
+      // Send the uberdelta
+      this.sendDelta(this.pendingDelta)
+
+      // Clear shadow state after sending
+      this.shadowState = {} as PartialDeep<TState>
+    }
+
+    // Clear pending delta and timer
+    this.pendingDelta = {} as PartialDeep<TState>
+  }
+
   // Update my own data
-  updateMyState(delta: any, evaluator: DeltaEvaluator | null = null): void {
+  updateMyState(delta: PartialDeep<PlayerStateValue<TState>>): void {
+    // console.log(`[${this.myId}] updateMyState`, JSON.stringify(delta))
     if (this.myId) {
-      this.updateState({ players: { [this.myId]: delta } }, evaluator)
+      this.updateState({ players: { [this.myId]: delta } } as PartialDeep<TState>)
     } else {
       console.warn('No myId yet, waiting for server...')
     }
@@ -403,6 +317,14 @@ class Js13kClient {
 
   // Disconnect
   disconnect(): void {
+    // Clear throttle timer
+    if (this.throttleTimer) {
+      clearTimeout(this.throttleTimer)
+      this.throttleTimer = null
+    }
+    this.pendingDelta = {} as PartialDeep<TState>
+    this.shadowState = {} as PartialDeep<TState>
+
     if (this.socket) {
       this.socket.close()
     }
