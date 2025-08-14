@@ -47,7 +47,7 @@ class Js13kClient<TState extends GameState> {
   constructor(room: string, options: ClientOptions<TState> = {}) {
     this.room = room
     this.options = {
-      host: window.location.host,
+      host: `https://js13k-mmo.benallfree.com`,
       party: 'js13k',
       deltaEvaluator: undefined,
       throttleMs: 50,

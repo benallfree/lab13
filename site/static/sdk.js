@@ -542,7 +542,7 @@ var Js13kClient = class {
 	constructor(room, options = {}) {
 		this.room = room;
 		this.options = {
-			host: window.location.host,
+			host: `https://js13k-mmo.benallfree.com`,
 			party: "js13k",
 			deltaEvaluator: void 0,
 			throttleMs: 50,
