@@ -1,31 +1,27 @@
-import type {ReactNode} from 'react';
-import clsx from 'clsx';
-import Heading from '@theme/Heading';
-import styles from './styles.module.css';
+import Heading from '@theme/Heading'
+import clsx from 'clsx'
+import type { ReactNode } from 'react'
+import styles from './styles.module.css'
 
 type FeatureItem = {
-  title: string;
-  Svg: React.ComponentType<React.ComponentProps<'svg'>>;
-  description: ReactNode;
-};
+  title: string
+  Svg: React.ComponentType<React.ComponentProps<'svg'>>
+  description: ReactNode
+}
 
 const FeatureList: FeatureItem[] = [
   {
     title: 'Powered by Cloudflare',
     Svg: require('@site/static/img/cloudflare.svg').default,
-    description: (
-      <>
-        Cloudflare is sponsoring the JS13K 2025 Experimental MMO category.
-      </>
-    ),
+    description: <>Cloudflare is sponsoring the JS13K 2025 Experimental MMO category.</>,
   },
   {
     title: 'Focus on the Game',
     Svg: require('@site/static/img/IonIosGameControllerB.svg').default,
     description: (
       <>
-        You don't need to write any server code to participate in the MMO category.
-        The JS13K MMO server is hosted by Cloudflare and will handle all the server-side logic for you.
+        You don't need to write any server code to participate in the MMO category. The JS13K MMO server is hosted by
+        Cloudflare and will handle all the server-side logic for you.
       </>
     ),
   },
@@ -34,13 +30,14 @@ const FeatureList: FeatureItem[] = [
     Svg: require('@site/static/img/MaterialIconThemeJavascriptMap.svg').default,
     description: (
       <>
-        You can add MMO to your game using just vanilla JS. No React, no Angular, no Vue, no Svelte, no Deno, no Node, no Bun, no anything.
+        You can add MMO to your game using just vanilla JS. No React, no Angular, no Vue, no Svelte, no Deno, no Node,
+        no Bun, no anything.
       </>
     ),
   },
-];
+]
 
-function Feature({title, Svg, description}: FeatureItem) {
+function Feature({ title, Svg, description }: FeatureItem) {
   return (
     <div className={clsx('col col--4')}>
       <div className="text--center">
@@ -51,7 +48,7 @@ function Feature({title, Svg, description}: FeatureItem) {
         <p>{description}</p>
       </div>
     </div>
-  );
+  )
 }
 
 export default function HomepageFeatures(): ReactNode {
@@ -65,5 +62,5 @@ export default function HomepageFeatures(): ReactNode {
         </div>
       </div>
     </section>
-  );
+  )
 }
