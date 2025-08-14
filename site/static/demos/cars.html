@@ -106,7 +106,7 @@
       // Create client with delta evaluator
       const client = new Js13kClient('cars', {
         deltaEvaluator: (delta, shadowState, playerId) => {
-          console.log(`deltaEvaluator: ${JSON.stringify({ delta, shadowState, playerId }, null, 2)}`)
+          // console.log(`deltaEvaluator: ${JSON.stringify({ delta, shadowState, playerId }, null, 2)}`)
           // If no base state, always send
           if (!shadowState || !playerId) {
             return true
@@ -117,7 +117,7 @@
           if (!playerBase) {
             return true
           }
-          console.log(`playerBase: ${JSON.stringify({ playerBase, delta, shadowState }, null, 2)}`)
+          // console.log(`playerBase: ${JSON.stringify({ playerBase, delta, shadowState }, null, 2)}`)
 
           // Check if x, y, or angle have changed significantly
           const newX = delta.players?.[playerId]?.x
@@ -130,7 +130,7 @@
             newAngle != null && (playerBase.angle == null || Math.abs(newAngle - playerBase.angle) > 0.05)
 
           const hasChanged = xChanged || yChanged || angleChanged
-          console.log(`hasChanged: ${hasChanged}`, { xChanged, yChanged, angleChanged })
+          // console.log(`hasChanged: ${hasChanged}`, { xChanged, yChanged, angleChanged })
           return hasChanged
         },
       })

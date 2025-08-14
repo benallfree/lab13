@@ -432,12 +432,12 @@
       })
 
       client.on('state', (state) => {
-        console.log('Received initial state:', state)
+        // console.log('Received initial state:', state)
         updateAircrafts()
       })
 
       client.on('delta', (delta) => {
-        console.log('Received delta:', delta)
+        // console.log('Received delta:', delta)
         updateAircrafts()
       })
 
