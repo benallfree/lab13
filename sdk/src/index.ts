@@ -238,14 +238,14 @@ class Js13kClient<TState extends GameState> {
       // Initial state received
       this.log(`initial state received`, JSON.stringify(data.state, null, 2))
       this.localState = data.state
-      this.remoteState = JSON.parse(JSON.stringify(data.state))
+      this.remoteState = this.options.deltaNormalizer(JSON.parse(JSON.stringify(data.state)))
       this.log(`initial remote state`, JSON.stringify(this.remoteState, null, 2))
       this.emit('state', this.localState)
     } else if (data.delta) {
       // Delta received from another client
       this.log(`delta received`, JSON.stringify(data.delta, null, 2))
       this.localState = mergeState(this.localState, data.delta)
-      this.remoteState = mergeState(this.remoteState, data.delta) // Update shadow state
+      this.remoteState = mergeState(this.remoteState, this.options.deltaNormalizer(data.delta)) // Update shadow state
       this.emit('delta', data.delta)
     }
   }
@@ -378,7 +378,7 @@ class Js13kClient<TState extends GameState> {
       this.sendDelta(filteredUberDelta)
 
       // Update shadow state after sending
-      this.remoteState = JSON.parse(JSON.stringify(this.localState))
+      this.remoteState = this.options.deltaNormalizer(JSON.parse(JSON.stringify(this.localState)))
     }
 
     // Clear pending delta
