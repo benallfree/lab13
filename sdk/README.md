@@ -1,18 +1,18 @@
-# JS13K MMO Client SDK
+# JS13K Online Client SDK
 
-The official client SDK for the 2025 JS13K MMO Challenge.
+The official client SDK for the 2025 JS13K Online Challenge.
 
 ## Installation
 
 ```html
 <script type="module">
-  import Js13kClient from 'https://esm.sh/js13k-mmo'
+  import Js13kClient from 'https://esm.sh/js13k-online'
 </script>
 ```
 
-📖 [Read the docs](https://mmo.js13kgames.com])
+📖 [Read the docs](https://online.js13kgames.com])
 
-🕹️ [Play the demo games](https://mmo.js13kgames.com/demos)
+🕹️ [Play the demo games](https://online.js13kgames.com/demos)
 
 ## License
 

@@ -3,19 +3,19 @@ title: Overview
 sidebar_position: 1
 ---
 
-# 2025 Side Quest: MMO
+# 2025 Challenge: MMO
 
-We're thrilled to announce that our newest partner, Cloudflare, is sponsoring an experimental MMO side quest for this year's JS13K competition!
+We're thrilled to announce that our newest partner, Cloudflare, is sponsoring an official MMO challenge for this year's JS13K competition!
 
-If this experiment succeeds, it could pave the way for a sustainable server-based category in the future. In previous JS13K contests, the server category posed challenges, as game servers often went offline, rendering games unplayable.
+JS13K Online, our MMO platform, paves the way for a sustainable server-based category. In previous JS13K contests, the server category posed challenges, as game servers often went offline, rendering games unplayable.
 
-This year, we're taking a different approach with the experimental MMO category. Thanks to Cloudflare's platform, JS13K will host a centralized game server that all submissions must utilize, ensuring the server remains online and accessible.
+This year, we're taking a different approach with the Online category. Thanks to Cloudflare's platform, JS13K will host a centralized game server that all submissions must utilize, ensuring the server remains online and accessible.
 
 ## What You'll Learn
 
 This documentation will guide you through:
 
-- **Getting Started**: Setting up your first multiplayer game with the JS13K MMO SDK
+- **Getting Started**: Setting up your first multiplayer game with the JS13K Online SDK
 - **Initial Connection**: Understanding how clients connect and receive their unique ID
 - **Game State Management**: Designing and managing shared game state across multiple players
 - **Advanced Features**: Delta evaluation, throttling, and performance optimization
@@ -23,7 +23,7 @@ This documentation will guide you through:
 
 ## Architecture Overview
 
-The JS13K MMO system uses a **trusted shared state relay** architecture:
+The JS13K Online system uses a **trusted shared state relay** architecture:
 
 - **Client-side game logic**: All game rules and validation happen on the client
 - **Server as relay**: The server simply broadcasts state changes between clients

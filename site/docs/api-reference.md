@@ -5,11 +5,11 @@ sidebar_position: 6
 
 # API Reference
 
-Complete reference for the JS13K MMO SDK classes, methods, and types.
+Complete reference for the JS13K Online SDK classes, methods, and types.
 
 ## Js13kClient
 
-The main client class for connecting to the JS13K MMO server.
+The main client class for connecting to the JS13K Online server.
 
 ### Constructor
 
@@ -356,7 +356,7 @@ Generates a cryptographically secure UUID (Universally Unique Identifier) for cr
 **Example:**
 
 ```js
-import Js13kClient, { generateUUID } from 'https://esm.sh/js13k-mmo-sdk'
+import Js13kClient, { generateUUID } from 'https://esm.sh/js13k-online'
 
 // Create unique IDs for game objects
 const itemId = generateUUID()
@@ -401,7 +401,7 @@ Recursively merges two objects, with special handling for `null` values as delet
 **Example:**
 
 ```js
-import Js13kClient, { mergeState } from 'https://esm.sh/js13k-mmo-sdk'
+import Js13kClient, { mergeState } from 'https://esm.sh/js13k-online'
 
 // Basic merging
 const target = { a: 1, b: { x: 10, y: 20 } }
@@ -624,7 +624,7 @@ While you typically don't need to interact with the server directly, understandi
 
 ### Server Behavior
 
-The JS13K MMO server:
+The JS13K Online server:
 
 1. **Manages Connections**: Assigns unique IDs to each connection
 2. **Manages Player State**: Creates/removes entries in `state.players`
@@ -709,4 +709,4 @@ client.on('delta', (delta) => {
 3. **Implement rate limiting** on the client side
 4. **Don't trust client state** for critical game mechanics
 
-This API reference covers all public methods and types in the JS13K MMO SDK. For more examples and patterns, see the other documentation pages.
+This API reference covers all public methods and types in the JS13K Online SDK. For more examples and patterns, see the other documentation pages.

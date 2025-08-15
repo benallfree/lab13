@@ -21,7 +21,7 @@ Return `true` to send this batch, `false` to skip it. Skipped batches are discar
 
 ```html
 <script type="module">
-  import Js13kClient from 'https://esm.sh/js13k-mmo-sdk'
+  import Js13kClient from 'https://esm.sh/js13k-online'
 
   const client = new Js13kClient('my-room', {
     // Send only if movement is meaningful

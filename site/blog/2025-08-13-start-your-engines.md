@@ -5,15 +5,15 @@ authors: [benallfree]
 tags: [js13k]
 ---
 
-# 🚀 js13k-mmo-sdk v0.0.1 is Here!
+# 🚀 js13k-online v0.0.1 is Here!
 
-We're excited to announce the first release of **js13k-mmo-sdk**, a complete multiplayer infrastructure for the JS13K game jam! This release brings everything you need to build tiny multiplayer games that fit within the 13KB limit.
+We're excited to announce the first release of **js13k-online**, a complete multiplayer infrastructure for the JS13K game jam! This release brings everything you need to build tiny multiplayer games that fit within the 13KB limit.
 
 ## What's New in v0.0.1
 
 ### 🎮 Complete Multiplayer Infrastructure
 
-- **State Relay Server**: Hosted at `mmo.js13kgames.com` - handles all the WebSocket complexity
+- **State Relay Server**: Hosted at `online.js13kgames.com` - handles all the WebSocket complexity
 - **Client SDK**: Simple JavaScript library that abstracts away connection management
 - **Zero Server Logic**: Your game runs entirely on the client - the server just forwards state changes
 
@@ -34,7 +34,7 @@ We're excited to announce the first release of **js13k-mmo-sdk**, a complete mul
 ## Quick Start
 
 ```javascript
-import Js13kClient from 'https://esm.sh/js13k-mmo-sdk'
+import Js13kClient from 'https://esm.sh/js13k-online'
 
 const client = new Js13kClient('my-awesome-game')
 
@@ -72,8 +72,8 @@ This is just the beginning! Future releases will include:
 
 ## Get Building!
 
-Ready to create your first JS13K multiplayer game? Head over to the [documentation](https://mmo.js13kgames.com) and start building! The infrastructure is ready - now it's your turn to make something amazing.
+Ready to create your first JS13K multiplayer game? Head over to the [documentation](https://online.js13kgames.com) and start building! The infrastructure is ready - now it's your turn to make something amazing.
 
 ---
 
-_js13k-mmo is built on [partysocket](https://github.com/partykit/partysocket) and designed specifically for the JS13K game jam. Happy coding! 🎮_
+_js13k-online is built on [partysocket](https://github.com/partykit/partysocket) and designed specifically for the JS13K game jam. Happy coding! 🎮_

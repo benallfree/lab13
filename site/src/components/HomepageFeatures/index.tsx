@@ -11,16 +11,16 @@ type FeatureItem = {
 
 const FeatureList: FeatureItem[] = [
   {
-    title: 'Powered by Cloudflare',
+    title: 'Sponsored by Cloudflare',
     Svg: require('@site/static/img/cloudflare.svg').default,
-    description: <>Cloudflare is sponsoring the JS13K 2025 Experimental MMO category.</>,
+    description: <>Cloudflare proudly supports JS13K Online.</>,
   },
   {
     title: 'Focus on the Game',
     Svg: require('@site/static/img/IonIosGameControllerB.svg').default,
     description: (
       <>
-        You don't need to write any server code to participate in the MMO category. The JS13K MMO server is hosted by
+        You don't need to write any server code to participate in the Online category. JS13K Online is hosted on
         Cloudflare and will handle all the server-side logic for you.
       </>
     ),

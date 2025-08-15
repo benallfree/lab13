@@ -1,6 +1,6 @@
 /// <reference path="./worker-configuration.d.ts" />
 
-import { mergeState } from 'js13k-mmo-sdk'
+import { mergeState } from 'js13k-online'
 import { Connection, ConnectionContext, routePartykitRequest, Server, WSMessage } from 'partyserver'
 
 type RoomName = string

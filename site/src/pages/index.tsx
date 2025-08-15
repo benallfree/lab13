@@ -14,7 +14,7 @@ function HomepageHeader() {
     <header className={clsx('hero hero--primary', styles.heroBanner)}>
       <div className="container">
         <Heading as="h1" className="hero__title">
-          {siteConfig.title}
+          JS13K is Online like never before.
         </Heading>
         <p className="hero__subtitle">{siteConfig.tagline}</p>
         <div className={styles.buttons}>
@@ -43,7 +43,7 @@ export default function Home(): ReactNode {
   return (
     <Layout
       title={`${siteConfig.title}`}
-      description="The official site for the JS13K MMO Challenge Series sponsored by Cloudflare"
+      description="The official site for the JS13K Online Challenge Series sponsored by Cloudflare"
     >
       <HomepageHeader />
       <main>

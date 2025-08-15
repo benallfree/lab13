@@ -15,7 +15,7 @@ export default function UUIDGenerator(): React.JSX.Element {
     setUuid(generateUUID())
   }
 
-  const sampleCode = `import Js13kClient from 'https://esm.sh/js13k-mmo-sdk'\nconst client = new Js13kClient('${uuid}')`
+  const sampleCode = `import Js13kClient from 'https://esm.sh/js13k-online'\nconst client = new Js13kClient('${uuid}')`
 
   const copyToClipboard = async () => {
     try {

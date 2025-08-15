@@ -5,7 +5,7 @@ sidebar_position: 3
 
 # Working with the Game Loop
 
-When you connect to the JS13K MMO server using the SDK, several things happen automatically. Understanding this flow will help you build more robust games.
+When you connect to the JS13K Online server using the SDK, several things happen automatically. Understanding this flow will help you build more robust games.
 
 ## Connection Process
 

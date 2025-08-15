@@ -5,7 +5,7 @@ import { themes as prismThemes } from 'prism-react-renderer'
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
 const config: Config = {
-  title: 'JS13K MMO',
+  title: 'JS13K Online',
   tagline: 'Turn your JS13K game into an MMO',
   favicon: 'img/favicon.webp',
 
@@ -15,7 +15,7 @@ const config: Config = {
   },
 
   // Set the production url of your site here
-  url: 'https://mmo.js13kgames.com',
+  url: 'https://online.js13kgames.com',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
   baseUrl: '/',
@@ -23,7 +23,7 @@ const config: Config = {
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
   organizationName: 'benallfree', // Usually your GitHub org/user name.
-  projectName: 'js13k-mmo', // Usually your repo name.
+  projectName: 'js13k-online', // Usually your repo name.
 
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
@@ -44,7 +44,7 @@ const config: Config = {
           sidebarPath: './sidebars.ts',
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
-          editUrl: 'https://github.com/benallfree/js13k-mmo/tree/main/my-website',
+          editUrl: 'https://github.com/benallfree/js13k-online/tree/main/my-website',
         },
         blog: {
           showReadingTime: true,
@@ -54,7 +54,7 @@ const config: Config = {
           },
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
-          editUrl: 'https://github.com/benallfree/js13k-mmo/tree/main/my-website',
+          editUrl: 'https://github.com/benallfree/js13k-online/tree/main/my-website',
           // Useful options to enforce blogging best practices
           onInlineTags: 'warn',
           onInlineAuthors: 'warn',
@@ -76,9 +76,9 @@ const config: Config = {
     // Replace with your project's social card
     image: 'img/oembed.webp',
     navbar: {
-      title: 'JS13K MMO',
+      title: 'JS13K Online',
       logo: {
-        alt: 'JS13K MMO Logo',
+        alt: 'JS13K Online Logo',
         src: 'img/favicon.webp',
       },
       items: [
@@ -91,7 +91,7 @@ const config: Config = {
         { to: '/demos', label: 'Demos', position: 'left' },
         { to: '/blog', label: 'Blog', position: 'left' },
         {
-          href: 'https://github.com/benallfree/js13k-mmo',
+          href: 'https://github.com/benallfree/js13k-online',
           label: 'GitHub',
           position: 'right',
         },
@@ -131,7 +131,7 @@ const config: Config = {
             },
             {
               label: 'GitHub',
-              href: 'https://github.com/benallfree/js13k-mmo',
+              href: 'https://github.com/benallfree/js13k-online',
             },
           ],
         },

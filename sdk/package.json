@@ -1,7 +1,7 @@
 {
-  "name": "js13k-mmo-sdk",
-  "version": "0.0.1-rc.7",
-  "description": "A simple client SDK for the JS13K MMO Challenge Series that abstracts away the WebSocket connection and state management",
+  "name": "js13k-online",
+  "version": "0.0.1-rc.8",
+  "description": "A simple client SDK for the JS13K Online Challenge Series that abstracts away the WebSocket connection and state management",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -19,7 +19,9 @@
   ],
   "keywords": [
     "js13k",
+    "online",
     "mmo",
+    "cloudflare",
     "multiplayer",
     "websocket",
     "partysocket",
@@ -30,12 +32,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/benallfree/js13k-mmo-sdk.git"
+    "url": "https://github.com/benallfree/js13k-online.git"
   },
   "bugs": {
-    "url": "https://github.com/benallfree/js13k-mmo-sdk/issues"
+    "url": "https://github.com/benallfree/js13k-online/issues"
   },
-  "homepage": "https://github.com/benallfree/js13k-mmo-sdk#readme",
+  "homepage": "https://github.com/benallfree/js13k-online#readme",
   "scripts": {
     "build": "tsdown",
     "dev": "tsdown --watch"

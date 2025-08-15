@@ -151,7 +151,7 @@ class Js13kClient<TState extends GameState> {
   constructor(room: string, options: ClientOptions<TState> = {}) {
     this.room = room
     this.options = {
-      host: `https://mmo.js13kgames.com`,
+      host: `https://online.js13kgames.com`,
       party: 'js13k',
       deltaEvaluator: (delta, remoteState, playerId) => true,
       deltaNormalizer: (delta) => delta,

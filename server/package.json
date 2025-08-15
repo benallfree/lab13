@@ -12,7 +12,7 @@
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.11.3",
     "wrangler": "^4.30.0",
-    "js13k-mmo-sdk": "workspace:*"
+    "js13k-online": "workspace:*"
   },
   "dependencies": {
     "partyserver": "^0.0.72"

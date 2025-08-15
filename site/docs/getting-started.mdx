@@ -6,7 +6,7 @@ import UUIDGenerator from '@site/src/components/UUIDGenerator'
 
 # Getting Started
 
-The experimental MMO category is powered by our hosted version of [PartyServer](https://www.npmjs.com/package/partyserver), Cloudflare's PartyKit-inspired scalable server based on [Cloudflare Workers](https://developers.cloudflare.com/workers/).
+The experimental Online (MMO) category is powered by our hosted version of [PartyServer](https://www.npmjs.com/package/partyserver), Cloudflare's PartyKit-inspired scalable server based on [Cloudflare Workers](https://developers.cloudflare.com/workers/).
 
 The best part? You get a complete SDK that handles all the complexity for you. No server programming required!
 
@@ -14,7 +14,7 @@ The best part? You get a complete SDK that handles all the complexity for you. N
 
 ```html
 <script type="module">
-  import Js13kClient from 'https://esm.sh/js13k-mmo-sdk'
+  import Js13kClient from 'https://esm.sh/js13k-online'
 
   // Your game code here
   const client = new Js13kClient('my-game-room')
@@ -94,7 +94,7 @@ Let's create a simple multiplayer game where players can move around and see eac
     <div id="status">Connecting...</div>
 
     <script type="module">
-      import Js13kClient from 'https://esm.sh/js13k-mmo-sdk'
+      import Js13kClient from 'https://esm.sh/js13k-online'
       // Define our game state type (optional, but helpful)
       // Game state will look like: { players: { playerId: { x: 100, y: 200 } } }
 

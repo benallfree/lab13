@@ -80,7 +80,7 @@ export default function DemoInterface({ initialDemo }: DemoInterfaceProps) {
 
   const viewOnGithub = () => {
     if (!currentDemo) return
-    window.open(`https://github.com/benallfree/js13k-mmo/tree/main/site/static/demos/${currentDemo}`, '_blank')
+    window.open(`https://github.com/benallfree/js13k-online/tree/main/site/static/demos/${currentDemo}`, '_blank')
   }
 
   return (
@@ -89,7 +89,7 @@ export default function DemoInterface({ initialDemo }: DemoInterfaceProps) {
         <aside className="col col--3">
           <div className="card">
             <div className="card__header">
-              <h2 className="margin-bottom--none">JS13K MMO Demos</h2>
+              <h2 className="margin-bottom--none">JS13K Online Demos</h2>
             </div>
             <div className="card__body">
               <nav>
