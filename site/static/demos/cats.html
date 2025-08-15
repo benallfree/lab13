@@ -99,10 +99,24 @@
         max-width: 300px;
       }
 
+      .help-overlay {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 0, 0, 0.9);
+        color: white;
+        padding: 16px;
+        border-radius: 8px;
+        font-size: 14px;
+        max-width: 70%;
+        text-align: left;
+        z-index: 5;
+        display: none;
+        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+      }
+
       .score {
-        position: fixed;
-        top: 60px;
-        right: 20px;
         background: rgba(0, 0, 0, 0.8);
         color: white;
         padding: 8px 12px;
@@ -120,15 +134,20 @@
       statusIndicator.textContent = 'Connecting...'
       document.body.appendChild(statusIndicator)
 
-      // Create score display
+      // Create score display and place in controls next to name input
       const scoreDisplay = document.createElement('div')
       scoreDisplay.className = 'score'
       scoreDisplay.textContent = 'Mice Caught: 0'
-      document.body.appendChild(scoreDisplay)
+      const controlsEl = document.querySelector('.controls')
+      if (controlsEl) {
+        controlsEl.appendChild(scoreDisplay)
+      } else {
+        document.body.appendChild(scoreDisplay)
+      }
 
       // Create client with delta evaluator
       const client = new Js13kClient('cats', {
-        debug: true,
+        debug: false,
         host: window.location.origin,
         deltaNormalizer: (delta) => {
           return {
@@ -154,9 +173,9 @@
                   mouse == null
                     ? null
                     : {
-                        ...mouse,
                         x: Math.round(mouse.x || 0),
                         y: Math.round(mouse.y || 0),
+                        owner: mouse.owner,
                       },
                 ]
               })
@@ -176,14 +195,21 @@
           const newX = delta.players?.[playerId]?.x
           const newY = delta.players?.[playerId]?.y
           const newScore = delta.players?.[playerId]?.score
+          const newName = delta.players?.[playerId]?.name
 
           const xChanged = newX != null && (playerBase.x == null || Math.abs(newX - playerBase.x) > 2)
           const yChanged = newY != null && (playerBase.y == null || Math.abs(newY - playerBase.y) > 2)
           const scoreChanged = newScore != null && newScore !== playerBase.score
+          const nameChanged = newName != null && newName !== playerBase.name
 
           const mouseChanged = Object.keys(delta.mice || {}).length > 0
 
-          return xChanged || yChanged || scoreChanged || mouseChanged
+          // console.log(
+          //   `changed`,
+          //   JSON.stringify({ xChanged, yChanged, scoreChanged, nameChanged, mouseChanged }, null, 2)
+          // )
+
+          return xChanged || yChanged || scoreChanged || nameChanged || mouseChanged
         },
       })
 
@@ -200,6 +226,35 @@
       // Canvas setup
       const canvas = document.getElementById('gameCanvas')
       const ctx = canvas.getContext('2d')
+
+      // Help button and overlay
+      const helpButton = document.createElement('button')
+      helpButton.className = 'control-btn'
+      helpButton.textContent = 'Help'
+      helpButton.setAttribute('aria-expanded', 'false')
+      const controlsEl2 = document.querySelector('.controls')
+      if (controlsEl2) controlsEl2.appendChild(helpButton)
+
+      const helpOverlay = document.createElement('div')
+      helpOverlay.className = 'help-overlay'
+      helpOverlay.innerHTML = `
+        <div><strong>🐱 Black Cats Chase MMO Mice! 🐭</strong></div>
+        <div>Arrow keys to move your cat</div>
+        <div>Catch the gray mice to score points</div>
+        <div>Mice are shared across all players</div>
+        <div>Each player gets a unique black cat</div>
+        <div>Your cat label shows your name</div>
+      `
+      const gameContainer = document.querySelector('.game-container')
+      if (gameContainer) gameContainer.appendChild(helpOverlay)
+
+      let helpVisible = false
+      function toggleHelp() {
+        helpVisible = !helpVisible
+        helpOverlay.style.display = helpVisible ? 'block' : 'none'
+        helpButton.setAttribute('aria-expanded', String(helpVisible))
+      }
+      helpButton.addEventListener('click', toggleHelp)
 
       // Set canvas size to fill container
       function resizeCanvas() {
@@ -401,11 +456,73 @@
           ctx.fill()
         }
 
-        // Draw moon
-        ctx.fillStyle = '#f0f0f0'
+        // Draw textured moon
+        const moonX = canvas.width - 50
+        const moonY = 50
+        const moonR = 20
+
+        // Base gradient
+        const baseGrad = ctx.createRadialGradient(
+          moonX - moonR * 0.4,
+          moonY - moonR * 0.4,
+          moonR * 0.2,
+          moonX,
+          moonY,
+          moonR
+        )
+        baseGrad.addColorStop(0, '#ffffff')
+        baseGrad.addColorStop(0.55, '#f0f0f0')
+        baseGrad.addColorStop(1, '#d8d8d8')
+
+        ctx.save()
         ctx.beginPath()
-        ctx.arc(canvas.width - 50, 50, 20, 0, 2 * Math.PI)
+        ctx.arc(moonX, moonY, moonR, 0, 2 * Math.PI)
+        ctx.fillStyle = baseGrad
         ctx.fill()
+
+        // Clip to moon and add craters
+        ctx.clip()
+        const craters = [
+          { dx: -6, dy: -2, r: 4 },
+          { dx: 3, dy: 2, r: 3 },
+          { dx: -2, dy: 6, r: 2.5 },
+          { dx: 6, dy: -4, r: 2 },
+          { dx: 0, dy: -7, r: 1.8 },
+        ]
+        craters.forEach((c) => {
+          // darker crater body
+          ctx.globalAlpha = 0.28
+          ctx.fillStyle = '#bdbdbd'
+          ctx.beginPath()
+          ctx.arc(moonX + c.dx, moonY + c.dy, c.r, 0, 2 * Math.PI)
+          ctx.fill()
+
+          // subtle highlight rim
+          ctx.globalAlpha = 0.18
+          ctx.strokeStyle = '#ffffff'
+          ctx.lineWidth = 1
+          ctx.beginPath()
+          ctx.arc(moonX + c.dx - c.r * 0.2, moonY + c.dy - c.r * 0.2, c.r * 0.75, 0, 2 * Math.PI)
+          ctx.stroke()
+        })
+
+        // Soft terminator shadow
+        const shadowGrad = ctx.createRadialGradient(
+          moonX + moonR * 0.5,
+          moonY + moonR * 0.2,
+          moonR * 0.2,
+          moonX + moonR * 0.9,
+          moonY + moonR * 0.5,
+          moonR * 1.15
+        )
+        shadowGrad.addColorStop(0, 'rgba(0,0,0,0)')
+        shadowGrad.addColorStop(1, 'rgba(0,0,0,0.25)')
+        ctx.fillStyle = shadowGrad
+        ctx.globalAlpha = 1
+        ctx.beginPath()
+        ctx.arc(moonX, moonY, moonR, 0, 2 * Math.PI)
+        ctx.fill()
+        ctx.restore()
 
         // Draw mice from state
         const state = client.getState()
@@ -517,7 +634,7 @@
       })
 
       client.on('delta', (delta) => {
-        console.log('Received delta:', JSON.stringify(delta, null, 2))
+        // console.log('Received delta:', JSON.stringify(delta, null, 2))
       })
 
       // Handle key events
@@ -571,7 +688,7 @@
     <div class="game-container">
       <canvas id="gameCanvas"></canvas>
     </div>
-    <div class="instructions">
+    <div class="instructions" style="display: none">
       <strong>🐱 Black Cats Chase MMO Mice! 🐭</strong><br />
       Arrow keys to move your cat<br />
       Catch the gray mice to score points<br />
