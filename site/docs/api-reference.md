@@ -376,6 +376,63 @@ client.updateState({
 - Generating room names
 - Creating unique identifiers for any game entity
 
+### `mergeState(target: any, source: any): any`
+
+Recursively merges two objects, with special handling for `null` values as deletion signals. This is the same merge logic used internally by the SDK and server.
+
+**Parameters:**
+
+- `target` (any): The target object to merge into
+- `source` (any): The source object with changes to apply
+
+**Returns:**
+
+- `any`: The merged result
+
+**Behavior:**
+
+- **Primitive values**: Source values replace target values
+- **Objects**: Properties are recursively merged
+- **Arrays**: Treated as objects (merged by index)
+- **Null values**: Signal deletion of the corresponding property
+- **Non-objects**: Source value replaces target value
+
+**Example:**
+
+```js
+import Js13kClient, { mergeState } from 'https://esm.sh/js13k-mmo-sdk'
+
+// Basic merging
+const target = { a: 1, b: { x: 10, y: 20 } }
+const source = { b: { y: 30, z: 40 }, c: 3 }
+const result = mergeState(target, source)
+// result = { a: 1, b: { x: 10, y: 30, z: 40 }, c: 3 }
+
+// Deletion with null
+const target2 = { a: 1, b: 2, c: 3 }
+const source2 = { b: null, d: 4 }
+const result2 = mergeState(target2, source2)
+// result2 = { a: 1, c: 3, d: 4 } (b is deleted)
+
+// Array merging
+const target3 = {
+  items: [
+    { id: 1, name: 'old' },
+    { id: 2, name: 'keep' },
+  ],
+}
+const source3 = { items: [{ id: 1, name: 'new' }, null, { id: 3, name: 'new' }] }
+const result3 = mergeState(target3, source3)
+// result3 = { items: [{ id: 1, name: 'new' }, { id: 3, name: 'new' }] }
+```
+
+**Use Cases:**
+
+- Manually merging state updates outside the SDK
+- Implementing custom state synchronization
+- Testing state merge behavior
+- Creating state patches for offline/online sync
+
 ## Types
 
 ### ClientOptions\<TState\>

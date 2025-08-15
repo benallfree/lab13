@@ -37,6 +37,34 @@ export function generateUUID(): string {
   )
 }
 
+// Simple recursive merge function that handles null as deletion (same as server)
+export function mergeState(target: any, source: any): any {
+  if (source === null) {
+    return null // Signal deletion
+  }
+
+  if (typeof source !== 'object') {
+    return source
+  }
+
+  if (typeof target !== 'object' || target === null) {
+    target = {}
+  }
+
+  for (const key in source) {
+    if (source.hasOwnProperty(key)) {
+      if (source[key] === null) {
+        // Delete the property if source value is null
+        delete target[key]
+      } else {
+        target[key] = mergeState(target[key], source[key])
+      }
+    }
+  }
+
+  return target
+}
+
 class Js13kClient<TState extends GameState> {
   private room: string
   private options: Required<
@@ -131,28 +159,15 @@ class Js13kClient<TState extends GameState> {
       this.emit('state', this.state)
     } else if (data.delta) {
       // Delta received from another client
-      this.state = this.mergeState(this.state, data.delta)
+      this.state = mergeState(this.state, data.delta)
+      this.shadowState = mergeState(this.shadowState, data.delta) // Update shadow state
       this.emit('delta', data.delta)
     }
   }
 
-  // Simple recursive merge function (same as server)
+  // Simple recursive merge function that handles null as deletion (same as server)
   mergeState(target: any, source: any): any {
-    if (typeof source !== 'object' || source === null) {
-      return source
-    }
-
-    if (typeof target !== 'object' || target === null) {
-      target = {}
-    }
-
-    for (const key in source) {
-      if (source.hasOwnProperty(key)) {
-        target[key] = this.mergeState(target[key], source[key])
-      }
-    }
-
-    return target
+    return mergeState(target, source)
   }
 
   // Event handling
@@ -240,10 +255,10 @@ class Js13kClient<TState extends GameState> {
     }
 
     // Merge delta into the current state
-    this.state = this.mergeState(this.state, delta)
+    this.state = mergeState(this.state, delta)
 
     // Merge delta into the pending uberdelta
-    this.pendingDelta = this.mergeState(this.pendingDelta, delta)
+    this.pendingDelta = mergeState(this.pendingDelta, delta)
 
     // Only create a new timer if one doesn't already exist (throttle, not debounce)
     // console.log(`[${this.myId}] throttleTimer`, JSON.stringify({ throttleTimer: this.throttleTimer }, null, 2))
