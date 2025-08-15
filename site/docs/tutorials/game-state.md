@@ -418,7 +418,3 @@ client.updateState({
   },
 })
 ```
-
-## What's Next?
-
-Now that you understand state management, explore [Going Further](./going-further.md) for advanced topics like custom servers, TypeScript integration, and performance optimization.

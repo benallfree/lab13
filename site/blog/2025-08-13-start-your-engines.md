@@ -59,7 +59,7 @@ Check out these working examples:
 
 - 📖 **[Complete Documentation](/docs/intro)** - Everything you need to know
 - 🛠️ **[Getting Started Guide](/docs/getting-started)** - Your first multiplayer game
-- 🎮 **[Game State Management](/docs/game-state)** - Advanced patterns
+- 🎮 **[Game State Management](/docs/tutorials/game-state)** - Advanced patterns
 
 ## What's Next
 
