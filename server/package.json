@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "wrangler dev -e=dev",
     "deploy": "wrangler deploy -e=production",
-    "predeploy": "cd ../sdk && bun run build && cd ../site && bun run build"
+    "predeploy": "cd ../sdk && bun run build && cd ../site && bun run build",
+    "cf:typegen": "wrangler types"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.11.3",
