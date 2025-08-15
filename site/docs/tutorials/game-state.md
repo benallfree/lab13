@@ -1,6 +1,6 @@
 ---
 title: Understanding Game State
-sidebar_position: 4
+sidebar_position: 1
 ---
 
 # Game State Management
@@ -275,11 +275,11 @@ Control when updates should be sent:
 ```js
 const client = new Js13kClient('my-room', {
   throttleMs: 16, // 60 FPS
-  deltaEvaluator: (delta, shadowState, playerId) => {
+  deltaEvaluator: (delta, remoteState, playerId) => {
     // Only send position updates if player moved significantly
     if (delta.players?.[playerId]) {
       const playerDelta = delta.players[playerId]
-      const oldPos = shadowState.players?.[playerId] || {}
+      const oldPos = remoteState.players?.[playerId] || {}
 
       if (playerDelta.x !== undefined || playerDelta.y !== undefined) {
         const dx = Math.abs(playerDelta.x - (oldPos.x || 0))
@@ -322,6 +322,24 @@ client.on('delta', (delta) => {
 
   // Apply validated changes
   updateGameFromDelta(delta)
+})
+```
+
+### Normalizing Outgoing Deltas (normalizeDelta)
+
+Before your changes are evaluated and sent, you can normalize them. This is helpful to reduce network noise (e.g., round positions).
+
+```js
+const client = new Js13kClient('my-room', {
+  deltaNormalizer: (delta) => ({
+    ...delta,
+    players: Object.fromEntries(
+      Object.entries(delta.players || {}).map(([id, p]) => [
+        id,
+        p == null ? null : { ...p, x: Math.round(p.x || 0), y: Math.round(p.y || 0) },
+      ])
+    ),
+  }),
 })
 ```
 

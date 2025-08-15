@@ -1,0 +1,78 @@
+---
+title: Quantizing Deltas (normalizeDelta)
+sidebar_position: 2
+---
+
+# Quantizing Deltas
+
+Reduce network noise by normalizing (quantizing) your outgoing updates before they’re sent. This tutorial shows how to round positions and strip jitter using the normalization hook (aka "normalizeDelta").
+
+## Why quantize?
+
+- Smooths tiny fluctuations in values like `x`/`y`
+- Lowers bandwidth by avoiding unnecessary updates
+- Makes deltas more deterministic across clients
+
+## Quick start
+
+```html
+<script type="module">
+  import Js13kClient from 'https://esm.sh/js13k-mmo-sdk'
+
+  const client = new Js13kClient('quantized-room', {
+    deltaNormalizer: (delta) => ({
+      ...delta,
+      players: Object.fromEntries(
+        Object.entries(delta.players || {}).map(([id, p]) => [
+          id,
+          p == null ? null : { ...p, x: Math.round(p.x || 0), y: Math.round(p.y || 0) },
+        ])
+      ),
+    }),
+  })
+</script>
+```
+
+## Explanation
+
+- The hook receives the pending changes and returns a normalized copy.
+- Here we round `x` and `y` to the nearest pixel so tiny sub‑pixel movements don’t trigger new network messages.
+- `null` values are preserved so deletions still propagate.
+
+## Practical tips
+
+- Quantize only the fields that change frequently.
+- For analog inputs, consider snapping to a grid (e.g., every 2–4 pixels).
+- Combine with a `deltaEvaluator` to skip low‑value updates entirely.
+
+```js
+const client = new Js13kClient('quantized-room', {
+  deltaNormalizer: (delta) => ({
+    ...delta,
+    players: Object.fromEntries(
+      Object.entries(delta.players || {}).map(([id, p]) => [
+        id,
+        p == null
+          ? null
+          : {
+              ...p,
+              x: Math.round((p.x || 0) / 2) * 2, // snap to even pixels
+              y: Math.round((p.y || 0) / 2) * 2,
+            },
+      ])
+    ),
+  }),
+  deltaEvaluator: (delta, remoteState, myId) => {
+    const dx = delta.players?.[myId]?.x
+    const dy = delta.players?.[myId]?.y
+    if (dx == null && dy == null) return false
+    const prev = remoteState.players?.[myId] || {}
+    return Math.abs((dx ?? prev.x) - (prev.x || 0)) > 0 || Math.abs((dy ?? prev.y) - (prev.y || 0)) > 0
+  },
+})
+```
+
+## See also
+
+- API reference: `ClientOptions.deltaNormalizer`
+- Demos: Black Cats (`site/static/demos/cats.html`) shows rounding in action

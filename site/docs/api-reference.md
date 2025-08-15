@@ -14,7 +14,7 @@ The main client class for connecting to the JS13K MMO server.
 ### Constructor
 
 ```typescript
-new Js13kClient\<TState\>(room: string, options?: ClientOptions\<TState\>)
+new Js13kClient<TState>(room: string, options?: ClientOptions<TState>)
 ```
 
 Creates a new client instance and automatically connects to the server.
@@ -33,8 +33,9 @@ const client = new Js13kClient('my-game-room')
 const client = new Js13kClient('my-game-room', {
   host: 'custom-host.com',
   party: 'custom-party',
+  debug: true,
   throttleMs: 100,
-  deltaEvaluator: (delta, shadowState, playerId) => true,
+  deltaEvaluator: (delta, remoteState, playerId) => true,
 })
 ```
 
@@ -62,7 +63,7 @@ if (myId) {
 }
 ```
 
-##### `getMyState(copy?: boolean): GetPlayerState\<TState\> | null`
+##### `getMyState(copy?: boolean): GetPlayerState<TState> | null`
 
 Returns your player state from the `players` collection.
 
@@ -81,7 +82,7 @@ const myStateCopy = client.getMyState(true)
 myStateCopy.x += 10 // Won't affect the original state
 ```
 
-##### `getPlayerState(playerId: string, copy?: boolean): GetPlayerState\<TState\> | null`
+##### `getPlayerState(playerId: string, copy?: boolean): GetPlayerState<TState> | null`
 
 Returns another player's state from the `players` collection.
 
@@ -97,7 +98,7 @@ if (otherPlayer) {
 }
 ```
 
-##### `updateState(delta: PartialDeep\<TState\>): void`
+##### `updateState(delta: PartialDeep<TState>): void`
 
 Updates any part of the game state. Changes are throttled and sent to other clients.
 
@@ -123,7 +124,7 @@ client.updateState({
 })
 ```
 
-##### `updateMyState(delta: PartialDeep\<GetPlayerState\<TState\>\>): void`
+##### `updateMyState(delta: PartialDeep<GetPlayerState<TState>>): void`
 
 Updates your own player state. Convenience method for updating `players[myId]`.
 
@@ -443,8 +444,10 @@ Configuration options for the Js13kClient constructor.
 interface ClientOptions<TState = GameState> {
   host?: string
   party?: string
+  deltaNormalizer?: DeltaNormalizer<TState>
   deltaEvaluator?: DeltaEvaluator<TState>
   throttleMs?: number
+  debug?: boolean
 }
 ```
 
@@ -452,8 +455,10 @@ interface ClientOptions<TState = GameState> {
 
 - `host` (string, optional): Server hostname (default: `window.location.host`)
 - `party` (string, optional): Party name (default: `'js13k'`)
+- `deltaNormalizer` (DeltaNormalizer, optional): Normalize outgoing deltas before comparison/sending
 - `deltaEvaluator` (DeltaEvaluator, optional): Function to control when deltas are sent
 - `throttleMs` (number, optional): Throttle interval in milliseconds (default: `50`)
+- `debug` (boolean, optional): Enable verbose SDK logs in the console (default: `false`)
 
 ### DeltaEvaluator\<TState\>
 
@@ -462,7 +467,7 @@ Function type for controlling when state updates should be sent to the server.
 ```typescript
 type DeltaEvaluator<TState = GameState> = (
   delta: PartialDeep<TState>,
-  deltaBase: PartialDeep<TState>,
+  remoteState: PartialDeep<TState>,
   playerId?: string
 ) => boolean
 ```
@@ -470,7 +475,7 @@ type DeltaEvaluator<TState = GameState> = (
 **Parameters:**
 
 - `delta` (PartialDeep\<TState\>): The pending state changes
-- `deltaBase` (PartialDeep\<TState\>): The state when the delta accumulation started
+- `remoteState` (PartialDeep\<TState\>): The last known remote state used for comparison
 - `playerId` (string, optional): Your player ID
 
 **Returns:**
@@ -480,11 +485,11 @@ type DeltaEvaluator<TState = GameState> = (
 **Example:**
 
 ```js
-const deltaEvaluator = (delta, shadowState, playerId) => {
+const deltaEvaluator = (delta, remoteState, playerId) => {
   // Only send position updates if player moved > 5 pixels
   if (delta.players?.[playerId]) {
     const playerDelta = delta.players[playerId]
-    const oldPos = shadowState.players?.[playerId] || {}
+    const oldPos = remoteState.players?.[playerId] || {}
 
     if (playerDelta.x !== undefined || playerDelta.y !== undefined) {
       const dx = Math.abs(playerDelta.x - (oldPos.x || 0))
@@ -495,6 +500,42 @@ const deltaEvaluator = (delta, shadowState, playerId) => {
 
   return true // Send other updates normally
 }
+```
+
+### DeltaNormalizer\<TState\>
+
+Hook to sanitize/normalize outgoing deltas. Useful for quantizing values (like rounding positions) or stripping noisy fields.
+
+```typescript
+type DeltaNormalizer<TState = GameState> = (delta: PartialDeep<TState>) => PartialDeep<TState>
+```
+
+**Behavior:**
+
+- Called right before diffing against the last known remote state.
+- The returned object is what will be evaluated and potentially sent.
+- Default is the identity function: `delta => delta`.
+
+**Example:** Round `x`/`y` positions and pass deletions as `null`.
+
+```js
+const client = new Js13kClient('my-room', {
+  deltaNormalizer: (delta) => ({
+    ...delta,
+    players: Object.fromEntries(
+      Object.entries(delta.players || {}).map(([id, p]) => [
+        id,
+        p == null
+          ? null
+          : {
+              ...p,
+              x: Math.round(p.x || 0),
+              y: Math.round(p.y || 0),
+            },
+      ])
+    ),
+  }),
+})
 ```
 
 ### GameState
