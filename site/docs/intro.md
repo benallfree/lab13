@@ -41,4 +41,4 @@ This approach allows you to focus on game development without server programming
 - ⚡ **Performance optimized** - Built-in throttling and delta compression
 - 🛡️ **Connection management** - Automatic reconnection and cleanup
 
-Ready to build your first MMO game? Let's [get started](./getting-started.md)!
+Ready to build your first MMO game? Let's [get started](./getting-started.mdx)!
