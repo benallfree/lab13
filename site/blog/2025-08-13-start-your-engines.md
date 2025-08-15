@@ -52,6 +52,7 @@ Check out these working examples:
 
 - 🎨 **[Paint Demo](/demos?game=paint)** - Collaborative pixel art
 - 🏎️ **[Cars Demo](/demos?game=cars)** - Multiplayer racing
+- 🐱 **[Black Cats Demo](/demos?game=black-cats)** - Chase mice with black cats
 - ✈️ **[Flight Simulator](/demos?game=flight-simulator)** - 3D multiplayer flight
 
 ## Documentation

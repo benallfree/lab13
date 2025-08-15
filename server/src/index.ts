@@ -1,25 +1,7 @@
 /// <reference path="./worker-configuration.d.ts" />
 
+import { mergeState } from 'js13k-mmo-sdk'
 import { Connection, ConnectionContext, routePartykitRequest, Server, WSMessage } from 'partyserver'
-
-// Simple recursive merge function
-function mergeState(target: any, source: any): any {
-  if (typeof source !== 'object' || source === null) {
-    return source
-  }
-
-  if (typeof target !== 'object' || target === null) {
-    target = {}
-  }
-
-  for (const key in source) {
-    if (source.hasOwnProperty(key)) {
-      target[key] = mergeState(target[key], source[key])
-    }
-  }
-
-  return target
-}
 
 type RoomName = string
 type RoomState = {

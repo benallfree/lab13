@@ -13,7 +13,7 @@
         "ENVIRONMENT": "development",
       },
       "assets": {
-        "directory": "./site/static",
+        "directory": "../site/static",
         "binding": "ASSETS",
       },
       "durable_objects": {
@@ -30,7 +30,7 @@
         "ENVIRONMENT": "production",
       },
       "assets": {
-        "directory": "./site/build",
+        "directory": "../site/build",
         "binding": "ASSETS",
       },
       "durable_objects": {
@@ -47,7 +47,7 @@
   "observability": {
     "enabled": true,
   },
-  "main": "server/index.ts",
+  "main": "./src/index.ts",
 
   "migrations": [
     {

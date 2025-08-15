@@ -15,6 +15,11 @@ const demos = [
     description: 'Race with friends in a 2D car race.',
   },
   {
+    name: 'Black Cats',
+    filename: 'cats.html',
+    description: 'Chase mice with black cats in a spooky environment.',
+  },
+  {
     name: 'Flight Simulator',
     filename: 'flight.html',
     description: 'Fly with friends in a 3D flight simulator.',

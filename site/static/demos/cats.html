@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>Black Cats Demo: JS13K MMO Challenge Series</title>
+    <meta name="title" content="Black Cats Demo: JS13K MMO Challenge Series" />
+    <meta name="description" content="Black Cats Demo: JS13K MMO Challenge Series" />
+    <meta name="author" content="benallfree" />
+    <style>
+      body {
+        background-color: #1a1a1a;
+        font-family: 'Arial', sans-serif;
+      }
+      .status-indicator {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        padding: 8px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: bold;
+        color: white;
+        transition: background-color 0.3s ease;
+      }
+
+      .status-connecting {
+        background-color: #f39c12;
+      }
+
+      .status-connected {
+        background-color: #27ae60;
+      }
+
+      .status-disconnected {
+        background-color: #e74c3c;
+      }
+
+      .controls {
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        display: flex;
+        gap: 8px;
+        padding: 8px;
+        background: rgba(0, 0, 0, 0.8);
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+      }
+
+      .control-btn {
+        padding: 8px 12px;
+        border: 2px solid #444;
+        border-radius: 4px;
+        background: #333;
+        color: white;
+        cursor: pointer;
+        font-weight: bold;
+        transition: all 0.2s ease;
+      }
+
+      .control-btn:hover {
+        background: #555;
+        border-color: #666;
+      }
+
+      .control-btn.active {
+        background: #8b4513;
+        color: white;
+        border-color: #a0522d;
+      }
+
+      .game-container {
+        position: fixed;
+        top: 60px;
+        left: 10px;
+        right: 10px;
+        bottom: 10px;
+        background: #2d1810;
+        border-radius: 8px;
+        overflow: hidden;
+      }
+
+      #gameCanvas {
+        display: block;
+        cursor: crosshair;
+      }
+
+      .instructions {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        background: rgba(0, 0, 0, 0.9);
+        color: white;
+        padding: 12px;
+        border-radius: 8px;
+        font-size: 14px;
+        max-width: 300px;
+      }
+
+      .score {
+        position: fixed;
+        top: 60px;
+        right: 20px;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: bold;
+      }
+    </style>
+    <script type="module">
+      import Js13kClient, { generateUUID } from '/sdk.js'
+
+      // Create status indicator
+      const statusIndicator = document.createElement('div')
+      statusIndicator.className = 'status-indicator status-connecting'
+      statusIndicator.textContent = 'Connecting...'
+      document.body.appendChild(statusIndicator)
+
+      // Create score display
+      const scoreDisplay = document.createElement('div')
+      scoreDisplay.className = 'score'
+      scoreDisplay.textContent = 'Mice Caught: 0'
+      document.body.appendChild(scoreDisplay)
+
+      // Create client with delta evaluator
+      const client = new Js13kClient('cats', {
+        host: window.location.origin,
+        deltaEvaluator: (delta, shadowState, playerId) => {
+          if (!shadowState || !playerId) {
+            return true
+          }
+
+          const playerBase = shadowState.players?.[playerId]
+          if (!playerBase) {
+            return true
+          }
+
+          const newX = delta.players?.[playerId]?.x
+          const newY = delta.players?.[playerId]?.y
+          const newScore = delta.players?.[playerId]?.score
+
+          const xChanged = newX != null && (playerBase.x == null || Math.abs(newX - playerBase.x) > 2)
+          const yChanged = newY != null && (playerBase.y == null || Math.abs(newY - playerBase.y) > 2)
+          const scoreChanged = newScore != null && newScore !== playerBase.score
+
+          return xChanged || yChanged || scoreChanged
+        },
+      })
+
+      // Game state
+      let keys = {
+        ArrowUp: false,
+        ArrowDown: false,
+        ArrowLeft: false,
+        ArrowRight: false,
+      }
+
+      let myScore = 0
+
+      // Canvas setup
+      const canvas = document.getElementById('gameCanvas')
+      const ctx = canvas.getContext('2d')
+
+      // Set canvas size to fill container
+      function resizeCanvas() {
+        const container = canvas.parentElement
+        canvas.width = container.clientWidth
+        canvas.height = container.clientHeight
+      }
+
+      // Initial resize
+      resizeCanvas()
+
+      // Resize on window resize
+      window.addEventListener('resize', resizeCanvas)
+
+      // Cat names for different players
+      const catNames = ['Shadow', 'Midnight', 'Luna', 'Raven', 'Onyx', 'Coal', 'Smokey', 'Void']
+
+      // Draw a black cat
+      function drawCat(x, y, isMyCat = false) {
+        ctx.save()
+        ctx.translate(x, y)
+
+        // Cat body (black)
+        ctx.fillStyle = '#000000'
+        ctx.beginPath()
+        ctx.ellipse(0, 0, 12, 8, 0, 0, 2 * Math.PI)
+        ctx.fill()
+
+        // Cat head
+        ctx.beginPath()
+        ctx.arc(0, -8, 8, 0, 2 * Math.PI)
+        ctx.fill()
+
+        // Cat ears
+        ctx.beginPath()
+        ctx.moveTo(-6, -14)
+        ctx.lineTo(-2, -8)
+        ctx.lineTo(-4, -12)
+        ctx.fill()
+
+        ctx.beginPath()
+        ctx.moveTo(6, -14)
+        ctx.lineTo(2, -8)
+        ctx.lineTo(4, -12)
+        ctx.fill()
+
+        // Cat eyes (glowing green)
+        ctx.fillStyle = '#00ff00'
+        ctx.beginPath()
+        ctx.arc(-3, -10, 2, 0, 2 * Math.PI)
+        ctx.fill()
+        ctx.beginPath()
+        ctx.arc(3, -10, 2, 0, 2 * Math.PI)
+        ctx.fill()
+
+        // Cat tail
+        ctx.strokeStyle = '#000000'
+        ctx.lineWidth = 3
+        ctx.beginPath()
+        ctx.moveTo(12, 0)
+        ctx.quadraticCurveTo(20, -5, 25, 0)
+        ctx.stroke()
+
+        // My cat gets a special indicator
+        if (isMyCat) {
+          ctx.fillStyle = '#ff6b6b'
+          ctx.font = '12px Arial'
+          ctx.textAlign = 'center'
+          ctx.fillText('YOU', 0, -25)
+        }
+
+        ctx.restore()
+      }
+
+      // Draw a mouse
+      function drawMouse(x, y) {
+        ctx.save()
+        ctx.translate(x, y)
+
+        // Mouse body (gray)
+        ctx.fillStyle = '#808080'
+        ctx.beginPath()
+        ctx.ellipse(0, 0, 6, 4, 0, 0, 2 * Math.PI)
+        ctx.fill()
+
+        // Mouse head
+        ctx.beginPath()
+        ctx.arc(0, -4, 4, 0, 2 * Math.PI)
+        ctx.fill()
+
+        // Mouse ears
+        ctx.fillStyle = '#a0a0a0'
+        ctx.beginPath()
+        ctx.arc(-2, -6, 2, 0, 2 * Math.PI)
+        ctx.fill()
+        ctx.beginPath()
+        ctx.arc(2, -6, 2, 0, 2 * Math.PI)
+        ctx.fill()
+
+        // Mouse eyes (red)
+        ctx.fillStyle = '#ff0000'
+        ctx.beginPath()
+        ctx.arc(-1, -5, 1, 0, 2 * Math.PI)
+        ctx.fill()
+        ctx.beginPath()
+        ctx.arc(1, -5, 1, 0, 2 * Math.PI)
+        ctx.fill()
+
+        // Mouse tail
+        ctx.strokeStyle = '#808080'
+        ctx.lineWidth = 2
+        ctx.beginPath()
+        ctx.moveTo(6, 0)
+        ctx.lineTo(12, -2)
+        ctx.stroke()
+
+        ctx.restore()
+      }
+
+      // Generate a new mouse
+      function spawnMouse() {
+        const mouseId = generateUUID()
+        const newMouse = {
+          x: Math.random() * (canvas.width - 40) + 20,
+          y: Math.random() * (canvas.height - 40) + 20,
+          vx: (Math.random() - 0.5) * 2,
+          vy: (Math.random() - 0.5) * 2,
+          owner: client.getMyId(),
+        }
+
+        client.updateState({
+          mice: {
+            [mouseId]: newMouse,
+          },
+        })
+      }
+
+      // Update mice positions (only for mice you own)
+      function updateMice() {
+        const state = client.getState()
+        if (!state.mice) return
+
+        Object.entries(state.mice).forEach(([mouseId, mouse]) => {
+          if (mouse.owner === client.getMyId()) {
+            // Update position
+            mouse.x += mouse.vx
+            mouse.y += mouse.vy
+
+            // Bounce off walls
+            if (mouse.x < 10 || mouse.x > canvas.width - 10) {
+              mouse.vx *= -1
+            }
+            if (mouse.y < 10 || mouse.y > canvas.height - 10) {
+              mouse.vy *= -1
+            }
+
+            // Keep mice in bounds
+            mouse.x = Math.max(10, Math.min(canvas.width - 10, mouse.x))
+            mouse.y = Math.max(10, Math.min(canvas.height - 10, mouse.y))
+
+            // Send updated position
+            client.updateState({
+              mice: {
+                [mouseId]: mouse,
+              },
+            })
+          }
+        })
+      }
+
+      // Check collision between cat and mouse
+      function checkCollision(catX, catY, mouseX, mouseY) {
+        const distance = Math.sqrt((catX - mouseX) ** 2 + (catY - mouseY) ** 2)
+        return distance < 20
+      }
+
+      // Render the current state to canvas
+      function renderState() {
+        // Clear canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+        // Draw spooky background
+        ctx.fillStyle = '#2d1810'
+        ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+        // Draw some spooky trees
+        ctx.fillStyle = '#1a0f0a'
+        for (let i = 0; i < 8; i++) {
+          const x = (canvas.width / 8) * i
+          const y = canvas.height - 30
+          ctx.fillRect(x - 5, y, 10, 30)
+          ctx.beginPath()
+          ctx.arc(x, y - 10, 15, 0, 2 * Math.PI)
+          ctx.fill()
+        }
+
+        // Draw moon
+        ctx.fillStyle = '#f0f0f0'
+        ctx.beginPath()
+        ctx.arc(canvas.width - 50, 50, 20, 0, 2 * Math.PI)
+        ctx.fill()
+
+        // Draw mice from state
+        const state = client.getState()
+        if (state.mice) {
+          Object.values(state.mice).forEach((mouse) => {
+            drawMouse(mouse.x, mouse.y)
+          })
+        }
+
+        // Render all cats from state
+        if (state.players) {
+          for (const playerId in state.players) {
+            const cat = state.players[playerId]
+            const isMyCat = playerId === client.getMyId()
+            drawCat(cat.x, cat.y, isMyCat)
+          }
+        }
+      }
+
+      // Update cat position based on keys
+      function updateCat() {
+        const myCat = client.getMyState(true)
+        if (!myCat) {
+          return
+        }
+
+        let moved = false
+
+        if (keys.ArrowUp) {
+          myCat.y -= 4
+          moved = true
+        }
+        if (keys.ArrowDown) {
+          myCat.y += 4
+          moved = true
+        }
+        if (keys.ArrowLeft) {
+          myCat.x -= 4
+          moved = true
+        }
+        if (keys.ArrowRight) {
+          myCat.x += 4
+          moved = true
+        }
+
+        // Keep cat within bounds
+        myCat.x = Math.max(20, Math.min(canvas.width - 20, myCat.x))
+        myCat.y = Math.max(20, Math.min(canvas.height - 20, myCat.y))
+
+        // Check for mouse collisions
+        const state = client.getState()
+        if (state.mice) {
+          Object.entries(state.mice).forEach(([mouseId, mouse]) => {
+            if (checkCollision(myCat.x, myCat.y, mouse.x, mouse.y)) {
+              // Remove the caught mouse
+              const updatedMice = { ...state.mice }
+              delete updatedMice[mouseId]
+              client.updateState({ mice: updatedMice })
+
+              // Increase score
+              myScore++
+              myCat.score = myScore
+              scoreDisplay.textContent = `Mice Caught: ${myScore}`
+            }
+          })
+        }
+
+        if (moved || myCat.score !== undefined) {
+          client.updateMyState(myCat)
+        }
+      }
+
+      // Handle SDK events
+      client.on('connected', () => {
+        console.log('connected')
+        statusIndicator.className = 'status-indicator status-connected'
+        statusIndicator.textContent = 'Connected'
+      })
+
+      client.on('disconnected', () => {
+        console.log('disconnected')
+        statusIndicator.className = 'status-indicator status-disconnected'
+        statusIndicator.textContent = 'Disconnected'
+      })
+
+      client.on('id', (id) => {
+        console.log('Received my ID from server:', id)
+
+        // Initialize my cat
+        const initialCat = {
+          x: canvas.width / 2,
+          y: canvas.height / 2,
+          score: 0,
+        }
+        console.log('Initialized my cat:', initialCat)
+        client.updateMyState(initialCat)
+      })
+
+      client.on('connect', (playerId) => {
+        console.log('Client connected:', playerId)
+      })
+
+      client.on('disconnect', (playerId) => {
+        console.log('Client disconnected:', playerId)
+      })
+
+      client.on('state', (state) => {
+        console.log('Received initial state:', state)
+      })
+
+      client.on('delta', (delta) => {
+        console.log('Received delta:', delta)
+      })
+
+      // Handle key events
+      document.addEventListener('keydown', (event) => {
+        if (keys.hasOwnProperty(event.key)) {
+          keys[event.key] = true
+          event.preventDefault()
+        }
+      })
+
+      document.addEventListener('keyup', (event) => {
+        if (keys.hasOwnProperty(event.key)) {
+          keys[event.key] = false
+          event.preventDefault()
+        }
+      })
+
+      // Game loop
+      function gameLoop() {
+        updateMice()
+        updateCat()
+        renderState()
+        requestAnimationFrame(gameLoop)
+      }
+
+      // Spawn a new mouse after a short delay to prevent conflicts
+      setInterval(() => {
+        const currentState = client.getState()
+        if (Object.keys(currentState.mice || {}).length < 5) {
+          spawnMouse()
+        }
+      }, 1000)
+
+      // Start game loop
+      gameLoop()
+    </script>
+  </head>
+  <body>
+    <div class="controls">
+      <div class="control-btn" id="up-btn">⬆️ Up</div>
+      <div class="control-btn" id="down-btn">⬇️ Down</div>
+      <div class="control-btn" id="left-btn">⬅️ Left</div>
+      <div class="control-btn" id="right-btn">➡️ Right</div>
+    </div>
+    <div class="game-container">
+      <canvas id="gameCanvas"></canvas>
+    </div>
+    <div class="instructions">
+      <strong>🐱 Black Cats Chase MMO Mice! 🐭</strong><br />
+      Arrow keys to move your cat<br />
+      Catch the gray mice to score points<br />
+      Mice are shared across all players<br />
+      Each player gets a unique black cat<br />
+      Your cat is marked with "YOU"
+    </div>
+  </body>
+</html>

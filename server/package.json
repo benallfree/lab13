@@ -1,0 +1,19 @@
+{
+  "name": "js13k-mmo-server",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev -e=dev",
+    "deploy": "wrangler deploy -e=production",
+    "predeploy": "cd ../sdk && bun run build && cd ../site && bun run build"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.11.3",
+    "wrangler": "^4.29.0",
+    "js13k-mmo-sdk": "workspace:*"
+  },
+  "dependencies": {
+    "partyserver": "^0.0.72"
+  }
+}
