@@ -342,6 +342,40 @@ client.on('disconnect', (playerId) => {
 })
 ```
 
+## Helper Functions
+
+### `generateUUID(): string`
+
+Generates a cryptographically secure UUID (Universally Unique Identifier) for creating unique game objects.
+
+**Returns:**
+
+- `string`: A UUID in the format `xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx`
+
+**Example:**
+
+```js
+import Js13kClient, { generateUUID } from 'https://esm.sh/js13k-mmo-sdk'
+
+// Create unique IDs for game objects
+const itemId = generateUUID()
+const enemyId = generateUUID()
+const powerupId = generateUUID()
+
+// Use in state updates
+client.updateState({
+  items: {
+    [itemId]: { type: 'sword', x: 100, y: 200 },
+  },
+})
+```
+
+**Use Cases:**
+
+- Creating unique game objects (items, enemies, powerups)
+- Generating room names
+- Creating unique identifiers for any game entity
+
 ## Types
 
 ### ClientOptions\<TState\>

@@ -14,10 +14,13 @@ The best part? You get a complete SDK that handles all the complexity for you. N
 
 ```html
 <script type="module">
-  import Js13kClient from 'https://esm.sh/js13k-mmo-sdk'
+  import Js13kClient, { generateUUID } from 'https://esm.sh/js13k-mmo-sdk'
 
   // Your game code here
   const client = new Js13kClient('my-game-room')
+
+  // Create unique IDs for game objects
+  const itemId = generateUUID()
 </script>
 ```
 

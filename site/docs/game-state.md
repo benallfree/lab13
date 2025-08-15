@@ -196,6 +196,38 @@ client.updateMyState({
 Games with shared world elements:
 
 ```js
+// Black Cats Demo - shared mice state
+import { generateUUID } from 'https://esm.sh/js13k-mmo-sdk'
+
+// Spawn a new mouse
+function spawnMouse() {
+  const mouseId = generateUUID()
+  client.updateState({
+    mice: {
+      [mouseId]: {
+        x: Math.random() * 800,
+        y: Math.random() * 600,
+        vx: (Math.random() - 0.5) * 2,
+        vy: (Math.random() - 0.5) * 2,
+        owner: client.getMyId(), // Only owner can move this mouse
+      },
+    },
+  })
+}
+
+// Remove a mouse when caught
+function catchMouse(mouseId) {
+  const state = client.getState()
+  const updatedMice = { ...state.mice }
+  delete updatedMice[mouseId]
+  client.updateState({ mice: updatedMice })
+}
+```
+
+````js
+// Tower defense - shared world state
+
+```js
 // Tower defense - shared world state
 client.updateState({
   world: {
@@ -220,7 +252,7 @@ client.updateState({
     },
   },
 })
-```
+````
 
 ## Performance Optimization
 
