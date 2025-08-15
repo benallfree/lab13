@@ -69,14 +69,14 @@
 
       // Create client with delta evaluator
       const client = new Js13kClient('flight', {
-        deltaEvaluator: (delta, shadowState, playerId) => {
+        deltaEvaluator: (delta, remoteState, playerId) => {
           // If no base state, always send
-          if (!shadowState || !playerId) {
+          if (!remoteState || !playerId) {
             return true
           }
 
           // Get the player's previous state from the delta base
-          const playerBase = shadowState.players?.[playerId]
+          const playerBase = remoteState.players?.[playerId]
           if (!playerBase) {
             return true
           }

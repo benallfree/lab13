@@ -128,13 +128,47 @@
 
       // Create client with delta evaluator
       const client = new Js13kClient('cats', {
+        debug: true,
         host: window.location.origin,
-        deltaEvaluator: (delta, shadowState, playerId) => {
-          if (!shadowState || !playerId) {
+        deltaNormalizer: (delta) => {
+          return {
+            ...delta,
+            players: Object.fromEntries(
+              Object.entries(delta.players || {}).map(([playerId, player]) => {
+                return [
+                  playerId,
+                  player == null
+                    ? null
+                    : {
+                        ...player,
+                        x: Math.round(player.x || 0),
+                        y: Math.round(player.y || 0),
+                      },
+                ]
+              })
+            ),
+            mice: Object.fromEntries(
+              Object.entries(delta.mice || {}).map(([mouseId, mouse]) => {
+                return [
+                  mouseId,
+                  mouse == null
+                    ? null
+                    : {
+                        ...mouse,
+                        x: Math.round(mouse.x || 0),
+                        y: Math.round(mouse.y || 0),
+                      },
+                ]
+              })
+            ),
+          }
+        },
+        deltaEvaluator: (delta, remoteState, playerId) => {
+          if (!remoteState || !playerId) {
             return true
           }
 
-          const playerBase = shadowState.players?.[playerId]
+          const playerBase = remoteState.players?.[playerId]
           if (!playerBase) {
             return true
           }
@@ -147,7 +181,9 @@
           const yChanged = newY != null && (playerBase.y == null || Math.abs(newY - playerBase.y) > 2)
           const scoreChanged = newScore != null && newScore !== playerBase.score
 
-          return xChanged || yChanged || scoreChanged
+          const mouseChanged = Object.keys(delta.mice || {}).length > 0
+
+          return xChanged || yChanged || scoreChanged || mouseChanged
         },
       })
 
@@ -178,11 +214,11 @@
       // Resize on window resize
       window.addEventListener('resize', resizeCanvas)
 
-      // Cat names for different players
+      // Cat names for different players (not used directly; user provides name)
       const catNames = ['Shadow', 'Midnight', 'Luna', 'Raven', 'Onyx', 'Coal', 'Smokey', 'Void']
 
       // Draw a black cat
-      function drawCat(x, y, isMyCat = false) {
+      function drawCat(x, y, isMyCat = false, score, name) {
         ctx.save()
         ctx.translate(x, y)
 
@@ -227,12 +263,17 @@
         ctx.quadraticCurveTo(20, -5, 25, 0)
         ctx.stroke()
 
-        // My cat gets a special indicator
+        // Label: my cat shows name (you); others show name (score)
+        ctx.fillStyle = '#ff6b6b'
+        ctx.font = '12px Arial'
+        ctx.textAlign = 'center'
         if (isMyCat) {
-          ctx.fillStyle = '#ff6b6b'
-          ctx.font = '12px Arial'
-          ctx.textAlign = 'center'
-          ctx.fillText('YOU', 0, -25)
+          const label = name && name.trim().length > 0 ? `${name} (you)` : 'YOU'
+          ctx.fillText(label, 0, -25)
+        } else {
+          const safeName = name && name.trim().length > 0 ? name : 'Cat'
+          const safeScore = score != null ? score : 0
+          ctx.fillText(`${safeName} (${safeScore})`, 0, -25)
         }
 
         ctx.restore()
@@ -379,7 +420,7 @@
           for (const playerId in state.players) {
             const cat = state.players[playerId]
             const isMyCat = playerId === client.getMyId()
-            drawCat(cat.x, cat.y, isMyCat)
+            drawCat(cat.x, cat.y, isMyCat, cat.score, cat.name)
           }
         }
       }
@@ -420,9 +461,7 @@
           Object.entries(state.mice).forEach(([mouseId, mouse]) => {
             if (checkCollision(myCat.x, myCat.y, mouse.x, mouse.y)) {
               // Remove the caught mouse
-              const updatedMice = { ...state.mice }
-              delete updatedMice[mouseId]
-              client.updateState({ mice: updatedMice })
+              client.updateState({ mice: { [mouseId]: null } })
 
               // Increase score
               myScore++
@@ -454,10 +493,12 @@
         console.log('Received my ID from server:', id)
 
         // Initialize my cat
+        const nameInputEl = document.getElementById('name-input')
         const initialCat = {
           x: canvas.width / 2,
           y: canvas.height / 2,
           score: 0,
+          name: nameInputEl && 'value' in nameInputEl ? nameInputEl.value || '' : '',
         }
         console.log('Initialized my cat:', initialCat)
         client.updateMyState(initialCat)
@@ -472,11 +513,11 @@
       })
 
       client.on('state', (state) => {
-        console.log('Received initial state:', state)
+        console.log('Received initial state:', JSON.stringify(state, null, 2))
       })
 
       client.on('delta', (delta) => {
-        console.log('Received delta:', delta)
+        console.log('Received delta:', JSON.stringify(delta, null, 2))
       })
 
       // Handle key events
@@ -493,6 +534,15 @@
           event.preventDefault()
         }
       })
+
+      // Name input handling
+      const nameInput = document.getElementById('name-input')
+      if (nameInput) {
+        nameInput.addEventListener('input', (event) => {
+          const value = event.target && 'value' in event.target ? event.target.value : ''
+          client.updateMyState({ name: value })
+        })
+      }
 
       // Game loop
       function gameLoop() {
@@ -516,10 +566,7 @@
   </head>
   <body>
     <div class="controls">
-      <div class="control-btn" id="up-btn">⬆️ Up</div>
-      <div class="control-btn" id="down-btn">⬇️ Down</div>
-      <div class="control-btn" id="left-btn">⬅️ Left</div>
-      <div class="control-btn" id="right-btn">➡️ Right</div>
+      <input id="name-input" class="control-btn" placeholder="Enter cat name" maxlength="20" />
     </div>
     <div class="game-container">
       <canvas id="gameCanvas"></canvas>
@@ -530,7 +577,7 @@
       Catch the gray mice to score points<br />
       Mice are shared across all players<br />
       Each player gets a unique black cat<br />
-      Your cat is marked with "YOU"
+      Your cat label shows your name
     </div>
   </body>
 </html>
