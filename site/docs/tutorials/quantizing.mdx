@@ -38,6 +38,7 @@ Reduce network noise by normalizing (quantizing) your outgoing updates before th
 - The hook receives the pending changes and returns a normalized copy.
 - Here we round `x` and `y` to the nearest pixel so tiny sub‑pixel movements don’t trigger new network messages.
 - `null` values are preserved so deletions still propagate.
+- You can also filter out local-only fields so they don't get mirrored. In `site/static/demos/cats.html`, we exclude `mouse.vx` and `mouse.vy` from outgoing deltas because velocity is simulated locally.
 
 ## Practical tips
 
