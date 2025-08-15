@@ -7,15 +7,18 @@ type PartialDeep<T> = {
 
 export type DeltaEvaluator<TState = GameState> = (
   delta: PartialDeep<TState>,
-  deltaBase: PartialDeep<TState>,
+  remoteState: PartialDeep<TState>,
   playerId?: string
 ) => boolean
 
+export type DeltaNormalizer<TState = GameState> = (delta: PartialDeep<TState>) => PartialDeep<TState>
 export interface ClientOptions<TState = GameState> {
   host?: string
   party?: string
+  deltaNormalizer?: DeltaNormalizer<TState>
   deltaEvaluator?: DeltaEvaluator<TState>
   throttleMs?: number
+  debug?: boolean
 }
 
 export interface MessageData {
@@ -37,10 +40,12 @@ export function generateUUID(): string {
   )
 }
 
-// Simple recursive merge function that handles null as deletion (same as server)
-export function mergeState(target: any, source: any): any {
+// Simple recursive merge function.
+// When shouldDeleteOnNull is true, null means delete (same as server behavior).
+// When false, nulls are preserved so they can be sent over the wire in deltas.
+export function mergeState(target: any, source: any, shouldDeleteOnNull: boolean = true): any {
   if (source === null) {
-    return null // Signal deletion
+    return null
   }
 
   if (typeof source !== 'object') {
@@ -54,10 +59,13 @@ export function mergeState(target: any, source: any): any {
   for (const key in source) {
     if (source.hasOwnProperty(key)) {
       if (source[key] === null) {
-        // Delete the property if source value is null
-        delete target[key]
+        if (shouldDeleteOnNull) {
+          delete target[key]
+        } else {
+          target[key] = null
+        }
       } else {
-        target[key] = mergeState(target[key], source[key])
+        target[key] = mergeState(target[key], source[key], shouldDeleteOnNull)
       }
     }
   }
@@ -65,18 +73,79 @@ export function mergeState(target: any, source: any): any {
   return target
 }
 
+// Deep equality check for primitives, arrays, and plain objects
+function deepEqual(a: any, b: any): boolean {
+  if (a === b) {
+    // Handles most primitives (except NaN) and reference equality
+    // Note: -0 === 0 is true and acceptable here for state comparisons
+    return true
+  }
+  if (Number.isNaN(a) && Number.isNaN(b)) return true
+  if (typeof a !== typeof b) return false
+
+  if (a && b && typeof a === 'object') {
+    const aIsArray = Array.isArray(a)
+    const bIsArray = Array.isArray(b)
+    if (aIsArray || bIsArray) {
+      if (!aIsArray || !bIsArray) return false
+      if (a.length !== b.length) return false
+      for (let i = 0; i < a.length; i++) {
+        if (!deepEqual(a[i], b[i])) return false
+      }
+      return true
+    }
+
+    const aKeys = Object.keys(a)
+    const bKeys = Object.keys(b)
+    if (aKeys.length !== bKeys.length) return false
+    for (const key of aKeys) {
+      if (!Object.prototype.hasOwnProperty.call(b, key)) return false
+      if (!deepEqual(a[key], b[key])) return false
+    }
+    return true
+  }
+
+  return false
+}
+
+// Filter a delta against a base so only actual changes remain
+function filterDeltaAgainstBase(delta: any, base: any): any {
+  if (delta === null) {
+    // Deletion of a non-existent key is a no-op
+    return base === undefined ? undefined : null
+  }
+
+  if (typeof delta !== 'object' || delta === null) {
+    return deepEqual(delta, base) ? undefined : delta
+  }
+
+  if (Array.isArray(delta)) {
+    return deepEqual(delta, base) ? undefined : delta
+  }
+
+  // Plain object: recurse
+  const result: any = {}
+  let hasAny = false
+  for (const key of Object.keys(delta)) {
+    const filteredChild = filterDeltaAgainstBase(delta[key], base ? base[key] : undefined)
+    if (filteredChild !== undefined) {
+      result[key] = filteredChild
+      hasAny = true
+    }
+  }
+  return hasAny ? result : undefined
+}
+
 class Js13kClient<TState extends GameState> {
   private room: string
-  private options: Required<
-    ClientOptions<TState> & { deltaEvaluator: DeltaEvaluator<TState> | undefined; throttleMs: number }
-  >
+  private options: Required<ClientOptions<TState>>
   private socket: PartySocket | null
   private myId: string | null
-  private state: TState
+  private localState: TState
   private eventListeners: Record<string, Function[]>
   private connected: boolean
-  private shadowState: PartialDeep<TState>
-  private pendingDelta: PartialDeep<TState>
+  private remoteState: PartialDeep<TState>
+  private pendingUberDelta: PartialDeep<TState>
   private throttleTimer: ReturnType<typeof setTimeout> | null
 
   constructor(room: string, options: ClientOptions<TState> = {}) {
@@ -84,23 +153,31 @@ class Js13kClient<TState extends GameState> {
     this.options = {
       host: `https://mmo.js13kgames.com`,
       party: 'js13k',
-      deltaEvaluator: undefined,
+      deltaEvaluator: (delta, remoteState, playerId) => true,
+      deltaNormalizer: (delta) => delta,
       throttleMs: 50,
+      debug: false,
       ...options,
     }
 
     this.socket = null
     this.myId = null
-    this.state = {} as TState
+    this.localState = {} as TState
     this.eventListeners = {}
     this.connected = false
 
     // Delta change detection system
-    this.shadowState = {} as PartialDeep<TState>
-    this.pendingDelta = {} as PartialDeep<TState>
+    this.remoteState = {} as PartialDeep<TState>
+    this.pendingUberDelta = {} as PartialDeep<TState>
     this.throttleTimer = null
 
     this.connect()
+  }
+
+  private log(...args: any[]): void {
+    if (this.options.debug) {
+      console.log(`[Js13kClient][${this.myId?.slice(-4) || 'null'}]`, ...args)
+    }
   }
 
   // Check if a delta should be sent based on evaluator function
@@ -108,7 +185,7 @@ class Js13kClient<TState extends GameState> {
     if (!this.options.deltaEvaluator) {
       return true // Always send if no evaluator provided
     }
-    return this.options.deltaEvaluator(delta, this.shadowState, this.myId || undefined)
+    return this.options.deltaEvaluator(delta, this.remoteState, this.myId || undefined)
   }
 
   connect(): void {
@@ -142,25 +219,33 @@ class Js13kClient<TState extends GameState> {
     if (data.id) {
       // Received my own ID from server
       this.myId = data.id
+      this.log(`client id`, data.id)
       this.emit('id', this.myId)
     } else if (data.connect) {
       // Another client connected
+      this.log(`client connected`, data.connect)
       this.emit('connect', data.connect)
     } else if (data.disconnect) {
       // A client disconnected
+      this.log(`client disconnected`, data.disconnect)
       this.emit('disconnect', data.disconnect)
       // Remove their data from state
-      if (this.state.players && this.state.players[data.disconnect]) {
-        delete this.state.players[data.disconnect]
+      if (this.localState.players && this.localState.players[data.disconnect]) {
+        this.log(`removing client from state`, data.disconnect)
+        delete this.localState.players[data.disconnect]
       }
     } else if (data.state) {
       // Initial state received
-      this.state = data.state
-      this.emit('state', this.state)
+      this.log(`initial state received`, JSON.stringify(data.state, null, 2))
+      this.localState = data.state
+      this.remoteState = JSON.parse(JSON.stringify(data.state))
+      this.log(`initial remote state`, JSON.stringify(this.remoteState, null, 2))
+      this.emit('state', this.localState)
     } else if (data.delta) {
       // Delta received from another client
-      this.state = mergeState(this.state, data.delta)
-      this.shadowState = mergeState(this.shadowState, data.delta) // Update shadow state
+      this.log(`delta received`, JSON.stringify(data.delta, null, 2))
+      this.localState = mergeState(this.localState, data.delta)
+      this.remoteState = mergeState(this.remoteState, data.delta) // Update shadow state
       this.emit('delta', data.delta)
     }
   }
@@ -201,7 +286,7 @@ class Js13kClient<TState extends GameState> {
 
   // State management
   getState(): TState {
-    return this.state
+    return this.localState
   }
 
   getMyId(): string | null {
@@ -209,14 +294,14 @@ class Js13kClient<TState extends GameState> {
   }
 
   getMyState(copy: boolean = false): GetPlayerState<TState> | null {
-    if (!this.myId || !this.state.players) return null
-    const state = this.state.players[this.myId]
+    if (!this.myId || !this.localState.players) return null
+    const state = this.localState.players[this.myId]
     return copy ? JSON.parse(JSON.stringify(state)) : state
   }
 
   getPlayerState(playerId: string, copy: boolean = false): GetPlayerState<TState> | null {
-    if (!this.state.players || !this.state.players[playerId]) return null
-    const state = this.state.players[playerId]
+    if (!this.localState.players || !this.localState.players[playerId]) return null
+    const state = this.localState.players[playerId]
     return copy ? JSON.parse(JSON.stringify(state)) : state
   }
 
@@ -231,7 +316,7 @@ class Js13kClient<TState extends GameState> {
       return
     }
     const deltaString = JSON.stringify({ delta })
-    // console.log(`[${this.myId}] sendDelta`, deltaString)
+    // console.log(`sendDelta`, deltaString)
 
     this.socket.send(deltaString)
   }
@@ -244,28 +329,24 @@ class Js13kClient<TState extends GameState> {
 
   // Merge delta into pending uberdelta
   private addToPendingDelta(delta: PartialDeep<TState>): void {
-    // console.log(`[${this.myId}] addToPendingDelta`, JSON.stringify({ pendingDelta: this.pendingDelta, delta }, null, 2))
-    // If this is the first pending update, capture the current state as shadow state
-    if (Object.keys(this.pendingDelta).length === 0) {
-      this.shadowState = JSON.parse(JSON.stringify(this.state))
-      // console.log(
-      //   `[${this.myId}] initializing shadow state`,
-      //   JSON.stringify({ shadowState: this.shadowState }, null, 2)
-      // )
-    }
+    // this.log(`addToPendingDelta`, JSON.stringify({ pendingDelta: this.pendingUberDelta, delta }, null, 2))
+    // We accumulate raw user changes. No filtering here.
 
-    // Merge delta into the current state
-    this.state = mergeState(this.state, delta)
+    // Merge delta into the current state (delete on nulls)
+    this.localState = mergeState(this.localState, delta, true)
 
-    // Merge delta into the pending uberdelta
-    this.pendingDelta = mergeState(this.pendingDelta, delta)
+    // Merge incoming delta into current uberdelta but PRESERVE nulls so they can be sent
+    this.pendingUberDelta = mergeState(this.pendingUberDelta, delta, false)
+    // this.log(`pending uberdelta`, JSON.stringify({ pendingUberDelta: this.pendingUberDelta }, null, 2))
 
     // Only create a new timer if one doesn't already exist (throttle, not debounce)
-    // console.log(`[${this.myId}] throttleTimer`, JSON.stringify({ throttleTimer: this.throttleTimer }, null, 2))
+    // console.log(`throttleTimer`, JSON.stringify({ throttleTimer: this.throttleTimer }, null, 2))
     if (!this.throttleTimer) {
+      // this.log(`no timer set, processing pending delta`)
       this.processPendingDelta()
       this.throttleTimer = setTimeout(() => {
         this.throttleTimer = null
+        // this.log(`timer expired, processing pending delta`)
         this.processPendingDelta()
       }, this.options.throttleMs)
     }
@@ -273,26 +354,43 @@ class Js13kClient<TState extends GameState> {
 
   // Process and send pending uberdelta
   private processPendingDelta(): void {
-    // console.log(`[${this.myId}] processPendingDelta`, JSON.stringify({ pendingDelta: this.pendingDelta }, null, 2))
-    if (Object.keys(this.pendingDelta).length === 0) return
-
-    // Check if pending delta should be sent
-    if (this.shouldSendDelta(this.pendingDelta)) {
-      // console.log(`[${this.myId}] sending pending delta`, JSON.stringify({ pendingDelta: this.pendingDelta }, null, 2))
-      // Send the uberdelta
-      this.sendDelta(this.pendingDelta)
-
-      // Clear shadow state after sending
-      this.shadowState = {} as PartialDeep<TState>
+    // console.log(`processPendingDelta`, JSON.stringify({ pendingDelta: this.pendingDelta }, null, 2))
+    if (Object.keys(this.pendingUberDelta).length === 0) {
+      // this.log(`no pending delta, skipping`)
+      return
     }
 
-    // Clear pending delta and timer
-    this.pendingDelta = {} as PartialDeep<TState>
+    // Filter the accumulated uberdelta against last known remote state
+    // this.log(
+    //   `filtering pending delta against remote state`,
+    //   JSON.stringify({ pendingDelta: this.pendingUberDelta, remoteState: this.remoteState }, null, 2)
+    // )
+    const filteredUberDelta = filterDeltaAgainstBase(
+      this.options.deltaNormalizer(this.pendingUberDelta),
+      this.remoteState
+    ) as PartialDeep<TState> | undefined
+    // this.log(`filtered uberdelta`, JSON.stringify({ filteredUberDelta }, null, 2))
+    if (!filteredUberDelta || Object.keys(filteredUberDelta).length === 0) {
+      // this.log(`no changes after filtering, skipping send`)
+    } else if (this.shouldSendDelta(filteredUberDelta)) {
+      this.log(`sending pending delta`, JSON.stringify({ pendingDelta: filteredUberDelta }, null, 2))
+      // Send the filtered uberdelta
+      this.sendDelta(filteredUberDelta)
+
+      // Update shadow state after sending
+      this.remoteState = JSON.parse(JSON.stringify(this.localState))
+    }
+
+    // Clear pending delta
+    this.pendingUberDelta = {} as PartialDeep<TState>
+    // this.log(`cleared pending delta`)
+    // this.log(`local state`, JSON.stringify({ localState: this.localState }, null, 2))
+    // this.log(`remote state`, JSON.stringify({ remoteState: this.remoteState }, null, 2))
   }
 
   // Update my own data
   updateMyState(delta: PartialDeep<GetPlayerState<TState>>): void {
-    // console.log(`[${this.myId}] updateMyState`, JSON.stringify(delta))
+    // console.log(`updateMyState`, JSON.stringify(delta))
     if (this.myId) {
       this.updateState({ players: { [this.myId]: delta } } as unknown as PartialDeep<TState>)
     } else {
@@ -307,8 +405,8 @@ class Js13kClient<TState extends GameState> {
       clearTimeout(this.throttleTimer)
       this.throttleTimer = null
     }
-    this.pendingDelta = {} as PartialDeep<TState>
-    this.shadowState = {} as PartialDeep<TState>
+    this.pendingUberDelta = {} as PartialDeep<TState>
+    this.remoteState = {} as PartialDeep<TState>
 
     if (this.socket) {
       this.socket.close()
