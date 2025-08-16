@@ -1,6 +1,6 @@
 {
   "name": "js13k-online",
-  "version": "0.0.1-rc.9",
+  "version": "0.0.1-rc.10",
   "description": "A simple client SDK for the JS13K Online Challenge Series that abstracts away the WebSocket connection and state management",
   "type": "module",
   "main": "dist/index.js",
