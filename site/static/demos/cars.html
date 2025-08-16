@@ -95,6 +95,11 @@
         border-radius: 8px;
         font-size: 14px;
         max-width: 300px;
+        display: none;
+      }
+
+      .instructions.visible {
+        display: block;
       }
     </style>
     <script type="module">
@@ -346,14 +351,21 @@
 
       // Start game loop
       gameLoop()
+
+      // Help overlay toggle
+      const helpBtn = document.getElementById('helpBtn')
+      const instructionsEl = document.querySelector('.instructions')
+      if (helpBtn && instructionsEl) {
+        helpBtn.addEventListener('click', () => {
+          const isVisible = instructionsEl.classList.toggle('visible')
+          helpBtn.classList.toggle('active', isVisible)
+        })
+      }
     </script>
   </head>
   <body>
     <div class="controls">
-      <div class="control-btn" id="up-btn">⬆️ Up</div>
-      <div class="control-btn" id="down-btn">⬇️ Down</div>
-      <div class="control-btn" id="left-btn">⬅️ Left</div>
-      <div class="control-btn" id="right-btn">➡️ Right</div>
+      <div class="control-btn" id="helpBtn">Help</div>
     </div>
     <div class="game-container">
       <canvas id="gameCanvas"></canvas>
