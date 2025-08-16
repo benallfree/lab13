@@ -22,7 +22,7 @@ const client = new Js13kClient('my-game-room')
 // 4. Set up event listeners
 ```
 
-## Initialization (based on cats demo)
+## Initialization
 
 Set up your client, canvas, and input. Initialize your player as soon as you receive your ID.
 
@@ -159,192 +159,41 @@ client.on('connected', () => {
 })
 ```
 
-## Complete Connection Example
+## Mutating State
 
-Here's a complete example showing connection handling and a minimal loop:
-
-```js
-const client = new Js13kClient('cats')
-let isReady = false
-
-// Canvas and input
-const canvas = document.getElementById('gameCanvas')
-const ctx = canvas.getContext('2d')
-function resizeCanvas() {
-  const container = canvas.parentElement || document.body
-  canvas.width = container.clientWidth
-  canvas.height = container.clientHeight
-}
-resizeCanvas()
-window.addEventListener('resize', resizeCanvas)
-const keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false }
-document.addEventListener('keydown', (e) => {
-  if (keys.hasOwnProperty(e.key)) {
-    keys[e.key] = true
-    e.preventDefault()
-  }
-})
-document.addEventListener('keyup', (e) => {
-  if (keys.hasOwnProperty(e.key)) {
-    keys[e.key] = false
-    e.preventDefault()
-  }
-})
-
-// Connection status (optional UI)
-client.on('connected', () => updateStatus('Connected'))
-client.on('disconnected', () => {
-  updateStatus('Disconnected')
-  isReady = false
-})
-
-// Initialize my player when ID arrives
-client.on('id', () => {
-  const nameInput = document.getElementById('name-input')
-  client.updateMyState({
-    x: canvas.width / 2,
-    y: canvas.height / 2,
-    score: 0,
-    name: nameInput && 'value' in nameInput ? nameInput.value || '' : '',
-  })
-})
-
-// Initial state -> start loop
-client.on('state', () => {
-  isReady = true
-  loop()
-})
-
-function updateStatus(message) {
-  const el = document.getElementById('status')
-  if (el) el.textContent = message
-}
-
-function updatePlayer() {
-  const me = client.getMyState(true)
-  if (!me) return
-  let moved = false
-  if (keys.ArrowUp) {
-    me.y -= 4
-    moved = true
-  }
-  if (keys.ArrowDown) {
-    me.y += 4
-    moved = true
-  }
-  if (keys.ArrowLeft) {
-    me.x -= 4
-    moved = true
-  }
-  if (keys.ArrowRight) {
-    me.x += 4
-    moved = true
-  }
-  me.x = Math.max(20, Math.min(canvas.width - 20, me.x))
-  me.y = Math.max(20, Math.min(canvas.height - 20, me.y))
-  if (moved) client.updateMyState(me)
-}
-
-function drawCat(x, y, isMyCat, score, name) {
-  // Minimal placeholder – implement your own drawing
-  ctx.fillStyle = isMyCat ? '#ff6b6b' : '#333'
-  ctx.beginPath()
-  ctx.arc(x, y, 10, 0, Math.PI * 2)
-  ctx.fill()
-}
-
-function render() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height)
-  const state = client.getState()
-  if (state.players) {
-    for (const playerId in state.players) {
-      const p = state.players[playerId]
-      drawCat(p.x, p.y, playerId === client.getMyId(), p.score, p.name)
-    }
-  }
-}
-
-function loop() {
-  if (!isReady) return
-  updatePlayer()
-  render()
-  requestAnimationFrame(loop)
-}
-```
-
-## Best Practices
-
-### Wait for Ready State
-
-Don't start your game logic until you've received both your ID and the initial state:
+Use `client.updateMyState(partial)` to change your own player, and `client.updateState(partial)` for shared/global data. Only the fields you provide are merged; everything else stays the same.
 
 ```js
-let hasId = false
-let hasState = false
+// Example: move my player based on input
+function tick() {
+  const dx = (keys.ArrowRight ? 1 : 0) - (keys.ArrowLeft ? 1 : 0)
+  const dy = (keys.ArrowDown ? 1 : 0) - (keys.ArrowUp ? 1 : 0)
 
-client.on('id', () => {
-  hasId = true
-  checkReady()
-})
-
-client.on('state', () => {
-  hasState = true
-  checkReady()
-})
-
-function checkReady() {
-  if (hasId && hasState) {
-    startGame()
-  }
+  const mine = client.getMyState(true)
+  client.updateMyState({ x: (mine.x || 0) + dx, y: (mine.y || 0) + dy })
 }
-```
 
-### Handle Reconnection
-
-Always be prepared for temporary disconnections:
-
-```js
-client.on('disconnected', () => {
-  // Pause game logic
-  pauseGame()
-  showMessage('Connection lost, reconnecting...')
-})
-
-client.on('connected', () => {
-  // Resume when reconnected
-  hideMessage()
-})
-
-client.on('state', () => {
-  // Resume game with fresh state
-  resumeGame()
+// Example: spawn a shared world item
+const itemId = 'item-' + Math.random().toString(36).slice(2)
+client.updateState({
+  items: {
+    [itemId]: { x: 200, y: 120, owner: client.getMyId() },
+  },
 })
 ```
 
-### Initialize Player State Early
+## How saving works (local-first)
 
-Set your initial player state as soon as you get your ID:
+- When you call `updateMyState` or `updateState`, the SDK writes the change to your local state immediately (optimistic), then batches and sends a delta to the server.
+- The server relays your delta to all clients. You will also receive your own delta via `client.on('delta', ...)`, which keeps everyone in sync.
+- Read the latest local copy anytime with `client.getState()`, `client.getMyState()`, or `client.getPlayerState(id)`.
 
-```js
-client.on('id', (myId) => {
-  // Initialize immediately with default values
-  client.updateMyState({
-    x: 0,
-    y: 0,
-    ready: false,
-  })
+## Learn more
 
-  // Then update with real values
-  setTimeout(() => {
-    client.updateMyState({
-      x: getSpawnX(),
-      y: getSpawnY(),
-      ready: true,
-    })
-  }, 100)
-})
-```
+The tutorials (@tutorials/) feature more advanced state management patterns:
 
-## What's Next?
-
-Now that you understand initialization and the loop, learn about [Game State Management](./tutorials/game-state.md) to design your multiplayer game state effectively.
+- [Understanding Game State](./tutorials/game-state)
+- [Quantizing Deltas](./tutorials/quantizing)
+- [Throttling Updates](./tutorials/throttling)
+- [Evaluating Deltas](./tutorials/delta-evaluator)
+- [State Ownership](./tutorials/ownership)
