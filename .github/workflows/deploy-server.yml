@@ -1,0 +1,35 @@
+name: Deploy server
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'server/**'
+      - 'site/**'
+      - 'sdk/**'
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create base environment
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install root deps
+        run: |
+          bun install --frozen-lockfile
+
+      - name: Build and deploy with Wrangler
+        working-directory: server
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: bun run deploy
