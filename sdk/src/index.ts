@@ -3,7 +3,7 @@ import { Js13kClient } from './Js13kClient'
 export { Js13kClient } from './Js13kClient'
 export { connectToJs13kLobby, Js13kLobby } from './Js13kLobby'
 export type * from './types'
-export { generateUUID } from './util'
+export { deepClone, generateUUID, mergeState } from './util'
 
 export default Js13kClient
 
