@@ -170,7 +170,7 @@
       window.addEventListener('resize', resizeCanvas)
 
       // Car colors for different players
-      const carColors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff', '#ffa500', '#800080']
+      const carColors = ['#ff0000', '#000000', '#0000ff', '#ffff00', '#ff00ff', '#00ffff', '#ffa500', '#800080']
 
       // Draw a car
       function drawCar(x, y, rz, color, isMyCar = false) {
@@ -212,7 +212,7 @@
         ctx.clearRect(0, 0, canvas.width, canvas.height)
 
         // Draw grass pattern
-        ctx.fillStyle = '#2c5e1e'
+        ctx.fillStyle = '#1c5e1e'
         ctx.fillRect(0, 0, canvas.width, canvas.height)
 
         // Draw some road lines
@@ -230,7 +230,8 @@
         if (state.players) {
           for (const playerId in state.players) {
             const car = state.players[playerId]
-            const color = carColors[parseInt(playerId) % carColors.length]
+            const idx = Array.from(String(playerId)).reduce((a, c) => a + c.charCodeAt(0), 0) % carColors.length
+            const color = carColors[idx]
             const isMyCar = playerId === client.getMyId()
             drawCar(car.x, car.y, car.rz, color, isMyCar)
           }
