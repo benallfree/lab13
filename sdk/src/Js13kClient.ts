@@ -94,12 +94,12 @@ export class Js13kClient<TState extends GameState> {
     } else if (data.disconnect) {
       // A client disconnected
       this.log(`client disconnected`, data.disconnect)
-      this.emit('disconnect', data.disconnect)
       // Remove their data from state
       if (this.localState.players && this.localState.players[data.disconnect]) {
         this.log(`removing client from state`, data.disconnect)
         delete this.localState.players[data.disconnect]
       }
+      this.emit('disconnect', data.disconnect)
     } else if (data.state) {
       // Initial state received
       this.log(`initial state received`, JSON.stringify(data.state, null, 2))
