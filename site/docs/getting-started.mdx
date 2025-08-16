@@ -65,6 +65,175 @@ Let's create a simple multiplayer game where players can move around and see eac
 
 ---
 
+### Build it step-by-step
+
+#### Step 1 — HTML skeleton
+
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>My First MMO</title>
+  </head>
+  <body>
+    <div id="game"></div>
+    <div id="status">Connecting...</div>
+    <script type="module"></script>
+  </body>
+</html>
+```
+
+#### Step 2 — Add styles
+
+```html
+<style>
+  #game {
+    width: 640px;
+    height: 400px;
+    border: 1px solid #ccc;
+    position: relative;
+  }
+  .player {
+    width: 20px;
+    height: 20px;
+    background: blue;
+    position: absolute;
+    border-radius: 50%;
+  }
+  .me {
+    background: red;
+  }
+</style>
+```
+
+#### Step 3 — Initialize the client
+
+```html
+<script type="module">
+  import Js13kClient from 'https://esm.sh/js13k-online'
+
+  const gameDiv = document.getElementById('game')
+  const statusDiv = document.getElementById('status')
+  const playerElements = new Map()
+
+  const client = new Js13kClient('my-awesome-game-v1')
+
+  client.on('connected', () => {
+    statusDiv.textContent = 'Connected! Move with arrow keys.'
+  })
+
+  client.on('id', (myId) => {
+    client.updateMyState({ x: 400, y: 300 })
+  })
+</script>
+```
+
+#### Step 4 — Listen for state updates and connections
+
+```html
+<script type="module">
+  client.on('delta', () => {
+    renderPlayers()
+  })
+
+  client.on('state', () => {
+    renderPlayers()
+  })
+
+  client.on('connect', (playerId) => {
+    console.log('Player connected:', playerId)
+  })
+
+  client.on('disconnect', (playerId) => {
+    const element = playerElements.get(playerId)
+    if (element) {
+      element.remove()
+      playerElements.delete(playerId)
+    }
+  })
+</script>
+```
+
+#### Step 5 — Render all players
+
+```html
+<script type="module">
+  function renderPlayers() {
+    const state = client.getState()
+    const myId = client.getMyId()
+    if (!state.players) return
+
+    Object.entries(state.players).forEach(([playerId, playerState]) => {
+      if (playerState.x == null || playerState.y == null) return
+
+      let element = playerElements.get(playerId)
+      if (!element) {
+        element = document.createElement('div')
+        element.className = 'player' + (playerId === myId ? ' me' : '')
+        gameDiv.appendChild(element)
+        playerElements.set(playerId, element)
+      }
+
+      element.style.left = playerState.x + 'px'
+      element.style.top = playerState.y + 'px'
+    })
+  }
+</script>
+```
+
+#### Step 6 — Handle keyboard input
+
+```html
+<script type="module">
+  const keys = new Set()
+  let moveSpeed = 3
+
+  document.addEventListener('keydown', (e) => {
+    keys.add(e.code)
+  })
+
+  document.addEventListener('keyup', (e) => {
+    keys.delete(e.code)
+  })
+</script>
+```
+
+#### Step 7 — Add the game loop
+
+```html
+<script type="module">
+  function gameLoop() {
+    const myState = client.getMyState()
+    if (!myState) {
+      requestAnimationFrame(gameLoop)
+      return
+    }
+
+    let dx = 0,
+      dy = 0
+
+    if (keys.has('ArrowLeft') || keys.has('KeyA')) dx = -moveSpeed
+    if (keys.has('ArrowRight') || keys.has('KeyD')) dx = moveSpeed
+    if (keys.has('ArrowUp') || keys.has('KeyW')) dy = -moveSpeed
+    if (keys.has('ArrowDown') || keys.has('KeyS')) dy = moveSpeed
+
+    if (dx !== 0 || dy !== 0) {
+      const newX = Math.max(0, Math.min(620, myState.x + dx))
+      const newY = Math.max(0, Math.min(380, myState.y + dy))
+      client.updateMyState({ x: newX, y: newY })
+    }
+
+    renderPlayers()
+    requestAnimationFrame(gameLoop)
+  }
+
+  gameLoop()
+</script>
+```
+
+<details>
+  <summary>Full example (copy‑paste)</summary>
+
 ```html
 <!DOCTYPE html>
 <html>
@@ -95,46 +264,34 @@ Let's create a simple multiplayer game where players can move around and see eac
 
     <script type="module">
       import Js13kClient from 'https://esm.sh/js13k-online'
-      // Define our game state type (optional, but helpful)
-      // Game state will look like: { players: { playerId: { x: 100, y: 200 } } }
 
       const gameDiv = document.getElementById('game')
       const statusDiv = document.getElementById('status')
       const playerElements = new Map()
 
-      // Create client with a unique room name for your game
       const client = new Js13kClient('my-awesome-game-v1')
 
-      // Listen for connection events
       client.on('connected', () => {
         statusDiv.textContent = 'Connected! Move with arrow keys.'
       })
 
       client.on('id', (myId) => {
-        console.log('My player ID:', myId)
-        // Initialize my position
         client.updateMyState({ x: 400, y: 300 })
       })
 
-      // Listen for state changes
-      client.on('delta', (delta) => {
-        console.log('State changed:', delta)
+      client.on('delta', () => {
         renderPlayers()
       })
 
-      client.on('state', (fullState) => {
-        console.log('Initial state received:', fullState)
+      client.on('state', () => {
         renderPlayers()
       })
 
-      // Handle player connections/disconnections
       client.on('connect', (playerId) => {
         console.log('Player connected:', playerId)
       })
 
       client.on('disconnect', (playerId) => {
-        console.log('Player disconnected:', playerId)
-        // Remove their visual element
         const element = playerElements.get(playerId)
         if (element) {
           element.remove()
@@ -142,11 +299,9 @@ Let's create a simple multiplayer game where players can move around and see eac
         }
       })
 
-      // Render all players
       function renderPlayers() {
         const state = client.getState()
         const myId = client.getMyId()
-
         if (!state.players) return
 
         Object.entries(state.players).forEach(([playerId, playerState]) => {
@@ -159,14 +314,12 @@ Let's create a simple multiplayer game where players can move around and see eac
             gameDiv.appendChild(element)
             playerElements.set(playerId, element)
           }
-          // console.log(JSON.stringify(playerState));
 
           element.style.left = playerState.x + 'px'
           element.style.top = playerState.y + 'px'
         })
       }
 
-      // Handle keyboard input
       const keys = new Set()
       let moveSpeed = 3
 
@@ -178,7 +331,6 @@ Let's create a simple multiplayer game where players can move around and see eac
         keys.delete(e.code)
       })
 
-      // Game loop
       function gameLoop() {
         const myState = client.getMyState()
         if (!myState) {
@@ -193,11 +345,10 @@ Let's create a simple multiplayer game where players can move around and see eac
         if (keys.has('ArrowRight') || keys.has('KeyD')) dx = moveSpeed
         if (keys.has('ArrowUp') || keys.has('KeyW')) dy = -moveSpeed
         if (keys.has('ArrowDown') || keys.has('KeyS')) dy = moveSpeed
-        // console.log({ dx, dy });
+
         if (dx !== 0 || dy !== 0) {
           const newX = Math.max(0, Math.min(620, myState.x + dx))
           const newY = Math.max(0, Math.min(380, myState.y + dy))
-          console.log({ newX, newY })
           client.updateMyState({ x: newX, y: newY })
         }
         renderPlayers()
@@ -210,6 +361,8 @@ Let's create a simple multiplayer game where players can move around and see eac
   </body>
 </html>
 ```
+
+</details>
 
 ## Room Names
 
