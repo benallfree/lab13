@@ -40,6 +40,11 @@ export function generateUUID(): string {
   )
 }
 
+// Helper function to deep clone objects via JSON serialization
+export function deepClone<T>(obj: T): T {
+  return JSON.parse(JSON.stringify(obj))
+}
+
 // Simple recursive merge function.
 // When shouldDeleteOnNull is true, null means delete (same as server behavior).
 // When false, nulls are preserved so they can be sent over the wire in deltas.
@@ -238,7 +243,7 @@ class Js13kClient<TState extends GameState> {
       // Initial state received
       this.log(`initial state received`, JSON.stringify(data.state, null, 2))
       this.localState = data.state
-      this.remoteState = this.options.deltaNormalizer(JSON.parse(JSON.stringify(data.state)))
+      this.remoteState = this.options.deltaNormalizer(deepClone(data.state))
       this.log(`initial remote state`, JSON.stringify(this.remoteState, null, 2))
       this.emit('state', this.localState)
     } else if (data.delta) {
@@ -291,13 +296,13 @@ class Js13kClient<TState extends GameState> {
   getMyState(copy: boolean = false): GetPlayerState<TState> | null {
     if (!this.myId || !this.localState.players) return null
     const state = this.localState.players[this.myId]
-    return copy ? JSON.parse(JSON.stringify(state)) : state
+    return copy ? deepClone(state) : state
   }
 
   getPlayerState(playerId: string, copy: boolean = false): GetPlayerState<TState> | null {
     if (!this.localState.players || !this.localState.players[playerId]) return null
     const state = this.localState.players[playerId]
-    return copy ? JSON.parse(JSON.stringify(state)) : state
+    return copy ? deepClone(state) : state
   }
 
   isConnected(): boolean {
@@ -373,7 +378,7 @@ class Js13kClient<TState extends GameState> {
       this.sendDelta(filteredUberDelta)
 
       // Update shadow state after sending
-      this.remoteState = this.options.deltaNormalizer(JSON.parse(JSON.stringify(this.localState)))
+      this.remoteState = this.options.deltaNormalizer(deepClone(this.localState))
     }
 
     // Clear pending delta
