@@ -250,11 +250,6 @@ class Js13kClient<TState extends GameState> {
     }
   }
 
-  // Simple recursive merge function that handles null as deletion (same as server)
-  mergeState(target: any, source: any): any {
-    return mergeState(target, source)
-  }
-
   // Event handling
   on(event: string, callback: Function): void {
     if (!this.eventListeners[event]) {
