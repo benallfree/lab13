@@ -343,6 +343,125 @@ client.on('disconnect', (playerId) => {
 })
 ```
 
+## Js13kLobby
+
+High‑level helper for lobby/presence. Tracks total players online and per‑room counts. Intended for building a lobby list or showing live player numbers.
+
+### Constructor
+
+```typescript
+new Js13kLobby(options?: ClientOptions)
+```
+
+Creates a lobby client that connects to the global lobby room.
+
+**Parameters:**
+
+- `options` (ClientOptions, optional): Same options as `Js13kClient` (e.g., `host`, `party`, `debug`)
+
+**Example:**
+
+```js
+import { Js13kLobby } from 'https://esm.sh/js13k-online'
+
+const lobby = new Js13kLobby({ host: window.location.origin })
+```
+
+### Methods
+
+#### `enterRoom(room: string): void`
+
+Registers the current browser tab as being in a specific game room (e.g., to reflect presence in the lobby).
+
+```js
+const lobby = new Js13kLobby({ host: window.location.origin })
+lobby.enterRoom('cats')
+```
+
+#### `on(event: 'stats', callback: (stats: LobbyStats) => void): void`
+
+Listens for aggregated lobby stats. Fired on initial state and whenever players connect/disconnect or change rooms.
+
+```js
+lobby.on('stats', (stats) => {
+  console.log('Total players online:', stats.totalPlayers)
+  // { cats: { totalPlayers: 3 }, cars: { totalPlayers: 1 }, ... }
+  console.log('Players by game:', stats.games)
+})
+```
+
+#### `off(event: 'stats', callback: (stats: LobbyStats) => void): void`
+
+Removes a previously registered stats listener.
+
+#### `disconnect(): void`
+
+Closes the lobby connection and cleans up listeners.
+
+### Types
+
+#### `LobbyStats`
+
+```typescript
+type LobbyStats = {
+  totalPlayers: number
+  games: Record<string, { totalPlayers: number }>
+}
+```
+
+### Usage Examples
+
+#### Basic presence + live counts (like `cats` demo)
+
+```html
+<script type="module">
+  import { Js13kLobby } from 'https://esm.sh/js13k-online'
+
+  // Connect to lobby and report presence in a room
+  const lobby = new Js13kLobby({ host: window.location.origin })
+  lobby.enterRoom('cats')
+
+  // Update UI with live totals
+  const totalEl = document.getElementById('total')
+  const listEl = document.getElementById('games')
+
+  lobby.on('stats', (stats) => {
+    if (totalEl) totalEl.textContent = String(stats.totalPlayers)
+    if (listEl) {
+      listEl.innerHTML = ''
+      Object.entries(stats.games).forEach(([slug, info]) => {
+        const li = document.createElement('li')
+        li.textContent = `${slug}: ${info.totalPlayers}`
+        listEl.appendChild(li)
+      })
+    }
+  })
+</script>
+
+<div>Players online: <span id="total">0</span></div>
+<ul id="games"></ul>
+```
+
+Notes:
+
+- Presence works by setting a `room` on your lobby player record via `enterRoom(room)`.
+- Stats are derived from the lobby state and updated on `stats` events.
+
+#### Convenience: `connectToJs13kLobby(room: string, options?: ClientOptions)`
+
+One‑liner that creates a lobby client and enters the given room immediately. Returns the `Js13kLobby` instance.
+
+```js
+import { connectToJs13kLobby } from 'https://esm.sh/js13k-online'
+
+const lobby = connectToJs13kLobby('cats', { host: window.location.origin })
+
+// Optional: subscribe to live stats
+lobby.on('stats', (stats) => {
+  console.log('Players online:', stats.totalPlayers)
+})
+```
+
 ## Helper Functions
 
 ### `generateUUID(): string`

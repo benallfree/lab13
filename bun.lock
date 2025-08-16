@@ -10,7 +10,7 @@
     },
     "sdk": {
       "name": "js13k-online",
-      "version": "0.0.1-rc.8",
+      "version": "0.0.1-rc.9",
       "devDependencies": {
         "@types/node": "^24.2.1",
         "partysocket": "^1.1.5",
@@ -38,6 +38,7 @@
         "@docusaurus/preset-classic": "3.8.1",
         "@mdx-js/react": "^3.0.0",
         "clsx": "^2.0.0",
+        "js13k-online": "workspace:*",
         "prism-react-renderer": "^2.3.0",
         "react": "^19.0.0",
         "react-dom": "^19.0.0",

@@ -1,5 +1,7 @@
 import Link from '@docusaurus/Link'
 import Layout from '@theme/Layout'
+import { Js13kLobby } from 'js13k-online'
+import { useEffect, useRef, useState } from 'react'
 import gamesData from '../../../games.json'
 
 type GameMeta = {
@@ -10,6 +12,26 @@ type GameMeta = {
 }
 
 export default function Lobby() {
+  const [playerCount, setPlayerCount] = useState(0)
+  const [perGameCounts, setPerGameCounts] = useState<Record<string, number>>({})
+  const lobbyRef = useRef<Js13kLobby | null>(null)
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const lobby = new Js13kLobby({ host: window.location.origin, debug: true })
+    lobbyRef.current = lobby
+    lobby.on('stats', ({ totalPlayers, games }) => {
+      const flattened: Record<string, number> = {}
+      for (const key of Object.keys(games)) flattened[key] = games[key].totalPlayers
+      setPerGameCounts(flattened)
+      setPlayerCount(totalPlayers)
+    })
+
+    return () => {
+      lobby.disconnect()
+    }
+  }, [])
   return (
     <Layout title="Game Lobby" description="Choose a game to play with friends">
       <div className="container margin-vert--lg">
@@ -26,25 +48,48 @@ export default function Lobby() {
             >
               <div>
                 <h1 className="hero__title" style={{ marginBottom: '0.25rem' }}>
-                  Game Lobby
+                  Game Lobby{' '}
+                  <span
+                    style={{
+                      fontSize: '0.8rem',
+                      marginLeft: '0.5em',
+                      color: '#22c55e',
+                      fontWeight: 600,
+                      animation: 'fancyThrob 1.1s infinite alternate cubic-bezier(0.4,0,0.6,1)',
+                      textShadow: '0 0 8px #22c55e88, 0 0 2px #fff',
+                      letterSpacing: '0.01em',
+                    }}
+                  >
+                    ({playerCount} players online)
+                  </span>
+                  <style>
+                    {`
+                      @keyframes fancyThrob {
+                        0% { transform: scale(1); filter: brightness(1); }
+                        100% { transform: scale(1.15); filter: brightness(1.5); }
+                      }
+                    `}
+                  </style>
                 </h1>
                 <p className="hero__subtitle" style={{ margin: 0 }}>
                   Choose a game to play with friends
                 </p>
               </div>
-              <Link
-                className="button button--primary button--sm"
-                to="/docs/tutorials/add-your-game"
-                style={{
-                  background: 'linear-gradient(90deg, #22c55e 0%, #3b82f6 50%, #a855f7 100%)',
-                  color: '#fff',
-                  border: 'none',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                Add your game
-              </Link>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'nowrap' }}>
+                <Link
+                  className="button button--primary button--sm"
+                  to="/docs/tutorials/add-your-game"
+                  style={{
+                    background: 'linear-gradient(90deg, #22c55e 0%, #3b82f6 50%, #a855f7 100%)',
+                    color: '#fff',
+                    border: 'none',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  Add your game
+                </Link>
+              </div>
             </div>
           </div>
         </div>
@@ -52,7 +97,10 @@ export default function Lobby() {
         <div className="row">
           {(gamesData as GameMeta[]).map((game) => (
             <div key={game.slug} className="col col--3 margin-bottom--md">
-              <div className="card" style={{ height: '100%' }}>
+              <div className="card" style={{ height: '100%', position: 'relative' }}>
+                {perGameCounts[(game as GameMeta).slug] > 0 && (
+                  <div className="online-badge">Online Now: {perGameCounts[(game as GameMeta).slug]}</div>
+                )}
                 <div
                   className="card__image"
                   style={{
@@ -81,15 +129,6 @@ export default function Lobby() {
                   >
                     {game.description}
                   </p>
-                  <div
-                    style={{
-                      fontSize: '0.75rem',
-                      color: 'var(--ifm-color-secondary)',
-                      marginBottom: '0.5rem',
-                    }}
-                  >
-                    Players online: 0
-                  </div>
                 </div>
                 <div className="card__footer" style={{ padding: '0.5rem 0.75rem' }}>
                   <Link className="button button--primary button--block button--sm" to={`/lobby/${game.slug}`}>

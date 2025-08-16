@@ -500,6 +500,13 @@ export class Js13kLobby {
   }
 }
 
+// Convenience function to connect and enter a lobby room in one line
+export function connectToJs13kLobby(room: string, options: ClientOptions = {}): Js13kLobby {
+  const lobby = new Js13kLobby(options)
+  lobby.enterRoom(room)
+  return lobby
+}
+
 // Also make available globally for non-module usage
 declare global {
   interface Window {

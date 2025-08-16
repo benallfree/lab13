@@ -103,7 +103,8 @@
       }
     </style>
     <script type="module">
-      import Js13kClient from '/sdk.js'
+      import Js13kClient, { connectToJs13kLobby } from '/sdk.js'
+      connectToJs13kLobby('cars', { host: window.location.origin })
 
       // Create status indicator
       const statusIndicator = document.createElement('div')
