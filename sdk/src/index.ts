@@ -61,17 +61,15 @@ export function mergeState(target: any, source: any, shouldDeleteOnNull: boolean
     target = {}
   }
 
-  for (const key in source) {
-    if (source.hasOwnProperty(key)) {
-      if (source[key] === null) {
-        if (shouldDeleteOnNull) {
-          delete target[key]
-        } else {
-          target[key] = null
-        }
+  for (const key of Object.keys(source)) {
+    if (source[key] === null) {
+      if (shouldDeleteOnNull) {
+        delete target[key]
       } else {
-        target[key] = mergeState(target[key], source[key], shouldDeleteOnNull)
+        target[key] = null
       }
+    } else {
+      target[key] = mergeState(target[key], source[key], shouldDeleteOnNull)
     }
   }
 
