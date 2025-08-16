@@ -343,7 +343,7 @@ const client = new Js13kClient('my-room', {
 })
 ```
 
-You can also use `deltaNormalizer` to strip local-only fields that should not be mirrored in shared state. For example, in the Black Cats demo (`site/static/demos/cats.html`) we omit `mouse.vx` and `mouse.vy` so velocity is simulated locally only.
+You can also use `deltaNormalizer` to strip local-only fields that should not be mirrored in shared state. For example, in the Black Cats demo (`site/static/lobby/cats/index.html`) we omit `mouse.vx` and `mouse.vy` so velocity is simulated locally only.
 
 ### Authoritative Patterns
 

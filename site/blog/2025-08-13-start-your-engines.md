@@ -50,10 +50,10 @@ client.updateMyState({ x: 100, y: 200 })
 
 Check out these working examples:
 
-- 🎨 **[Paint Demo](/demos?game=paint)** - Collaborative pixel art
-- 🏎️ **[Cars Demo](/demos?game=cars)** - Multiplayer racing
-- 🐱 **[Black Cats Demo](/demos?game=black-cats)** - Chase mice with black cats
-- ✈️ **[Flight Simulator](/demos?game=flight-simulator)** - 3D multiplayer flight
+- 🎨 **[Paint Demo](/lobby/paint)** - Collaborative pixel art
+- 🏎️ **[Cars Demo](/lobby/cars)** - Multiplayer racing
+- 🐱 **[Black Cats Demo](/lobby/cats)** - Chase mice with black cats
+- ✈️ **[Flight Simulator](/lobby/flight)** - 3D multiplayer flight
 
 ## Documentation
 

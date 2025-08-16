@@ -23,7 +23,7 @@ Some entities should be owned by exactly one client. The owner simulates and wri
 
 Give each spawned item an `owner` set to your player id. In the Cats demo, a mouse is created with `owner: client.getMyId()`:
 
-```327:343:site/static/demos/cats.html
+```327:343:site/static/games/cats/index.html
 // Generate a new mouse
 function spawnMouse() {
   const mouseId = generateUUID()
@@ -47,7 +47,7 @@ function spawnMouse() {
 
 Each client renders everything, but only moves items they own. Non‑owners do not mutate those items.
 
-```345:376:site/static/demos/cats.html
+```345:376:site/static/games/cats/index.html
 // Update mice positions (only for mice you own)
 function updateMice() {
   const state = client.getState()

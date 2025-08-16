@@ -67,6 +67,8 @@ const config: Config = {
     ],
   ],
 
+  plugins: ['./plugins/dynamic-games-plugin.js'],
+
   themeConfig: {
     colorMode: {
       defaultMode: 'dark',
@@ -82,14 +84,14 @@ const config: Config = {
         src: 'img/favicon.webp',
       },
       items: [
+        { to: '/lobby', label: 'Lobby', position: 'left' },
         {
           type: 'docSidebar',
           sidebarId: 'tutorialSidebar',
-          position: 'left',
+          position: 'right',
           label: 'Docs',
         },
-        { to: '/demos', label: 'Demos', position: 'left' },
-        { to: '/blog', label: 'Blog', position: 'left' },
+        { to: '/blog', label: 'Blog', position: 'right' },
         {
           href: 'https://github.com/benallfree/js13k-online',
           label: 'GitHub',
