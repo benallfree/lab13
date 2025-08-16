@@ -15,8 +15,37 @@ export default function Lobby() {
       <div className="container margin-vert--lg">
         <div className="row">
           <div className="col col--12">
-            <h1 className="hero__title">Game Lobby</h1>
-            <p className="hero__subtitle">Choose a game to play with friends</p>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '1rem',
+                flexWrap: 'wrap',
+              }}
+            >
+              <div>
+                <h1 className="hero__title" style={{ marginBottom: '0.25rem' }}>
+                  Game Lobby
+                </h1>
+                <p className="hero__subtitle" style={{ margin: 0 }}>
+                  Choose a game to play with friends
+                </p>
+              </div>
+              <Link
+                className="button button--primary button--sm"
+                to="/docs/tutorials/add-your-game"
+                style={{
+                  background: 'linear-gradient(90deg, #22c55e 0%, #3b82f6 50%, #a855f7 100%)',
+                  color: '#fff',
+                  border: 'none',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                Add your game
+              </Link>
+            </div>
           </div>
         </div>
 
