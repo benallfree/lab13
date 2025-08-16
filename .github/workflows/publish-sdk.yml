@@ -1,0 +1,30 @@
+name: Publish SDK
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'sdk/package.json'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Install root deps
+        run: |
+          bun install --frozen-lockfile
+
+      - name: Build sdk
+        working-directory: sdk
+        run: bun run build
+
+      - name: Publish to npm
+        uses: JS-DevTools/npm-publish@v3
+        with:
+          token: ${{ secrets.NPM_TOKEN }}
+          package: sdk
+          access: public
