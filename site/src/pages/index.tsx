@@ -19,7 +19,7 @@ function HomepageHeader() {
         <p className="hero__subtitle">{siteConfig.tagline}</p>
         <div className={styles.buttons}>
           <Link className="button button--secondary button--lg" to="/lobby">
-            Play the games - 5min ⏱️
+            Play Now
           </Link>
         </div>
         <div style={{ marginTop: 24, display: 'flex', justifyContent: 'center' }}>
