@@ -33,6 +33,8 @@ export type GameState = Record<string, any>
 
 export type GetPlayerState<TState extends GameState> = TState['players'][string]
 
+type EventCallback = (data?: any) => void
+
 // Helper function to generate UUIDs for game objects
 export function generateUUID(): string {
   return (([1e7] as any) + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, (c: number) =>
@@ -145,7 +147,7 @@ class Js13kClient<TState extends GameState> {
   private socket: PartySocket | null
   private myId: string | null
   private localState: TState
-  private eventListeners: Record<string, Function[]>
+  private eventListeners: Record<string, EventCallback[]>
   private connected: boolean
   private remoteState: PartialDeep<TState>
   private pendingUberDelta: PartialDeep<TState>
@@ -254,14 +256,14 @@ class Js13kClient<TState extends GameState> {
   }
 
   // Event handling
-  on(event: string, callback: Function): void {
+  on(event: string, callback: EventCallback): void {
     if (!this.eventListeners[event]) {
       this.eventListeners[event] = []
     }
     this.eventListeners[event].push(callback)
   }
 
-  off(event: string, callback: Function): void {
+  off(event: string, callback: EventCallback): void {
     if (this.eventListeners[event]) {
       const index = this.eventListeners[event].indexOf(callback)
       if (index > -1) {
