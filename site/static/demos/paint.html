@@ -93,7 +93,7 @@
       document.body.appendChild(statusIndicator)
 
       // Create client
-      const client = new Js13kClient('paint')
+      const client = new Js13kClient('paint', { host: window.location.origin })
 
       // Color selection functionality
       let currentColor = '#000000'

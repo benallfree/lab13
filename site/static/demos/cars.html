@@ -108,6 +108,7 @@
 
       // Create client with delta evaluator
       const client = new Js13kClient('cars', {
+        host: window.location.origin,
         deltaEvaluator: (delta, remoteState, playerId) => {
           // console.log(`deltaEvaluator: ${JSON.stringify({ delta, shadowState, playerId }, null, 2)}`)
           // If no base state, always send

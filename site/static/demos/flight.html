@@ -69,6 +69,7 @@
 
       // Create client with delta evaluator
       const client = new Js13kClient('flight', {
+        host: window.location.origin,
         deltaEvaluator: (delta, remoteState, playerId) => {
           // If no base state, always send
           if (!remoteState || !playerId) {
