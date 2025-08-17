@@ -3,11 +3,17 @@ title: Add Your Game to the Lobby
 sidebar_position: 8
 ---
 
-# Add Your Game
+import Img from './2025-08-17-00-13-04.png'
+
+# Add Your Game to the JS13K Online Lobby
 
 Join a growing online community ecosystem of tiny Online MMO games. Adding your game to the lobby makes it easy for players to discover and play your creation directly on the site.
 
-## 1) Add your front end (build output)
+Your game can optionally announce player presence to the lobby as well. This will show the current player count for your game in the lobby.
+
+<img src={Img} style={{ maxWidth: '300px', width: '100%' }} />
+
+## Create a Pull Request
 
 - Put your built static files at: `site/static/games/<your-slug>`
 - Minimally, include an `index.html` entry point
@@ -22,14 +28,16 @@ site/static/games/cats/
     styles.css
 ```
 
-## 2) (Optional) Add a thumbnail
+### Optional Steps
+
+#### Add a thumbnail
 
 - Take a square screenshot (recommended 512×512) of your game
 - Save it as `thumbnail.webp` next to your `index.html`
 - Path: `site/static/games/<your-slug>/thumbnail.webp`
 - If missing, the lobby will use `/img/favicon.webp` as a fallback
 
-## 3) (Optional) Add `meta.json`
+#### Add `meta.json`
 
 Add metadata to improve the lobby card and game page.
 
@@ -45,10 +53,23 @@ Create `site/static/games/<your-slug>/meta.json`:
 
 > Note: if `meta.json` is omitted, the lobby will title‑case your folder name and leave description blank
 
-## 4) Open a PR
+### Open a PR
 
 Submit a pull request to the repository: [benallfree/js13k-online](https://github.com/benallfree/js13k-online).
 
 Include your `site/static/games/<your-slug>` folder.
 
 That's it! Once merged, your game will appear in the lobby.
+
+## Presence
+
+Use this minimal snippet to announce your room to the lobby so it can show how many active players are in your game right now. It adds about 500 bytes to your game.
+
+```javascript
+import { joinLobby } from 'https://esm.sh/js13k-online'
+
+const lobby = joinLobby('presence')
+lobby.on('open', () => setStatus('connected'))
+lobby.on('close', () => setStatus('disconnected'))
+lobby.on('error', (e) => setStatus('error', e.message))
+```
