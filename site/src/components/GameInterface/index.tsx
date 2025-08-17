@@ -1,5 +1,5 @@
+import { usePluginData } from '@docusaurus/useGlobalData'
 import { useState } from 'react'
-import gamesData from '../../../games.json'
 
 type GameInterfaceProps = {
   slug: string
@@ -15,7 +15,8 @@ type GameMeta = {
 
 export default function GameInterface({ slug }: GameInterfaceProps) {
   const [iframeCount, setIframeCount] = useState(1)
-  const meta = (gamesData as GameMeta[]).find((g) => g.slug === slug)
+  const gamesData = (usePluginData('dynamic-games-plugin') as GameMeta[]) || []
+  const meta = gamesData.find((g) => g.slug === slug)
 
   const addNewIframe = () => setIframeCount((prev) => prev + 1)
 
@@ -48,7 +49,7 @@ export default function GameInterface({ slug }: GameInterfaceProps) {
                     width="16"
                     height="16"
                     viewBox="0 0 24 24"
-                    style={{ marginRight: '0.5rem' }}
+                    style={{ marginRight: '0.5rem', position: 'relative', top: 3 }}
                   >
                     <path
                       fill="currentColor"

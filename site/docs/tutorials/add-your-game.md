@@ -7,54 +7,48 @@ sidebar_position: 8
 
 Join a growing online community ecosystem of tiny Online MMO games. Adding your game to the lobby makes it easy for players to discover and play your creation directly on the site.
 
-## 1) Get a screenshot
-
-- Take a square screenshot (recommended 512×512) of your game
-- Save it as `thumbnail.webp`
-
-Place it next to your game files at: `site/static/games/<your-slug>/thumbnail.webp`.
-
-## 2) Add your front end (build output)
+## 1) Add your front end (build output)
 
 - Put your built static files at: `site/static/games/<your-slug>`
-- Must include an `index.html` entry point
+- Minimally, include an `index.html` entry point
 
 Example structure:
 
 ```text
 site/static/games/cats/
   index.html
-  thumbnail.webp
   assets/
     bundle.js
     styles.css
 ```
 
-## 3) Add your game to `site/games.json`
+## 2) (Optional) Add a thumbnail
 
-Add an entry with a unique `slug`, title, description, and thumbnail path:
+- Take a square screenshot (recommended 512×512) of your game
+- Save it as `thumbnail.webp` next to your `index.html`
+- Path: `site/static/games/<your-slug>/thumbnail.webp`
+- If missing, the lobby will use `/img/favicon.webp` as a fallback
+
+## 3) (Optional) Add `meta.json`
+
+Add metadata to improve the lobby card and game page.
+
+Create `site/static/games/<your-slug>/meta.json`:
 
 ```json
 {
   "title": "Black Cats",
-  "description": "Chase mice in multiplayer.",
-  "slug": "cats",
-  "thumbnail": "/games/cats/thumbnail.webp"
+  "description": "Chase mice with black cats in a spooky environment.",
+  "repository": "https://github.com/your/repo"
 }
 ```
 
-Notes:
-
-- `thumbnail` should be a web path beginning with `/games/...`
-- `slug` becomes the lobby URL: `/lobby/<slug>`
+> Note: if `meta.json` is omitted, the lobby will title‑case your folder name and leave description blank
 
 ## 4) Open a PR
 
 Submit a pull request to the repository: [benallfree/js13k-online](https://github.com/benallfree/js13k-online).
 
-Include:
-
-- Your `site/static/games/<your-slug>` folder
-- The update to `site/games.json`
+Include your `site/static/games/<your-slug>` folder.
 
 That's it! Once merged, your game will appear in the lobby.

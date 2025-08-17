@@ -1,7 +1,7 @@
 import Link from '@docusaurus/Link'
+import { usePluginData } from '@docusaurus/useGlobalData'
 import Layout from '@theme/Layout'
 import { useEffect, useRef, useState } from 'react'
-import gamesData from '../../../games.json'
 import { Js13kLobby } from '../../../static/sdk/index.js'
 
 type GameMeta = {
@@ -12,6 +12,7 @@ type GameMeta = {
 }
 
 export default function Lobby() {
+  const gamesData = (usePluginData('dynamic-games-plugin') as GameMeta[]) || []
   const [playerCount, setPlayerCount] = useState(0)
   const [perGameCounts, setPerGameCounts] = useState<Record<string, number>>({})
   const lobbyRef = useRef<Js13kLobby | null>(null)
@@ -102,7 +103,7 @@ export default function Lobby() {
                   <div className="online-badge">Online Now: {perGameCounts[(game as GameMeta).slug]}</div>
                 )}
                 <div
-                  className="card__image"
+                  className="card__image padding--none"
                   style={{
                     aspectRatio: '1 / 1',
                     width: '100%',
