@@ -28,7 +28,10 @@ export interface MessageData {
   delta?: any
 }
 
-export type GameState = Record<string, any>
+export interface GameState {
+  players: Record<string, any>
+  [key: string]: any
+}
 
 export type GetPlayerState<TState extends GameState> = TState['players'][string]
 
