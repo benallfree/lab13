@@ -74,7 +74,7 @@
     <script type="module">
       import { joinLobby } from '/sdk/index.js'
 
-      const lobby = joinLobby('presence')
+      const lobby = joinLobby('presence', { host: location.origin })
       lobby.on('open', () => setStatus('connected'))
       lobby.on('close', () => setStatus('disconnected'))
       lobby.on('error', (e) => setStatus('error', e.message))
