@@ -31,12 +31,12 @@ class PerformanceMonitor {
     // Measure latency
     setInterval(() => {
       const start = performance.now()
-      this.client.updateMyState({ _ping: start })
+      this.client.updateMyState({ ping: start })
     }, 5000)
 
     this.client.on('delta', (delta) => {
-      if (delta.players?.[this.client.getMyId()]?._ping) {
-        const latency = performance.now() - delta.players[this.client.getMyId()]._ping
+      if (delta._players?.[this.client.getMyId()]?.ping) {
+        const latency = performance.now() - delta._players[this.client.getMyId()].ping
         this.metrics.averageLatency = (this.metrics.averageLatency + latency) / 2
       }
     })
@@ -45,7 +45,7 @@ class PerformanceMonitor {
   getReport() {
     return {
       ...this.metrics,
-      playersConnected: Object.keys(this.client.getState().players).length,
+      playersConnected: Object.keys(this.client.getState()._players).length,
       connectionStatus: this.client.isConnected(),
     }
   }

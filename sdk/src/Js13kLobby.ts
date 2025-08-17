@@ -1,5 +1,5 @@
 import { Js13kClient } from './Js13kClient'
-import { ClientOptions, EventCallback } from './types'
+import { ClientOptions, EventCallback, GameState } from './types'
 
 // Simple lobby wrapper to aggregate global lobby stats
 export type LobbyStats = {
@@ -10,12 +10,12 @@ export type LobbyStats = {
 export type LobbyEvent = 'stats'
 
 export class Js13kLobby {
-  private client: Js13kClient<{ players: Record<string, any> }>
+  private client: Js13kClient<GameState>
   private listeners: Record<LobbyEvent, EventCallback[]>
   private idPromise: Promise<string>
 
   constructor(options: ClientOptions = {}) {
-    this.client = new Js13kClient<{ players: Record<string, any> }>('js13k', {
+    this.client = new Js13kClient<{ _players: Record<string, any> }>('js13k', {
       debug: false,
       ...options,
     })
@@ -69,8 +69,8 @@ export class Js13kLobby {
   }
 
   private computeStats(): LobbyStats {
-    const state = this.client.getState() as { players?: Record<string, any> }
-    const players = state && state.players ? state.players : {}
+    const state = this.client.getState()
+    const players = state && state._players ? state._players : {}
     const games: Record<string, { totalPlayers: number }> = {}
     let totalPlayers = 0
     for (const id of Object.keys(players)) {

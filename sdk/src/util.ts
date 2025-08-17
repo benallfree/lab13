@@ -105,3 +105,45 @@ export function generateUUID(): string {
     (c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))).toString(16)
   )
 }
+
+// Filter a delta by tombstones. Treat any object key starting with '_' as an entity collection.
+// - If an entity GUID is already tombstoned, drop its updates
+// - If an entity delta is null, add GUID to tombstones and keep null (broadcast deletion)
+export function filterDeltaWithTombstones(delta: any, tombstones: Set<string>): any {
+  const isPlainObject = (v: any) => v && typeof v === 'object' && !Array.isArray(v)
+
+  const processCollection = (collectionObj: any): any => {
+    const out: any = {}
+    for (const entityGuid of Object.keys(collectionObj)) {
+      const entityDelta = collectionObj[entityGuid]
+      if (tombstones.has(entityGuid)) continue
+      if (entityDelta === null) {
+        tombstones.add(entityGuid)
+        out[entityGuid] = null
+        continue
+      }
+      out[entityGuid] = walk(entityDelta)
+    }
+    return out
+  }
+
+  const walk = (node: any): any => {
+    if (Array.isArray(node)) return node.map((el) => walk(el))
+    if (!isPlainObject(node)) return node
+
+    const out: any = {}
+    for (const key of Object.keys(node)) {
+      const value = node[key]
+      if (key.startsWith('_') && isPlainObject(value)) {
+        const filteredCollection = processCollection(value)
+        if (Object.keys(filteredCollection).length === 0) continue
+        out[key] = filteredCollection
+        continue
+      }
+      out[key] = walk(value)
+    }
+    return out
+  }
+
+  return walk(delta)
+}

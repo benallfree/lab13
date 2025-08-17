@@ -1,7 +1,7 @@
 {
-  "name": "js13k-mmo-server",
+  "name": "js13k-online-server",
   "version": "0.0.0",
-  "private": true,
+  "private": false,
   "type": "module",
   "scripts": {
     "dev": "wrangler dev -e=dev",

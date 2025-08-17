@@ -123,16 +123,16 @@
           }
 
           // Get the player's previous state from the delta base
-          const playerBase = remoteState.players?.[playerId]
+          const playerBase = remoteState._players?.[playerId]
           if (!playerBase) {
             return true
           }
           // console.log(`playerBase: ${JSON.stringify({ playerBase, delta, shadowState }, null, 2)}`)
 
           // Check if x, y, or angle have changed significantly
-          const newX = delta.players?.[playerId]?.x
-          const newY = delta.players?.[playerId]?.y
-          const newAngle = delta.players?.[playerId]?.angle
+          const newX = delta._players?.[playerId]?.x
+          const newY = delta._players?.[playerId]?.y
+          const newAngle = delta._players?.[playerId]?.angle
 
           const xChanged = newX != null && (playerBase.x == null || Math.abs(newX - playerBase.x) > 2)
           const yChanged = newY != null && (playerBase.y == null || Math.abs(newY - playerBase.y) > 2)
@@ -228,9 +228,9 @@
 
         // Render all cars from state
         const state = client.getState()
-        if (state.players) {
-          for (const playerId in state.players) {
-            const car = state.players[playerId]
+        if (state._players) {
+          for (const playerId in state._players) {
+            const car = state._players[playerId]
             const idx = Array.from(String(playerId)).reduce((a, c) => a + c.charCodeAt(0), 0) % carColors.length
             const color = carColors[idx]
             const isMyCar = playerId === client.getMyId()

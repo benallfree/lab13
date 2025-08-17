@@ -14,7 +14,7 @@ Your game state is a JavaScript object that gets synchronized across all clients
 ```js
 // Basic game state structure
 {
-  players: {
+  _players: {
     'player-id-1': { x: 100, y: 200, name: 'Alice', health: 100 },
     'player-id-2': { x: 300, y: 150, name: 'Bob', health: 80 }
   },
@@ -29,11 +29,15 @@ Your game state is a JavaScript object that gets synchronized across all clients
 }
 ```
 
-## The `players` Collection
+### Entity collections (underscore‑prefixed)
 
-The `players` object is special - the server automatically manages player connections and disconnections:
+Keys that start with `_` and contain objects are treated as entity collections. Entries are presumed to be GUID‑keyed, and setting an entry to `null` tombstones it so no future updates to that GUID are accepted. This prevents race conditions on deleted entities. See the tutorial "Managing Entities and Collections" for when to use underscored vs non‑underscored collections.
 
-- When a player connects, an empty entry is created: `players[playerId] = {}`
+## The `_players` Collection
+
+The `_players` object is special - the server automatically manages player connections and disconnections:
+
+- When a player connects, an empty entry is created: `_players[playerId] = {}`
 - When a player disconnects, their entry is automatically removed
 - You control what data goes into each player's state
 
@@ -61,7 +65,7 @@ The SDK provides several methods for working with state:
 ```js
 // Get the complete game state
 const fullState = client.getState()
-console.log(fullState.players, fullState.world)
+console.log(fullState._players, fullState.world)
 
 // Get your own player state
 const myState = client.getMyState()
@@ -116,7 +120,7 @@ client.updateState({
 
 // Update multiple players (for game master scenarios)
 client.updateState({
-  players: {
+  _players: {
     'player-1': { health: 50 },
     'player-2': { health: 75 },
   },
@@ -130,7 +134,7 @@ The SDK uses a delta-based system for efficiency - only changes are sent over th
 ```js
 // Instead of sending the entire state every time...
 const fullState = {
-  players: {
+  _players: {
     'me': { x: 100, y: 200, health: 100, name: 'Alice', inventory: [...] }
   }
 }
@@ -149,7 +153,7 @@ client.on('delta', (delta) => {
   console.log('State changed:', delta)
 
   // Delta might look like:
-  // { players: { 'player-id': { x: 150, y: 200 } } }
+  // { _players: { 'player-id': { x: 150, y: 200 } } }
 
   // Update your game visuals based on the delta
   updateGameVisuals(delta)
@@ -203,7 +207,7 @@ import { generateUUID } from 'https://esm.sh/js13k-online'
 function spawnMouse() {
   const mouseId = generateUUID()
   client.updateState({
-    mice: {
+    _mice: {
       [mouseId]: {
         x: Math.random() * 800,
         y: Math.random() * 600,
@@ -218,9 +222,9 @@ function spawnMouse() {
 // Remove a mouse when caught
 function catchMouse(mouseId) {
   const state = client.getState()
-  const updatedMice = { ...state.mice }
+  const updatedMice = { ...state._mice }
   delete updatedMice[mouseId]
-  client.updateState({ mice: updatedMice })
+  client.updateState({ _mice: updatedMice })
 }
 ```
 
@@ -277,9 +281,9 @@ const client = new Js13kClient('my-room', {
   throttleMs: 16, // 60 FPS
   deltaEvaluator: (delta, remoteState, playerId) => {
     // Only send position updates if player moved significantly
-    if (delta.players?.[playerId]) {
-      const playerDelta = delta.players[playerId]
-      const oldPos = remoteState.players?.[playerId] || {}
+    if (delta._players?.[playerId]) {
+      const playerDelta = delta._players[playerId]
+      const oldPos = remoteState._players?.[playerId] || {}
 
       if (playerDelta.x !== undefined || playerDelta.y !== undefined) {
         const dx = Math.abs(playerDelta.x - (oldPos.x || 0))
@@ -304,8 +308,8 @@ Each client can validate incoming changes:
 ```js
 client.on('delta', (delta) => {
   // Validate player movements
-  if (delta.players) {
-    Object.entries(delta.players).forEach(([playerId, playerDelta]) => {
+  if (delta._players) {
+    Object.entries(delta._players).forEach(([playerId, playerDelta]) => {
       if (playerDelta.x !== undefined) {
         // Check if movement is reasonable (anti-cheat)
         const currentPos = client.getPlayerState(playerId)
@@ -333,8 +337,8 @@ Before your changes are evaluated and sent, you can normalize them. This is help
 const client = new Js13kClient('my-room', {
   deltaNormalizer: (delta) => ({
     ...delta,
-    players: Object.fromEntries(
-      Object.entries(delta.players || {}).map(([id, p]) => [
+    _players: Object.fromEntries(
+      Object.entries(delta._players || {}).map(([id, p]) => [
         id,
         p == null ? null : { ...p, x: Math.round(p.x || 0), y: Math.round(p.y || 0) },
       ])
@@ -379,7 +383,7 @@ class PlayerRenderer {
   }
 
   onDelta(delta) {
-    const playerDelta = delta.players?.[this.playerId]
+    const playerDelta = delta._players?.[this.playerId]
     if (playerDelta) {
       // Set new target position
       this.targetPos.x = playerDelta.x ?? this.targetPos.x

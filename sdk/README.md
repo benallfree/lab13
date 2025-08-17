@@ -10,7 +10,7 @@ The official client SDK for the 2025 JS13K Online Challenge.
 </script>
 ```
 
-📖 [Read the docs](https://online.js13kgames.com])
+📖 [Read the docs](https://online.js13kgames.com)
 
 🕹️ [Play the demo games](https://online.js13kgames.com/demos)
 

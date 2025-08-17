@@ -26,10 +26,10 @@ Return `true` to send this batch, `false` to skip it. Skipped batches are discar
   const client = new Js13kClient('my-room', {
     // Send only if movement is meaningful
     deltaEvaluator: (delta, remoteState, myId) => {
-      const p = delta.players?.[myId]
+      const p = delta._players?.[myId]
       if (!p) return Object.keys(delta || {}).length > 0
 
-      const before = remoteState.players?.[myId] || {}
+      const before = remoteState._players?.[myId] || {}
       const dx = p.x == null ? 0 : Math.abs(p.x - (before.x || 0))
       const dy = p.y == null ? 0 : Math.abs(p.y - (before.y || 0))
       return dx > 4 || dy > 4
@@ -44,7 +44,7 @@ Return `true` to send this batch, `false` to skip it. Skipped batches are discar
 // 1) Always send critical events immediately
 const client = new Js13kClient('fast-game', {
   deltaEvaluator: (delta, remoteState, myId) => {
-    const mine = delta.players?.[myId]
+    const mine = delta._players?.[myId]
     if (mine?.health !== undefined) return true // prioritize health
     return Object.keys(delta || {}).length > 0
   },
@@ -53,9 +53,9 @@ const client = new Js13kClient('fast-game', {
 // 2) Distance threshold for positions
 const client2 = new Js13kClient('threshold', {
   deltaEvaluator: (delta, remoteState, myId) => {
-    const mine = delta.players?.[myId]
+    const mine = delta._players?.[myId]
     if (!mine) return !!delta
-    const prev = remoteState.players?.[myId] || {}
+    const prev = remoteState._players?.[myId] || {}
     const dx = mine.x == null ? 0 : Math.abs(mine.x - (prev.x || 0))
     const dy = mine.y == null ? 0 : Math.abs(mine.y - (prev.y || 0))
     return dx + dy > 6
@@ -66,8 +66,8 @@ const client2 = new Js13kClient('threshold', {
 const client3 = new Js13kClient('clean', {
   deltaNormalizer: (d) => ({
     ...d,
-    players: Object.fromEntries(
-      Object.entries(d.players || {}).map(([id, p]) => [
+    _players: Object.fromEntries(
+      Object.entries(d._players || {}).map(([id, p]) => [
         id,
         p == null ? null : { ...p, x: Math.round(p.x || 0), y: Math.round(p.y || 0) },
       ])

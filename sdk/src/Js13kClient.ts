@@ -1,6 +1,6 @@
 import PartySocket from 'partysocket'
 import { ClientOptions, EventCallback, GameState, GetPlayerState, MessageData, PartialDeep } from './types'
-import { deepClone, filterDeltaAgainstBase, mergeState } from './util'
+import { deepClone, filterDeltaAgainstBase, filterDeltaWithTombstones, mergeState } from './util'
 
 export class Js13kClient<TState extends GameState> {
   private room: string
@@ -13,6 +13,7 @@ export class Js13kClient<TState extends GameState> {
   private remoteState: PartialDeep<TState>
   private pendingUberDelta: PartialDeep<TState>
   private throttleTimer: ReturnType<typeof setTimeout> | null
+  private tombstones: Set<string>
 
   constructor(room: string, options: ClientOptions<TState> = {}) {
     this.room = room
@@ -36,6 +37,7 @@ export class Js13kClient<TState extends GameState> {
     this.remoteState = {} as PartialDeep<TState>
     this.pendingUberDelta = {} as PartialDeep<TState>
     this.throttleTimer = null
+    this.tombstones = new Set<string>()
 
     this.connect()
   }
@@ -95,9 +97,9 @@ export class Js13kClient<TState extends GameState> {
       // A client disconnected
       this.log(`client disconnected`, data.disconnect)
       // Remove their data from state
-      if (this.localState.players && this.localState.players[data.disconnect]) {
+      if (this.localState._players && this.localState._players[data.disconnect]) {
         this.log(`removing client from state`, data.disconnect)
-        delete this.localState.players[data.disconnect]
+        delete this.localState._players[data.disconnect]
       }
       this.emit('disconnect', data.disconnect)
     } else if (data.state) {
@@ -109,10 +111,12 @@ export class Js13kClient<TState extends GameState> {
       this.emit('state', this.localState)
     } else if (data.delta) {
       // Delta received from another client
-      this.log(`delta received`, JSON.stringify(data.delta, null, 2))
-      this.localState = mergeState(this.localState, data.delta)
-      this.remoteState = mergeState(this.remoteState, this.options.deltaNormalizer(data.delta)) // Update shadow state
-      this.emit('delta', data.delta)
+      const filtered = filterDeltaWithTombstones(data.delta, this.tombstones) as PartialDeep<TState>
+      if (Object.keys(filtered).length === 0) return
+      this.log(`delta received`, JSON.stringify(filtered, null, 2))
+      this.localState = mergeState(this.localState, filtered)
+      this.remoteState = mergeState(this.remoteState, this.options.deltaNormalizer(filtered)) // Update shadow state
+      this.emit('delta', filtered)
     }
   }
 
@@ -155,14 +159,14 @@ export class Js13kClient<TState extends GameState> {
   }
 
   getMyState(copy: boolean = false): GetPlayerState<TState> | null {
-    if (!this.myId || !this.localState.players) return null
-    const state = this.localState.players[this.myId]
+    if (!this.myId || !this.localState._players) return null
+    const state = this.localState._players[this.myId]
     return copy ? deepClone(state) : state
   }
 
   getPlayerState(playerId: string, copy: boolean = false): GetPlayerState<TState> | null {
-    if (!this.localState.players || !this.localState.players[playerId]) return null
-    const state = this.localState.players[playerId]
+    if (!this.localState._players || !this.localState._players[playerId]) return null
+    const state = this.localState._players[playerId]
     return copy ? deepClone(state) : state
   }
 
@@ -184,6 +188,8 @@ export class Js13kClient<TState extends GameState> {
 
   // Send updates to server with throttling
   updateState(delta: PartialDeep<TState>): void {
+    // Record local deletions immediately as tombstones to block trailing incoming updates
+    this.addLocalTombstonesFromDelta(delta as any)
     // Merge into pending uberdelta
     this.addToPendingDelta(delta)
   }
@@ -211,6 +217,38 @@ export class Js13kClient<TState extends GameState> {
         this.processPendingDelta()
       }, this.options.throttleMs)
     }
+  }
+
+  // Scan a delta deeply. Any object key starting with '_' is treated as an entity collection.
+  // If an entity's value is null, add the GUID to local tombstones immediately.
+  private addLocalTombstonesFromDelta(delta: any): void {
+    const isPlainObject = (v: any) => v && typeof v === 'object' && !Array.isArray(v)
+
+    const walk = (node: any): void => {
+      if (Array.isArray(node)) {
+        for (const el of node) walk(el)
+        return
+      }
+      if (!isPlainObject(node)) return
+
+      for (const key of Object.keys(node)) {
+        const value = node[key]
+        if (key.startsWith('_') && isPlainObject(value)) {
+          for (const entityGuid of Object.keys(value)) {
+            const entityDelta = value[entityGuid]
+            if (entityDelta === null) {
+              this.tombstones.add(entityGuid)
+              continue
+            }
+            walk(entityDelta)
+          }
+          continue
+        }
+        walk(value)
+      }
+    }
+
+    walk(delta)
   }
 
   // Process and send pending uberdelta
@@ -253,7 +291,7 @@ export class Js13kClient<TState extends GameState> {
   updateMyState(delta: PartialDeep<GetPlayerState<TState>>): void {
     // console.log(`updateMyState`, JSON.stringify(delta))
     if (this.myId) {
-      this.updateState({ players: { [this.myId]: delta } } as unknown as PartialDeep<TState>)
+      this.updateState({ _players: { [this.myId]: delta } } as unknown as PartialDeep<TState>)
     } else {
       console.warn('No myId yet, waiting for server...')
     }
@@ -268,6 +306,7 @@ export class Js13kClient<TState extends GameState> {
     }
     this.pendingUberDelta = {} as PartialDeep<TState>
     this.remoteState = {} as PartialDeep<TState>
+    this.tombstones.clear()
 
     if (this.socket) {
       this.socket.close()

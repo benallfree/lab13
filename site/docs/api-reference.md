@@ -553,6 +553,47 @@ const result3 = mergeState(target3, source3)
 - Testing state merge behavior
 - Creating state patches for offline/online sync
 
+## Entity Collections and Tombstones
+
+Underscore‑prefixed object keys are treated as entity collections at any nesting level. Within an entity collection:
+
+- Keys are presumed to be GUIDs (e.g., from `generateUUID()`), each representing a single entity
+- Setting an entity to `null` tombstones it and deletes it from state
+- After a GUID is tombstoned, any future updates for that GUID are ignored by both client and server
+
+This behavior is enforced by the framework’s delta filter and merge logic and is a key feature to prevent race conditions on deleted entities.
+
+Notes:
+
+- Any object whose key starts with `_` (for example: `_players`, `_mice`, `_bullets`) is considered an entity collection
+- You can nest entity collections inside other objects; the rule applies at any depth
+- Use normal, non‑underscored collections when you do not need tombstoning semantics
+
+Example: create, update, and delete an entity in a collection called `_mice`.
+
+```js
+import Js13kClient, { generateUUID } from 'https://esm.sh/js13k-online'
+
+const mouseId = generateUUID()
+
+// Create entity
+client.updateState({
+  _mice: {
+    [mouseId]: { x: 100, y: 150, owner: client.getMyId() },
+  },
+})
+
+// Update entity
+client.updateState({ _mice: { [mouseId]: { x: 120 } } })
+
+// Delete (tombstone) entity — subsequent updates for mouseId will be dropped
+client.updateState({ _mice: { [mouseId]: null } })
+```
+
+Built‑in collections:
+
+- `_players`: Built‑in entity collection keyed by socket connection IDs (treated as GUIDs). The server creates an empty record on connect and removes it on disconnect. Use `client.updateMyState(...)` to modify your own `_players[myId]` entry.
+
 ## Types
 
 ### ClientOptions\<TState\>

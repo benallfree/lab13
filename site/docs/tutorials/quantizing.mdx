@@ -22,8 +22,8 @@ Reduce network noise by normalizing (quantizing) your outgoing updates before th
   const client = new Js13kClient('quantized-room', {
     deltaNormalizer: (delta) => ({
       ...delta,
-      players: Object.fromEntries(
-        Object.entries(delta.players || {}).map(([id, p]) => [
+      _players: Object.fromEntries(
+        Object.entries(delta._players || {}).map(([id, p]) => [
           id,
           p == null ? null : { ...p, x: Math.round(p.x || 0), y: Math.round(p.y || 0) },
         ])
@@ -50,8 +50,8 @@ Reduce network noise by normalizing (quantizing) your outgoing updates before th
 const client = new Js13kClient('quantized-room', {
   deltaNormalizer: (delta) => ({
     ...delta,
-    players: Object.fromEntries(
-      Object.entries(delta.players || {}).map(([id, p]) => [
+    _players: Object.fromEntries(
+      Object.entries(delta._players || {}).map(([id, p]) => [
         id,
         p == null
           ? null
@@ -64,10 +64,10 @@ const client = new Js13kClient('quantized-room', {
     ),
   }),
   deltaEvaluator: (delta, remoteState, myId) => {
-    const dx = delta.players?.[myId]?.x
-    const dy = delta.players?.[myId]?.y
+    const dx = delta._players?.[myId]?.x
+    const dy = delta._players?.[myId]?.y
     if (dx == null && dy == null) return false
-    const prev = remoteState.players?.[myId] || {}
+    const prev = remoteState._players?.[myId] || {}
     return Math.abs((dx ?? prev.x) - (prev.x || 0)) > 0 || Math.abs((dy ?? prev.y) - (prev.y || 0)) > 0
   },
 })

@@ -36,7 +36,7 @@ function spawnMouse() {
   }
 
   client.updateState({
-    mice: {
+    _mice: {
       [mouseId]: newMouse,
     },
   })
@@ -51,9 +51,9 @@ Each client renders everything, but only moves items they own. Non‑owners do n
 // Update mice positions (only for mice you own)
 function updateMice() {
   const state = client.getState()
-  if (!state.mice) return
+  if (!state._mice) return
 
-  Object.entries(state.mice).forEach(([mouseId, mouse]) => {
+  Object.entries(state._mice).forEach(([mouseId, mouse]) => {
     if (mouse.owner === client.getMyId()) {
       // Update position
       mouse.x += mouse.vx
@@ -73,7 +73,7 @@ function updateMice() {
 
       // Send updated position
       client.updateState({
-        mice: {
+        _mice: {
           [mouseId]: mouse,
         },
       })
@@ -84,7 +84,7 @@ function updateMice() {
 
 ### Disconnections and orphans
 
-If an owner disconnects, their items become orphaned (the `owner` no longer exists in `state.players`). In the Cats demo, that’s acceptable: orphaned mice simply stop moving until they are caught.
+If an owner disconnects, their items become orphaned (the `owner` no longer exists in `state._players`). In the Cats demo, that’s acceptable: orphaned mice simply stop moving until they are caught.
 
 For other games, you may want to automatically take ownership of orphans.
 
@@ -114,14 +114,14 @@ function simpleHash(str) {
 // Run on an interval or in response to 'delta' events
 function adoptOrphans() {
   const state = client.getState()
-  const livePlayerIds = Object.keys(state.players || {})
+  const livePlayerIds = Object.keys(state._players || {})
   const myId = client.getMyId()
 
-  Object.entries(state.mice || {}).forEach(([mouseId, mouse]) => {
-    const ownerAlive = mouse.owner && state.players?.[mouse.owner] != null
+  Object.entries(state._mice || {}).forEach(([mouseId, mouse]) => {
+    const ownerAlive = mouse.owner && state._players?.[mouse.owner] != null
     if (!ownerAlive && amDesignatedOwner(mouseId, livePlayerIds, myId)) {
       // Adopt by setting owner to me; keep other fields unchanged
-      client.updateState({ mice: { [mouseId]: { ...mouse, owner: myId } } })
+      client.updateState({ _mice: { [mouseId]: { ...mouse, owner: myId } } })
     }
   })
 }

@@ -78,19 +78,19 @@
           }
 
           // Get the player's previous state from the delta base
-          const playerBase = remoteState.players?.[playerId]
+          const playerBase = remoteState._players?.[playerId]
           if (!playerBase) {
             return true
           }
 
           // Check if position, rotation, or speed have changed significantly
-          const newX = delta.players?.[playerId]?.x
-          const newY = delta.players?.[playerId]?.y
-          const newZ = delta.players?.[playerId]?.z
-          const newRx = delta.players?.[playerId]?.rx
-          const newRy = delta.players?.[playerId]?.ry
-          const newRz = delta.players?.[playerId]?.rz
-          const newS = delta.players?.[playerId]?.s
+          const newX = delta._players?.[playerId]?.x
+          const newY = delta._players?.[playerId]?.y
+          const newZ = delta._players?.[playerId]?.z
+          const newRx = delta._players?.[playerId]?.rx
+          const newRy = delta._players?.[playerId]?.ry
+          const newRz = delta._players?.[playerId]?.rz
+          const newS = delta._players?.[playerId]?.s
 
           const xChanged = newX != null && (playerBase.x == null || Math.abs(newX - playerBase.x) > 2)
           const yChanged = newY != null && (playerBase.y == null || Math.abs(newY - playerBase.y) > 2)
@@ -351,10 +351,10 @@
       // Update other aircrafts
       function updateAircrafts() {
         const state = client.getState()
-        if (!state.players) return
+        if (!state._players) return
 
-        for (const playerId in state.players) {
-          const playerState = state.players[playerId]
+        for (const playerId in state._players) {
+          const playerState = state._players[playerId]
           if (!aircrafts[playerId]) {
             const color = aircraftColors[parseInt(playerId) % aircraftColors.length]
             aircrafts[playerId] = createAircraft(color)

@@ -29,10 +29,10 @@ export interface MessageData {
 }
 
 export interface GameState {
-  players: Record<string, any>
+  _players: Record<string, any>
   [key: string]: any
 }
 
-export type GetPlayerState<TState extends GameState> = TState['players'][string]
+export type GetPlayerState<TState extends GameState> = TState['_players'][string]
 
 export type EventCallback = (data?: any) => void

@@ -153,8 +153,8 @@
         deltaNormalizer: (delta) => {
           return {
             ...delta,
-            players: Object.fromEntries(
-              Object.entries(delta.players || {}).map(([playerId, player]) => {
+            _players: Object.fromEntries(
+              Object.entries(delta._players || {}).map(([playerId, player]) => {
                 return [
                   playerId,
                   player == null
@@ -167,8 +167,8 @@
                 ]
               })
             ),
-            mice: Object.fromEntries(
-              Object.entries(delta.mice || {}).map(([mouseId, mouse]) => {
+            _mice: Object.fromEntries(
+              Object.entries(delta._mice || {}).map(([mouseId, mouse]) => {
                 return [
                   mouseId,
                   mouse == null
@@ -188,22 +188,22 @@
             return true
           }
 
-          const playerBase = remoteState.players?.[playerId]
+          const playerBase = remoteState._players?.[playerId]
           if (!playerBase) {
             return true
           }
 
-          const newX = delta.players?.[playerId]?.x
-          const newY = delta.players?.[playerId]?.y
-          const newScore = delta.players?.[playerId]?.score
-          const newName = delta.players?.[playerId]?.name
+          const newX = delta._players?.[playerId]?.x
+          const newY = delta._players?.[playerId]?.y
+          const newScore = delta._players?.[playerId]?.score
+          const newName = delta._players?.[playerId]?.name
 
           const xChanged = newX != null && (playerBase.x == null || Math.abs(newX - playerBase.x) > 2)
           const yChanged = newY != null && (playerBase.y == null || Math.abs(newY - playerBase.y) > 2)
           const scoreChanged = newScore != null && newScore !== playerBase.score
           const nameChanged = newName != null && newName !== playerBase.name
 
-          const mouseChanged = Object.keys(delta.mice || {}).length > 0
+          const mouseChanged = Object.keys(delta._mice || {}).length > 0
 
           // console.log(
           //   `changed`,
@@ -392,7 +392,7 @@
         }
 
         client.updateState({
-          mice: {
+          _mice: {
             [mouseId]: newMouse,
           },
         })
@@ -401,9 +401,9 @@
       // Update mice positions (only for mice you own)
       function updateMice() {
         const state = client.getState()
-        if (!state.mice) return
+        if (!state._mice) return
 
-        Object.entries(state.mice).forEach(([mouseId, mouse]) => {
+        Object.entries(state._mice).forEach(([mouseId, mouse]) => {
           if (mouse.owner === client.getMyId()) {
             // Update position
             mouse.x += mouse.vx
@@ -423,7 +423,7 @@
 
             // Send updated position
             client.updateState({
-              mice: {
+              _mice: {
                 [mouseId]: mouse,
               },
             })
@@ -527,16 +527,16 @@
 
         // Draw mice from state
         const state = client.getState()
-        if (state.mice) {
-          Object.values(state.mice).forEach((mouse) => {
+        if (state._mice) {
+          Object.values(state._mice).forEach((mouse) => {
             drawMouse(mouse.x, mouse.y)
           })
         }
 
         // Render all cats from state
-        if (state.players) {
-          for (const playerId in state.players) {
-            const cat = state.players[playerId]
+        if (state._players) {
+          for (const playerId in state._players) {
+            const cat = state._players[playerId]
             const isMyCat = playerId === client.getMyId()
             drawCat(cat.x, cat.y, isMyCat, cat.score, cat.name)
           }
@@ -575,11 +575,11 @@
 
         // Check for mouse collisions
         const state = client.getState()
-        if (state.mice) {
-          Object.entries(state.mice).forEach(([mouseId, mouse]) => {
+        if (state._mice) {
+          Object.entries(state._mice).forEach(([mouseId, mouse]) => {
             if (checkCollision(myCat.x, myCat.y, mouse.x, mouse.y)) {
               // Remove the caught mouse
-              client.updateState({ mice: { [mouseId]: null } })
+              client.updateState({ _mice: { [mouseId]: null } })
 
               // Increase score
               myScore++
@@ -673,7 +673,7 @@
       // Spawn a new mouse after a short delay to prevent conflicts
       setInterval(() => {
         const currentState = client.getState()
-        if (Object.keys(currentState.mice || {}).length < 5) {
+        if (Object.keys(currentState._mice || {}).length < 5) {
           spawnMouse()
         }
       }, 1000)
