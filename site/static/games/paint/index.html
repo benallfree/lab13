@@ -84,8 +84,8 @@
       }
     </style>
     <script type="module">
-      import Js13kClient, { connectToJs13kLobby } from '/sdk/index.js'
-      connectToJs13kLobby('paint', { host: window.location.origin })
+      import Js13kClient, { joinLobby } from '/sdk/index.js'
+      joinLobby('paint', { host: window.location.origin })
 
       // Create status indicator
       const statusIndicator = document.createElement('div')

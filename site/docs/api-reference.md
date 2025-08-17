@@ -447,19 +447,14 @@ Notes:
 - Presence works by setting a `room` on your lobby player record via `enterRoom(room)`.
 - Stats are derived from the lobby state and updated on `stats` events.
 
-#### Convenience: `connectToJs13kLobby(room: string, options?: ClientOptions)`
+#### Convenience: `joinLobby(room: string, options?: ClientOptions)`
 
 One‑liner that creates a lobby client and enters the given room immediately. Returns the `Js13kLobby` instance.
 
 ```js
-import { connectToJs13kLobby } from 'https://esm.sh/js13k-online'
+import { joinLobby } from 'https://esm.sh/js13k-online'
 
-const lobby = connectToJs13kLobby('cats', { host: window.location.origin })
-
-// Optional: subscribe to live stats
-lobby.on('stats', (stats) => {
-  console.log('Players online:', stats.totalPlayers)
-})
+const lobby = joinLobby('cats', { host: window.location.origin })
 ```
 
 ## Helper Functions
