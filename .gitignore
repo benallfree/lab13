@@ -167,4 +167,3 @@ dist
 .wrangler/
 
 .DS_Store
-site/static/sdk.js

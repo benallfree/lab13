@@ -10,7 +10,10 @@
     },
     "sdk": {
       "name": "js13k-online",
-      "version": "0.0.1-rc.9",
+      "version": "0.0.1-rc.12",
+      "dependencies": {
+        "mutative": "^1.2.0",
+      },
       "devDependencies": {
         "@types/node": "^24.2.1",
         "partysocket": "^1.1.5",
@@ -38,7 +41,6 @@
         "@docusaurus/preset-classic": "3.8.1",
         "@mdx-js/react": "^3.0.0",
         "clsx": "^2.0.0",
-        "js13k-online": "workspace:*",
         "prism-react-renderer": "^2.3.0",
         "react": "^19.0.0",
         "react-dom": "^19.0.0",
@@ -1745,6 +1747,8 @@
     "ms": ["ms@2.1.3", "", {}, "sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA=="],
 
     "multicast-dns": ["multicast-dns@7.2.5", "", { "dependencies": { "dns-packet": "^5.2.2", "thunky": "^1.0.2" }, "bin": { "multicast-dns": "cli.js" } }, "sha512-2eznPJP8z2BFLX50tf0LuODrpINqP1RVIm/CObbTcBRITQgmC/TjcREF1NeTBzIcR5XO/ukWo+YHOjBbFwIupg=="],
+
+    "mutative": ["mutative@1.2.0", "", {}, "sha512-1muFw45Lwjso6TSBGiXfbjKS01fVSD/qaqBfTo/gXgp79e8KM4Sa1XP/S4iN2/DvSdIZgjFJI+JIhC7eKf3GTg=="],
 
     "my-website": ["my-website@workspace:site"],
 

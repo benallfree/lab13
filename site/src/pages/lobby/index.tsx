@@ -1,8 +1,8 @@
 import Link from '@docusaurus/Link'
 import Layout from '@theme/Layout'
-import { Js13kLobby } from 'js13k-online'
 import { useEffect, useRef, useState } from 'react'
 import gamesData from '../../../games.json'
+import { Js13kLobby } from '../../../static/sdk/index.js'
 
 type GameMeta = {
   title: string
