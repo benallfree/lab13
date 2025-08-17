@@ -1,4 +1,10 @@
-export function joinLobby(room: string) {
+export type JoinLobbyOptions = {
+  host?: string
+}
+
+export function joinLobby(room: string, options: JoinLobbyOptions = {}) {
+  const { host = `https://online.js13kgames.com` } = options
+
   let ws: WebSocket,
     onOpen: (event: Event) => void,
     onMessage: (event: MessageEvent) => void,
@@ -6,7 +12,7 @@ export function joinLobby(room: string) {
     onClose: (event: Event) => void
 
   const connect = () => {
-    ws = new WebSocket(`${location.origin}/parties/js13k/js13k`)
+    ws = new WebSocket(`${host}/parties/js13k/js13k`)
     ws.onopen = (e) => onOpen?.(e)
     ws.onmessage = ({ data }) => {
       const { id } = JSON.parse(data)

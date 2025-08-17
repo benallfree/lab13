@@ -1,6 +1,6 @@
 {
   "name": "js13k-online",
-  "version": "0.0.1-rc.14",
+  "version": "0.0.1-rc.15",
   "description": "A simple client SDK for the JS13K Online Challenge Series that abstracts away the WebSocket connection and state management",
   "type": "module",
   "main": "dist/index.js",
@@ -11,17 +11,13 @@
       "import": "./dist/index.js",
       "default": "./dist/index.js"
     },
-    "./package.json": "./package.json",
-    "./lobby": {
-      "types": "./dist/lobby.d.ts",
-      "import": "./dist/lobby.js",
-      "default": "./dist/lobby.js"
-    }
+    "./package.json": "./package.json"
   },
   "files": [
     "dist",
     "README.md"
   ],
+  "sideEffects": false,
   "keywords": [
     "js13k",
     "online",

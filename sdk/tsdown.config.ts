@@ -4,12 +4,8 @@ import { cpSync } from 'node:fs'
 import { defineConfig } from 'tsdown'
 
 export default defineConfig({
-  entry: {
-    index: 'src/index.ts',
-    lobby: 'src/Js13kLobby.ts',
-  },
-  minify: true,
-
+  entry: 'src/index.ts',
+  unbundle: true,
   onSuccess: () => {
     const destination = '../site/static/sdk'
     cpSync('dist', destination, { recursive: true, force: true })
