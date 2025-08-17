@@ -343,119 +343,41 @@ client.on('disconnect', (playerId) => {
 })
 ```
 
-## Js13kLobby
+## Lobby Presence (joinLobby)
 
-High‑level helper for lobby/presence. Tracks total players online and per‑room counts. Intended for building a lobby list or showing live player numbers.
+Lightweight helper to announce player presence for a given game room. Use this to let the lobby know which game a tab is currently in. This does not provide aggregated lobby stats.
 
-### Constructor
+### Function
 
 ```typescript
-new Js13kLobby(options?: ClientOptions)
+joinLobby(room: string, options?: JoinLobbyOptions): {
+  on: (event: 'open' | 'message' | 'error' | 'close', cb: (event: Event) => void) => void
+}
 ```
-
-Creates a lobby client that connects to the global lobby room.
 
 **Parameters:**
 
-- `options` (ClientOptions, optional): Same options as `Js13kClient` (e.g., `host`, `party`, `debug`)
+- `room` (string): The game slug/room you want to report presence for
+- `options` (JoinLobbyOptions, optional):
+  - `host?: string` Server origin to connect to (default: `https://online.js13kgames.com`)
 
 **Example:**
 
 ```js
-import { Js13kLobby } from 'https://esm.sh/js13k-online'
+import { joinLobby } from 'https://esm.sh/js13k-online'
 
-const lobby = new Js13kLobby({ host: window.location.origin })
-```
+// Announce that this tab is currently in the "cats" room
+const lobby = joinLobby('cats')
 
-### Methods
-
-#### `enterRoom(room: string): void`
-
-Registers the current browser tab as being in a specific game room (e.g., to reflect presence in the lobby).
-
-```js
-const lobby = new Js13kLobby({ host: window.location.origin })
-lobby.enterRoom('cats')
-```
-
-#### `on(event: 'stats', callback: (stats: LobbyStats) => void): void`
-
-Listens for aggregated lobby stats. Fired on initial state and whenever players connect/disconnect or change rooms.
-
-```js
-lobby.on('stats', (stats) => {
-  console.log('Total players online:', stats.totalPlayers)
-  // { cats: { totalPlayers: 3 }, cars: { totalPlayers: 1 }, ... }
-  console.log('Players by game:', stats.games)
-})
-```
-
-#### `off(event: 'stats', callback: (stats: LobbyStats) => void): void`
-
-Removes a previously registered stats listener.
-
-#### `disconnect(): void`
-
-Closes the lobby connection and cleans up listeners.
-
-### Types
-
-#### `LobbyStats`
-
-```typescript
-type LobbyStats = {
-  totalPlayers: number
-  games: Record<string, { totalPlayers: number }>
-}
-```
-
-### Usage Examples
-
-#### Basic presence + live counts (like `cats` demo)
-
-```html
-<script type="module">
-  import { Js13kLobby } from 'https://esm.sh/js13k-online'
-
-  // Connect to lobby and report presence in a room
-  const lobby = new Js13kLobby({ host: window.location.origin })
-  lobby.enterRoom('cats')
-
-  // Update UI with live totals
-  const totalEl = document.getElementById('total')
-  const listEl = document.getElementById('games')
-
-  lobby.on('stats', (stats) => {
-    if (totalEl) totalEl.textContent = String(stats.totalPlayers)
-    if (listEl) {
-      listEl.innerHTML = ''
-      Object.entries(stats.games).forEach(([slug, info]) => {
-        const li = document.createElement('li')
-        li.textContent = `${slug}: ${info.totalPlayers}`
-        listEl.appendChild(li)
-      })
-    }
-  })
-</script>
-
-<div>Players online: <span id="total">0</span></div>
-<ul id="games"></ul>
+lobby.on('open', () => console.log('connected to lobby'))
+lobby.on('close', () => console.log('disconnected from lobby'))
+lobby.on('error', (e) => console.error('lobby error', e))
 ```
 
 Notes:
 
-- Presence works by setting a `room` on your lobby player record via `enterRoom(room)`.
-- Stats are derived from the lobby state and updated on `stats` events.
-
-#### Convenience: `joinLobby(room: string, options?: ClientOptions)`
-
-One‑liner that creates a lobby client and enters the given room immediately. Returns the `Js13kLobby` instance.
-
-```js
-import { joinLobby } from 'https://esm.sh/js13k-online'
-
-const lobby = joinLobby('cats', { host: window.location.origin })
-```
+- Presence works by setting a `room` field on your lobby player record.
+- For custom deployments, pass `{ host: window.location.origin }`.
 
 ## Helper Functions
 

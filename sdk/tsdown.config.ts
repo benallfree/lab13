@@ -5,7 +5,6 @@ import { defineConfig } from 'tsdown'
 
 export default defineConfig({
   entry: 'src/index.ts',
-  unbundle: true,
   onSuccess: () => {
     const destination = '../site/static/sdk'
     cpSync('dist', destination, { recursive: true, force: true })

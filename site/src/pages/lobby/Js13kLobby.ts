@@ -1,5 +1,4 @@
-import { Js13kClient } from './Js13kClient'
-import { ClientOptions, EventCallback, GameState } from './types'
+import { ClientOptions, EventCallback, GameState, Js13kClient } from '../../../static/sdk/index.js'
 
 // Simple lobby wrapper to aggregate global lobby stats
 export type LobbyStats = {
