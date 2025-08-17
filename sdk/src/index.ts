@@ -1,7 +1,7 @@
 import { Js13kClient } from './Js13kClient'
 
+export { joinLobby } from './joinLobby'
 export { Js13kClient } from './Js13kClient'
-export { connectToJs13kLobby, Js13kLobby } from './Js13kLobby'
 export type * from './types'
 export { deepClone, filterDeltaWithTombstones, generateUUID, mergeState } from './util'
 
