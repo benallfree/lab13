@@ -1,5 +1,5 @@
 ---
-title: Evaluating Deltas (deltaEvaluator)
+title: Evaluating Deltas
 sidebar_position: 4
 ---
 
