@@ -26,6 +26,7 @@ export interface MessageData {
   disconnect?: string
   state?: any
   delta?: any
+  [key: string]: any
 }
 
 export interface GameState {

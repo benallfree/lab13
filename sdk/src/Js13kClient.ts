@@ -119,6 +119,12 @@ export class Js13kClient<TState extends GameState> {
       this.remoteState = mergeState(this.remoteState, this.options.deltaNormalizer(filtered)) // Update shadow state
       this.emit('delta', filtered)
     }
+    // Emit all other keys as events
+    Object.keys(data)
+      .filter((key) => !['id', 'connect', 'disconnect', 'state', 'delta'].includes(key))
+      .forEach((key) => {
+        this.emit(key, data[key as keyof MessageData])
+      })
   }
 
   // Event handling
