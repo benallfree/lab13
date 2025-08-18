@@ -163,14 +163,14 @@
       }
 
       // Handle SDK events
-      client.on('connected', () => {
-        log('connected')
+      client.on('open', () => {
+        log('open')
         statusIndicator.className = 'status-indicator status-connected'
         statusIndicator.textContent = 'Connected'
       })
 
-      client.on('disconnected', () => {
-        log('disconnected')
+      client.on('close', () => {
+        log('close')
         statusIndicator.className = 'status-indicator status-disconnected'
         statusIndicator.textContent = 'Disconnected'
       })

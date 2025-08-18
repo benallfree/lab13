@@ -61,12 +61,13 @@ export class Js13kClient<TState extends GameState> {
       this.socket = socket
       socket.addEventListener('open', () => {
         this.connected = true
-        this.emit('connected')
+        this.emit('open')
       })
 
       this.socket.addEventListener('close', () => {
         this.connected = false
-        this.emit('disconnected')
+        this.emit('close')
+      })
       })
 
       this.socket.addEventListener('message', (event) => {
