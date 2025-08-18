@@ -2,7 +2,7 @@ import Link from '@docusaurus/Link'
 import { usePluginData } from '@docusaurus/useGlobalData'
 import Layout from '@theme/Layout'
 import { useEffect, useRef, useState } from 'react'
-import { Js13kLobby, LobbyStats } from './Js13kLobby'
+import { Js13kLobby, LobbyStats } from '../../lib/Js13kLobby'
 
 type GameMeta = {
   title: string
