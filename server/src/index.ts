@@ -49,17 +49,18 @@ export class Js13kServer extends Server {
         // Merge filtered delta into state
         this.state = mergeState(this.state, filtered)
 
+        console.log(`Delta applied from ${conn.id}:`, filtered)
+
         // Broadcast filtered delta to all other clients
         this.broadcast(JSON.stringify({ delta: filtered }), [conn.id])
-
-        console.log(`Delta applied from ${conn.id}:`, filtered)
       } else {
         // Handle other message types
         console.log(`connection ${conn.id} sent message: ${message}`)
         this.broadcast(message, [conn.id])
       }
     } catch (error) {
-      console.error('Error parsing message:', error)
+      console.error('Error parsing message. Blindly broadcasting:')
+      this.broadcast(message, [conn.id])
     }
   }
 
