@@ -76,4 +76,4 @@ Ready to create your first JS13K multiplayer game? Head over to the [documentati
 
 ---
 
-_js13k-online is built on [partysocket](https://github.com/partykit/partysocket) and designed specifically for the JS13K game jam. Happy coding! 🎮_
+_js13k-online is built on [partyserver](https://www.npmjs.com/package/partyserver) and designed specifically for the JS13K game jam. Happy coding! 🎮_

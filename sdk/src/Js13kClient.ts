@@ -1,11 +1,11 @@
-import PartySocket from 'partysocket'
+import { safeWebSocket } from './safeWebSocket'
 import { ClientOptions, EventCallback, GameState, GetPlayerState, MessageData, PartialDeep } from './types'
 import { deepClone, filterDeltaAgainstBase, filterDeltaWithTombstones, mergeState } from './util'
 
 export class Js13kClient<TState extends GameState> {
   private room: string
   private options: Required<ClientOptions<TState>>
-  private socket: PartySocket | null
+  private socket: WebSocket | null
   private myId: string | null
   private localState: TState
   private eventListeners: Record<string, EventCallback[]>
@@ -57,29 +57,26 @@ export class Js13kClient<TState extends GameState> {
   }
 
   connect(): void {
-    this.socket = new PartySocket({
-      host: this.options.host,
-      party: this.options.party,
-      room: this.room,
-    })
+    safeWebSocket(`${this.options.host}/parties/${this.options.party}/${this.room}`, (socket) => {
+      this.socket = socket
+      socket.addEventListener('open', () => {
+        this.connected = true
+        this.emit('connected')
+      })
 
-    this.socket.addEventListener('open', () => {
-      this.connected = true
-      this.emit('connected')
-    })
+      this.socket.addEventListener('close', () => {
+        this.connected = false
+        this.emit('disconnected')
+      })
 
-    this.socket.addEventListener('close', () => {
-      this.connected = false
-      this.emit('disconnected')
-    })
-
-    this.socket.addEventListener('message', (event) => {
-      try {
-        const data: MessageData = JSON.parse(event.data)
-        this.handleMessage(data)
-      } catch (error) {
-        console.error('Error parsing message:', error)
-      }
+      this.socket.addEventListener('message', (event) => {
+        try {
+          const data: MessageData = JSON.parse(event.data)
+          this.handleMessage(data)
+        } catch (error) {
+          console.error('Error parsing message:', error)
+        }
+      })
     })
   }
 

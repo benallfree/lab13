@@ -1,6 +1,6 @@
 {
   "name": "js13k-online",
-  "version": "0.0.1-rc.16",
+  "version": "0.0.1-rc.17",
   "description": "A simple client SDK for the JS13K Online Challenge Series that abstracts away the WebSocket connection and state management",
   "type": "module",
   "main": "dist/index.js",
@@ -26,6 +26,8 @@
     "multiplayer",
     "websocket",
     "partysocket",
+    "partykit",
+    "partyserver",
     "game",
     "sdk"
   ],
@@ -45,7 +47,6 @@
   },
   "devDependencies": {
     "@types/node": "^24.2.1",
-    "partysocket": "^1.1.5",
     "tsdown": "^0.14.1",
     "typescript": "^5.0.0"
   }
