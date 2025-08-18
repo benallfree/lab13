@@ -18,7 +18,7 @@ export class Js13kClient<TState extends GameState> {
   constructor(room: string, options: ClientOptions<TState> = {}) {
     this.room = room
     this.options = {
-      host: `https://online.js13kgames.com`,
+      host: location.origin,
       party: 'js13k',
       deltaEvaluator: (delta, remoteState, playerId) => true,
       deltaNormalizer: (delta) => delta,
