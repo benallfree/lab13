@@ -68,6 +68,9 @@ export class Js13kClient<TState extends GameState> {
         this.connected = false
         this.emit('close')
       })
+
+      this.socket.addEventListener('error', (event) => {
+        this.emit('error', event)
       })
 
       this.socket.addEventListener('message', (event) => {
