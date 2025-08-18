@@ -2,13 +2,50 @@
 
 import type { GameState, PartialDeep } from 'js13k-online'
 import { filterDeltaWithTombstones, mergeState } from 'js13k-online'
-import { Connection, ConnectionContext, routePartykitRequest, Server, WSMessage } from 'partyserver'
+import { Connection, ConnectionContext, getServerByName, routePartykitRequest, Server, WSMessage } from 'partyserver'
 
+const LOBBY_SERVER_NAME = `js13k`
+
+type GameStats = {
+  playerCount: number
+}
 // Define your Server
-export class Js13kServer extends Server {
+export class Js13kServer extends Server<Env> {
+  private games: Record<string, GameStats> = { [LOBBY_SERVER_NAME]: { playerCount: 0 } }
+
   private state: GameState = { _players: {} }
   // Track deleted entity GUIDs (collection-agnostic)
   private tombstones: Set<string> = new Set<string>()
+
+  updatePlayerCount(delta: number, gameSlug = this.name) {
+    if (!this.games[gameSlug]) {
+      this.games[gameSlug] = { playerCount: 0 }
+    }
+    this.games[gameSlug].playerCount = Math.max(0, this.games[gameSlug].playerCount + delta)
+
+    if (this.name === LOBBY_SERVER_NAME) {
+      this.games[LOBBY_SERVER_NAME].playerCount = Math.max(0, this.games[LOBBY_SERVER_NAME].playerCount + delta)
+      console.log(`[${this.name}] Room stats:`, JSON.stringify(this.games, null, 2))
+      this.broadcast(
+        JSON.stringify({
+          stats: {
+            games: this.games,
+          },
+        })
+      )
+    } else {
+      getServerByName(this.env.js13k, LOBBY_SERVER_NAME).then((lobby) => {
+        lobby.updatePlayerCount(delta, this.name)
+      })
+      this.broadcast(
+        JSON.stringify({
+          stats: {
+            totalPlayerCount: this.games[this.name].playerCount,
+          },
+        })
+      )
+    }
+  }
 
   onConnect(conn: Connection, ctx: ConnectionContext) {
     // A websocket just connected!
@@ -18,6 +55,10 @@ export class Js13kServer extends Server {
     room: ${this.name}
     url: ${new URL(ctx.request.url).pathname}`
     )
+
+    if (this.name !== LOBBY_SERVER_NAME) {
+      this.updatePlayerCount(1)
+    }
 
     // Create empty entry in _players collection for this connection
     this.state._players[conn.id] = {}
@@ -66,6 +107,10 @@ export class Js13kServer extends Server {
 
   onClose(conn: Connection) {
     console.log(`Connection ${conn.id} disconnected`)
+
+    if (this.name !== LOBBY_SERVER_NAME) {
+      this.updatePlayerCount(-1)
+    }
 
     // Remove the disconnected client's data from state
     delete this.state._players[conn.id]

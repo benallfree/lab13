@@ -63,13 +63,4 @@ That's it! Once merged, your game will appear in the lobby.
 
 ## Presence
 
-Use this minimal snippet to announce your room to the lobby so it can show how many active players are in your game right now. It adds about 500 bytes to your game.
-
-```javascript
-import { joinLobby } from 'https://esm.sh/js13k-online'
-
-const lobby = joinLobby('presence')
-lobby.on('open', () => setStatus('connected'))
-lobby.on('close', () => setStatus('disconnected'))
-lobby.on('error', (e) => setStatus('error', e.message))
-```
+Presence is automatic. When your game connects to its room using `Js13kClient`, the lobby will show the current player count for that room. No extra code is required.

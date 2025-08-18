@@ -343,41 +343,9 @@ client.on('disconnect', (playerId) => {
 })
 ```
 
-## Lobby Presence (joinLobby)
+## Lobby Presence
 
-Lightweight helper to announce player presence for a given game room. Use this to let the lobby know which game a tab is currently in. This does not provide aggregated lobby stats.
-
-### Function
-
-```typescript
-joinLobby(room: string, options?: JoinLobbyOptions): {
-  on: (event: 'open' | 'message' | 'error' | 'close', cb: (event: Event) => void) => void
-}
-```
-
-**Parameters:**
-
-- `room` (string): The game slug/room you want to report presence for
-- `options` (JoinLobbyOptions, optional):
-  - `host?: string` Server origin to connect to (default: `https://online.js13kgames.com`)
-
-**Example:**
-
-```js
-import { joinLobby } from 'https://esm.sh/js13k-online'
-
-// Announce that this tab is currently in the "cats" room
-const lobby = joinLobby('cats')
-
-lobby.on('open', () => console.log('connected to lobby'))
-lobby.on('close', () => console.log('disconnected from lobby'))
-lobby.on('error', (e) => console.error('lobby error', e))
-```
-
-Notes:
-
-- Presence works by setting a `room` field on your lobby player record.
-- For custom deployments, pass `{ host: window.location.origin }`.
+Presence is automatic. When your game connects to its room using `Js13kClient`, the lobby shows active players for that room. No additional code is required.
 
 ## Helper Functions
 
