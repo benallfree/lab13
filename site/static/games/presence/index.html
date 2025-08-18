@@ -72,12 +72,11 @@
       }
     </style>
     <script type="module">
-      import { joinLobby } from '/sdk/index.js'
+      import { Js13kClient } from '/sdk/index.js'
 
-      const lobby = joinLobby('presence', { host: location.origin })
-      lobby.on('open', () => setStatus('connected'))
-      lobby.on('close', () => setStatus('disconnected'))
-      lobby.on('error', (e) => setStatus('error', e.message))
+      const client = new Js13kClient('presence')
+      client.on('open', () => setStatus('connected'))
+      client.on('close', () => setStatus('disconnected'))
       function setStatus(kind, details) {
         const dot = document.getElementById('status-dot')
         const text = document.getElementById('status-text')

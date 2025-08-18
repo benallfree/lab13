@@ -1,9 +1,12 @@
 import { ClientOptions, EventCallback, GameState, Js13kClient } from '../../../static/sdk/index.js'
 
 // Simple lobby wrapper to aggregate global lobby stats
+
+export type GameStats = {
+  playerCount: number
+}
 export type LobbyStats = {
-  totalPlayers: number
-  games: Record<string, { totalPlayers: number }>
+  games: Record<string, GameStats>
 }
 
 export type LobbyEvent = 'stats'
@@ -14,23 +17,12 @@ export class Js13kLobby {
   private idPromise: Promise<string>
 
   constructor(options: ClientOptions = {}) {
-    this.client = new Js13kClient<{ _players: Record<string, any> }>('js13k', {
-      debug: false,
+    this.client = new Js13kClient('js13k', {
       ...options,
     })
     this.listeners = { stats: [] }
 
-    const emitStats = () => this.emit('stats', this.computeStats())
-    this.client.on('state', emitStats)
-    this.client.on('delta', emitStats)
-    this.client.on('connect', emitStats)
-    this.client.on('disconnect', emitStats)
-    this.idPromise = new Promise((resolve) => {
-      this.client.on('id', (id) => {
-        console.log(`id`, id)
-        resolve(id)
-      })
-    })
+    this.client.on('stats', (stats) => this.emit('stats', stats))
   }
 
   enterRoom(room: string): void {
@@ -65,21 +57,6 @@ export class Js13kLobby {
         console.error('Error in Js13kLobby listener', err)
       }
     }
-  }
-
-  private computeStats(): LobbyStats {
-    const state = this.client.getState()
-    const players = state && state._players ? state._players : {}
-    const games: Record<string, { totalPlayers: number }> = {}
-    let totalPlayers = 0
-    for (const id of Object.keys(players)) {
-      const room = players[id]?.room
-      if (typeof room === 'string' && room) {
-        games[room] = { totalPlayers: (games[room]?.totalPlayers || 0) + 1 }
-        totalPlayers += 1
-      }
-    }
-    return { totalPlayers, games }
   }
 }
 // Convenience function to connect and enter a lobby room in one line

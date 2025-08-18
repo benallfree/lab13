@@ -2,7 +2,7 @@ import Link from '@docusaurus/Link'
 import { usePluginData } from '@docusaurus/useGlobalData'
 import Layout from '@theme/Layout'
 import { useEffect, useRef, useState } from 'react'
-import { Js13kLobby } from './Js13kLobby'
+import { Js13kLobby, LobbyStats } from './Js13kLobby'
 
 type GameMeta = {
   title: string
@@ -14,7 +14,7 @@ type GameMeta = {
 export default function Lobby() {
   const gamesData = (usePluginData('dynamic-games-plugin') as GameMeta[]) || []
   const [playerCount, setPlayerCount] = useState(0)
-  const [perGameCounts, setPerGameCounts] = useState<Record<string, number>>({})
+  const [lobbyStats, setLobbyStats] = useState<LobbyStats>({ games: {} })
   const lobbyRef = useRef<Js13kLobby | null>(null)
 
   useEffect(() => {
@@ -22,11 +22,9 @@ export default function Lobby() {
 
     const lobby = new Js13kLobby({ host: window.location.origin, debug: true })
     lobbyRef.current = lobby
-    lobby.on('stats', ({ totalPlayers, games }) => {
-      const flattened: Record<string, number> = {}
-      for (const key of Object.keys(games)) flattened[key] = games[key].totalPlayers
-      setPerGameCounts(flattened)
-      setPlayerCount(totalPlayers)
+    lobby.on('stats', (lobbyStats) => {
+      setLobbyStats(lobbyStats)
+      setPlayerCount(lobbyStats.games.js13k.playerCount)
     })
 
     return () => {
@@ -99,8 +97,10 @@ export default function Lobby() {
           {(gamesData as GameMeta[]).map((game) => (
             <div key={game.slug} className="col col--3 margin-bottom--md">
               <div className="card" style={{ height: '100%', position: 'relative' }}>
-                {perGameCounts[(game as GameMeta).slug] > 0 && (
-                  <div className="online-badge">Online Now: {perGameCounts[(game as GameMeta).slug]}</div>
+                {lobbyStats.games[(game as GameMeta).slug]?.playerCount > 0 && (
+                  <div className="online-badge">
+                    Online Now: {lobbyStats.games[(game as GameMeta).slug].playerCount}
+                  </div>
                 )}
                 <div
                   className="card__image padding--none"
