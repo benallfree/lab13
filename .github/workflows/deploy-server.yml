@@ -8,6 +8,7 @@ on:
       - 'server/**'
       - 'site/**'
       - 'sdk/**'
+      - 'bun.lock'
 
 concurrency:
   group: deploy-production
