@@ -1,7 +1,5 @@
 {
   "title": "Black Cats",
   "description": "Chase mice with black cats in a spooky environment.",
-  "repository": "https://github.com/benallfree/js13k-online/tree/main/site/src/static/games/cats"
+  "repository": "https://github.com/benallfree/js13k/tree/main/site/src/static/games/cats"
 }
-
-

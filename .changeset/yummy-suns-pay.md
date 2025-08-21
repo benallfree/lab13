@@ -1,5 +1,5 @@
 ---
-'js13k-online': patch
+'js13k': patch
 ---
 
 Forward all unhandled message keys

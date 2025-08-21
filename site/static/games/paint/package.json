@@ -1,0 +1,13 @@
+{
+  "name": "js13k-paint",
+  "private": true,
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev",
+    "start": "wrangler dev"
+  },
+  "devDependencies": {
+    "wrangler": "^4.31.0",
+    "partysocket": "^1.1.5"
+  }
+}

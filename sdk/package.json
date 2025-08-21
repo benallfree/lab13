@@ -1,10 +1,13 @@
 {
-  "name": "js13k-online",
-  "version": "0.0.1-rc.18",
-  "description": "A simple client SDK for the JS13K Online Challenge Series that abstracts away the WebSocket connection and state management",
+  "name": "lab13-sdk",
+  "version": "0.0.1-rc.22",
+  "description": "JS13K Online communication protocol SDK for multiplayer games.",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "bin": {
+    "js13k": "./dist/index.js"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -35,19 +38,27 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/benallfree/js13k-online.git"
+    "url": "https://github.com/benallfree/lab13.git"
   },
   "bugs": {
-    "url": "https://github.com/benallfree/js13k-online/issues"
+    "url": "https://github.com/benallfree/lab13/issues"
   },
-  "homepage": "https://github.com/benallfree/js13k-online#readme",
+  "homepage": "https://github.com/benallfree/lab13#readme",
   "scripts": {
     "build": "tsdown",
     "dev": "tsdown --watch"
   },
   "devDependencies": {
     "@types/node": "^24.2.1",
+    "partysocket": "^1.1.5",
     "tsdown": "^0.14.1",
     "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "inquirer": "^12.9.3",
+    "js13k-vite-plugins": "^0.4.0",
+    "tiged": "^2.12.7",
+    "ws": "^8.18.3"
   }
 }

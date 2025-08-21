@@ -5,170 +5,129 @@ sidebar_position: 6
 
 # API Reference
 
-Complete reference for the JS13K Online SDK classes, methods, and types.
+Complete reference for the Lab 13 SDK classes, methods, and types.
 
-## Js13kClient
+## Lab13Client
 
-The main client class for connecting to the JS13K Online server.
+The main client class for managing player connections and IDs in Lab 13 games.
 
 ### Constructor
 
 ```typescript
-new Js13kClient<TState>(room: string, options?: ClientOptions<TState>)
+Lab13Client(socket: PartySocket, options?: Partial<Lab13ClientOptions>)
 ```
 
-Creates a new client instance and automatically connects to the server.
+Creates a new Lab13Client instance that wraps a PartySocket connection.
 
 **Parameters:**
 
-- `room` (string): Unique room identifier for your game
-- `options` (ClientOptions): Optional configuration object
+- `socket` (PartySocket): An active PartySocket connection
+- `options` (optional): Configuration options including bot support
 
 **Example:**
 
 ```js
-const client = new Js13kClient('my-game-room')
+import { PartySocket } from 'partysocket'
+import { Lab13Client } from 'https://esm.sh/js13k'
 
-// With options
-const client = new Js13kClient('my-game-room', {
-  host: 'custom-host.com',
-  party: 'custom-party',
-  debug: true,
-  throttleMs: 100,
-  deltaEvaluator: (delta, remoteState, playerId) => true,
+const socket = new PartySocket({
+  host: 'your-party-server.com',
+  room: 'my-game-room',
 })
+
+// Regular player client
+const client = Lab13Client(socket)
+
+// Bot client
+const botClient = Lab13Client(socket, { bot: true })
 ```
 
 ### Methods
 
-#### State Management
+#### Player Management
 
-##### `getState(): TState`
+##### `playerId(): string | null`
 
-Returns the complete current game state.
-
-```js
-const state = client.getState()
-console.log(state.players, state.world)
-```
-
-##### `getMyId(): string | null`
-
-Returns your player ID, or `null` if not yet connected.
+Returns your current player ID, or `null` if not yet assigned.
 
 ```js
-const myId = client.getMyId()
+const myId = client.playerId()
 if (myId) {
   console.log('My player ID:', myId)
 }
 ```
 
-##### `getMyState(copy?: boolean): GetPlayerState<TState> | null`
+##### `clientIds(): string[]`
 
-Returns your player state from the `players` collection.
+Returns an array of all connected client IDs (both players and bots).
+
+```js
+const allClients = client.clientIds()
+console.log('All connected clients:', allClients)
+```
+
+##### `playerIds(): string[]`
+
+Returns an array of all connected player IDs (excluding bots).
+
+```js
+const allPlayers = client.playerIds()
+console.log('Connected players:', allPlayers)
+```
+
+##### `botIds(): string[]`
+
+Returns an array of all connected bot IDs.
+
+```js
+const allBots = client.botIds()
+console.log('Connected bots:', allBots)
+```
+
+##### `clientType(): ClientType`
+
+Returns your client type ('player' or 'bot').
+
+```js
+const type = client.clientType()
+console.log('I am a:', type) // 'player' or 'bot'
+```
+
+##### `queryPlayerIds(): void`
+
+Requests an updated list of all player IDs from the server.
+
+```js
+// Request fresh player list
+client.queryPlayerIds()
+```
+
+#### Communication
+
+##### `sendToPlayer(playerId: string, message: string): void`
+
+Sends a message to a specific player.
 
 **Parameters:**
 
-- `copy` (boolean, optional): If `true`, returns a deep copy safe to modify
+- `playerId` (string): The ID of the target player
+- `message` (string): The message to send
 
 ```js
-const myState = client.getMyState()
-if (myState) {
-  console.log('My position:', myState.x, myState.y)
-}
-
-// Get a copy to modify safely
-const myStateCopy = client.getMyState(true)
-myStateCopy.x += 10 // Won't affect the original state
+client.sendToPlayer('player-123', 'Hello there!')
 ```
 
-##### `getPlayerState(playerId: string, copy?: boolean): GetPlayerState<TState> | null`
+##### `sendToAll(message: string): void`
 
-Returns another player's state from the `players` collection.
+Broadcasts a message to all connected players.
 
 **Parameters:**
 
-- `playerId` (string): The target player's ID
-- `copy` (boolean, optional): If `true`, returns a deep copy safe to modify
+- `message` (string): The message to broadcast
 
 ```js
-const otherPlayer = client.getPlayerState('other-player-id')
-if (otherPlayer) {
-  console.log('Other player health:', otherPlayer.health)
-}
-```
-
-##### `updateState(delta: PartialDeep<TState>): void`
-
-Updates any part of the game state. Changes are throttled and sent to other clients.
-
-**Parameters:**
-
-- `delta` (PartialDeep\<TState\>): Partial state object with changes
-
-```js
-// Update world state
-client.updateState({
-  world: {
-    score: 100,
-    items: [{ id: 1, x: 50, y: 50 }],
-  },
-})
-
-// Update multiple players
-client.updateState({
-  players: {
-    'player-1': { health: 50 },
-    'player-2': { health: 75 },
-  },
-})
-```
-
-##### `updateMyState(delta: PartialDeep<GetPlayerState<TState>>): void`
-
-Updates your own player state. Convenience method for updating `players[myId]`.
-
-**Parameters:**
-
-- `delta` (PartialDeep\<GetPlayerState\<TState\>\>): Partial player state object
-
-```js
-// Update your position
-client.updateMyState({
-  x: 100,
-  y: 200,
-})
-
-// Update nested properties
-client.updateMyState({
-  inventory: [...myState.inventory, 'new-item'],
-  stats: {
-    ...myState.stats,
-    level: myState.stats.level + 1,
-  },
-})
-```
-
-#### Connection Management
-
-##### `isConnected(): boolean`
-
-Returns `true` if connected to the server.
-
-```js
-if (client.isConnected()) {
-  // Safe to send updates
-  client.updateMyState({ status: 'ready' })
-}
-```
-
-##### `disconnect(): void`
-
-Closes the connection and cleans up resources.
-
-```js
-// Clean disconnect
-client.disconnect()
+client.sendToAll('move:player-123,100,200')
+client.sendToAll('chat:Hello everyone!')
 ```
 
 #### Event System
@@ -183,12 +142,12 @@ Registers an event listener.
 - `callback` (Function): Event handler function
 
 ```js
-client.on('connected', () => {
-  console.log('Connected to server!')
+client.on('player-id-updated', (event) => {
+  console.log('My ID assigned:', event.detail)
 })
 
-client.on('delta', (delta) => {
-  console.log('State changed:', delta)
+client.on('client-connected', (event) => {
+  console.log('Client joined:', event.detail)
 })
 ```
 
@@ -202,556 +161,366 @@ Removes an event listener.
 - `callback` (Function): The same function reference passed to `on()`
 
 ```js
-function handleDelta(delta) {
-  console.log('Delta:', delta)
+function handleClientConnect(event) {
+  console.log('Client connected:', event.detail)
 }
 
-client.on('delta', handleDelta)
-client.off('delta', handleDelta) // Remove the listener
-```
-
-##### `emit(event: string, data?: any): void`
-
-Manually triggers an event (for internal use or testing).
-
-**Parameters:**
-
-- `event` (string): Event name
-- `data` (any, optional): Data to pass to event handlers
-
-```js
-// Manually trigger an event
-client.emit('custom-event', { some: 'data' })
+client.on('client-connected', handleClientConnect)
+client.off('client-connected', handleClientConnect) // Remove the listener
 ```
 
 ### Events
 
-The client emits several events during its lifecycle:
+The client emits several custom events during its lifecycle:
 
-#### `connected`
-
-Fired when the WebSocket connection is established.
-
-```js
-client.on('connected', () => {
-  console.log('✅ Connected to server')
-})
-```
-
-#### `disconnected`
-
-Fired when the WebSocket connection is lost.
-
-```js
-client.on('disconnected', () => {
-  console.log('❌ Disconnected from server')
-})
-```
-
-#### `id`
+#### `player-id-updated`
 
 Fired when you receive your unique player ID from the server.
 
-**Callback Parameters:**
+**Event Detail:**
 
-- `playerId` (string): Your unique player ID
+- `string`: Your unique player ID
 
 ```js
-client.on('id', (myId) => {
-  console.log('🆔 My player ID:', myId)
+client.on('player-id-updated', (event) => {
+  console.log('🆔 My player ID:', event.detail)
 
   // Initialize your player state
-  client.updateMyState({
-    name: 'Player',
-    x: 100,
-    y: 100,
-  })
+  initializePlayer(event.detail)
 })
 ```
 
-#### `state`
+#### `client-connected`
 
-Fired when you receive the initial complete game state.
+Fired when another client (player or bot) connects to the same room.
 
-**Callback Parameters:**
+**Event Detail:**
 
-- `state` (TState): The complete game state
+- `string`: The ID of the client who connected
 
 ```js
-client.on('state', (gameState) => {
-  console.log('📦 Initial state received')
-  console.log('Players in game:', Object.keys(gameState.players).length)
+client.on('client-connected', (event) => {
+  console.log('👋 Client joined:', event.detail)
 
-  // Initialize your game with existing state
-  initializeGame(gameState)
+  // Add them to your game
+  addClientToGame(event.detail)
 })
 ```
 
-#### `delta`
+#### `client-disconnected`
 
-Fired when any part of the game state changes.
+Fired when another client (player or bot) disconnects from the room.
 
-**Callback Parameters:**
+**Event Detail:**
 
-- `delta` (PartialDeep\<TState\>): The state changes
+- `string`: The ID of the client who disconnected
 
 ```js
-client.on('delta', (delta) => {
-  console.log('🔄 State changed:', delta)
+client.on('client-disconnected', (event) => {
+  console.log('👋 Client left:', event.detail)
 
-  // Update your game based on the changes
-  if (delta.players) {
-    updatePlayerPositions(delta.players)
-  }
-
-  if (delta.world) {
-    updateWorldState(delta.world)
-  }
+  // Remove them from your game
+  removeClientFromGame(event.detail)
 })
 ```
 
-#### `connect`
+#### `client-ids-updated`
 
-Fired when another player connects to the same room.
+Fired when the complete list of client IDs is updated.
 
-**Callback Parameters:**
+**Event Detail:**
 
-- `playerId` (string): The ID of the player who connected
+- `string[]`: Array of all connected client IDs
 
 ```js
-client.on('connect', (playerId) => {
-  console.log('👋 Player joined:', playerId)
+client.on('client-ids-updated', (event) => {
+  console.log('📋 All clients:', event.detail)
 
-  // Their state will be in the next delta update
+  // Update your client list
+  updateClientList(event.detail)
 })
 ```
 
-#### `disconnect`
+#### `player-ids-updated`
 
-Fired when another player disconnects from the room.
+Fired when the list of player IDs (excluding bots) is updated.
 
-**Callback Parameters:**
+**Event Detail:**
 
-- `playerId` (string): The ID of the player who disconnected
+- `string[]`: Array of all connected player IDs
 
 ```js
-client.on('disconnect', (playerId) => {
-  console.log('👋 Player left:', playerId)
+client.on('player-ids-updated', (event) => {
+  console.log('📋 All players:', event.detail)
 
-  // Remove them from your UI
-  removePlayerFromUI(playerId)
+  // Update your player list
+  updatePlayerList(event.detail)
 })
 ```
 
-## Lobby Presence
+#### `bot-ids-updated`
 
-Presence is automatic. When your game connects to its room using `Js13kClient`, the lobby shows active players for that room. No additional code is required.
+Fired when the list of bot IDs is updated.
 
-## Helper Functions
+**Event Detail:**
 
-### `generateUUID(): string`
-
-Generates a cryptographically secure UUID (Universally Unique Identifier) for creating unique game objects.
-
-**Returns:**
-
-- `string`: A UUID in the format `xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx`
-
-**Example:**
+- `string[]`: Array of all connected bot IDs
 
 ```js
-import Js13kClient, { generateUUID } from 'https://esm.sh/js13k-online'
+client.on('bot-ids-updated', (event) => {
+  console.log('🤖 All bots:', event.detail)
 
-// Create unique IDs for game objects
-const itemId = generateUUID()
-const enemyId = generateUUID()
-const powerupId = generateUUID()
-
-// Use in state updates
-client.updateState({
-  items: {
-    [itemId]: { type: 'sword', x: 100, y: 200 },
-  },
+  // Update your bot list
+  updateBotList(event.detail)
 })
 ```
 
-**Use Cases:**
+### WebSocket Events
 
-- Creating unique game objects (items, enemies, powerups)
-- Generating room names
-- Creating unique identifiers for any game entity
-
-### `mergeState(target: any, source: any): any`
-
-Recursively merges two objects, with special handling for `null` values as deletion signals. This is the same merge logic used internally by the SDK and server.
-
-**Parameters:**
-
-- `target` (any): The target object to merge into
-- `source` (any): The source object with changes to apply
-
-**Returns:**
-
-- `any`: The merged result
-
-**Behavior:**
-
-- **Primitive values**: Source values replace target values
-- **Objects**: Properties are recursively merged
-- **Arrays**: Treated as objects (merged by index)
-- **Null values**: Signal deletion of the corresponding property
-- **Non-objects**: Source value replaces target value
-
-**Example:**
+The client also supports all standard WebSocket events through the underlying PartySocket:
 
 ```js
-import Js13kClient, { mergeState } from 'https://esm.sh/js13k-online'
-
-// Basic merging
-const target = { a: 1, b: { x: 10, y: 20 } }
-const source = { b: { y: 30, z: 40 }, c: 3 }
-const result = mergeState(target, source)
-// result = { a: 1, b: { x: 10, y: 30, z: 40 }, c: 3 }
-
-// Deletion with null
-const target2 = { a: 1, b: 2, c: 3 }
-const source2 = { b: null, d: 4 }
-const result2 = mergeState(target2, source2)
-// result2 = { a: 1, c: 3, d: 4 } (b is deleted)
-
-// Array merging
-const target3 = {
-  items: [
-    { id: 1, name: 'old' },
-    { id: 2, name: 'keep' },
-  ],
-}
-const source3 = { items: [{ id: 1, name: 'new' }, null, { id: 3, name: 'new' }] }
-const result3 = mergeState(target3, source3)
-// result3 = { items: [{ id: 1, name: 'new' }, { id: 3, name: 'new' }] }
-```
-
-**Use Cases:**
-
-- Manually merging state updates outside the SDK
-- Implementing custom state synchronization
-- Testing state merge behavior
-- Creating state patches for offline/online sync
-
-## Entity Collections and Tombstones
-
-Underscore‑prefixed object keys are treated as entity collections at any nesting level. Within an entity collection:
-
-- Keys are presumed to be GUIDs (e.g., from `generateUUID()`), each representing a single entity
-- Setting an entity to `null` tombstones it and deletes it from state
-- After a GUID is tombstoned, any future updates for that GUID are ignored by both client and server
-
-This behavior is enforced by the framework’s delta filter and merge logic and is a key feature to prevent race conditions on deleted entities.
-
-Notes:
-
-- Any object whose key starts with `_` (for example: `_players`, `_mice`, `_bullets`) is considered an entity collection
-- You can nest entity collections inside other objects; the rule applies at any depth
-- Use normal, non‑underscored collections when you do not need tombstoning semantics
-
-Example: create, update, and delete an entity in a collection called `_mice`.
-
-```js
-import Js13kClient, { generateUUID } from 'https://esm.sh/js13k-online'
-
-const mouseId = generateUUID()
-
-// Create entity
-client.updateState({
-  _mice: {
-    [mouseId]: { x: 100, y: 150, owner: client.getMyId() },
-  },
+client.on('open', () => {
+  console.log('✅ Connected to server')
 })
 
-// Update entity
-client.updateState({ _mice: { [mouseId]: { x: 120 } } })
+client.on('close', () => {
+  console.log('❌ Disconnected from server')
+})
 
-// Delete (tombstone) entity — subsequent updates for mouseId will be dropped
-client.updateState({ _mice: { [mouseId]: null } })
+client.on('error', (error) => {
+  console.error('WebSocket error:', error)
+})
 ```
-
-Built‑in collections:
-
-- `_players`: Built‑in entity collection keyed by socket connection IDs (treated as GUIDs). The server creates an empty record on connect and removes it on disconnect. Use `client.updateMyState(...)` to modify your own `_players[myId]` entry.
 
 ## Types
 
-### ClientOptions\<TState\>
+### Lab13ClientApi
 
-Configuration options for the Js13kClient constructor.
+The return type of the Lab13Client function.
 
 ```typescript
-interface ClientOptions<TState = GameState> {
-  host?: string
-  party?: string
-  deltaNormalizer?: DeltaNormalizer<TState>
-  deltaEvaluator?: DeltaEvaluator<TState>
-  throttleMs?: number
-  debug?: boolean
+type Lab13ClientApi = {
+  queryPlayerIds: () => void
+  on: <K extends keyof Lab13ClientEventMap>(
+    event: K,
+    callback: (
+      event: Lab13ClientEventMap[K] extends Event ? Lab13ClientEventMap[K] : never
+    ) => Lab13ClientEventMap[K] extends Event ? void : never
+  ) => void
+  off: <K extends keyof Lab13ClientEventMap>(
+    event: K,
+    callback: (
+      event: Lab13ClientEventMap[K] extends Event ? Lab13ClientEventMap[K] : never
+    ) => Lab13ClientEventMap[K] extends Event ? void : never
+  ) => void
+  playerId: () => string | null
+  clientIds: () => string[]
+  playerIds: () => string[]
+  botIds: () => string[]
+  clientType: () => ClientType
+  sendToPlayer: (playerId: string, message: string) => void
+  sendToAll: (message: string) => void
 }
 ```
 
-**Properties:**
+### Lab13ClientEventMap
 
-- `host` (string, optional): Server hostname (default: `window.location.host`)
-- `party` (string, optional): Party name (default: `'js13k'`)
-- `deltaNormalizer` (DeltaNormalizer, optional): Normalize outgoing deltas before comparison/sending
-- `deltaEvaluator` (DeltaEvaluator, optional): Function to control when deltas are sent
-- `throttleMs` (number, optional): Throttle interval in milliseconds (default: `50`)
-- `debug` (boolean, optional): Enable verbose SDK logs in the console (default: `false`)
-
-### DeltaEvaluator\<TState\>
-
-Function type for controlling when state updates should be sent to the server.
+Type definition for all events emitted by the client.
 
 ```typescript
-type DeltaEvaluator<TState = GameState> = (
-  delta: PartialDeep<TState>,
-  remoteState: PartialDeep<TState>,
-  playerId?: string
-) => boolean
+type Lab13ClientEventMap = {
+  'player-id-updated': CustomEvent<string>
+  'client-connected': CustomEvent<string>
+  'client-disconnected': CustomEvent<string>
+  'client-ids-updated': CustomEvent<string[]>
+  'player-ids-updated': CustomEvent<string[]>
+  'bot-ids-updated': CustomEvent<string[]>
+} & WebSocketEventMap
 ```
 
-**Parameters:**
+### Lab13ClientOptions
 
-- `delta` (PartialDeep\<TState\>): The pending state changes
-- `remoteState` (PartialDeep\<TState\>): The last known remote state used for comparison
-- `playerId` (string, optional): Your player ID
+Configuration options for the Lab13Client.
 
-**Returns:**
-
-- `boolean`: `true` to send the delta, `false` to skip it
-
-**Example:**
-
-```js
-const deltaEvaluator = (delta, remoteState, playerId) => {
-  // Only send position updates if player moved > 5 pixels
-  if (delta.players?.[playerId]) {
-    const playerDelta = delta.players[playerId]
-    const oldPos = remoteState.players?.[playerId] || {}
-
-    if (playerDelta.x !== undefined || playerDelta.y !== undefined) {
-      const dx = Math.abs(playerDelta.x - (oldPos.x || 0))
-      const dy = Math.abs(playerDelta.y - (oldPos.y || 0))
-      return dx > 5 || dy > 5
-    }
-  }
-
-  return true // Send other updates normally
+```typescript
+type Lab13ClientOptions = {
+  bot: boolean
 }
 ```
 
-### DeltaNormalizer\<TState\>
+### ClientType
 
-Hook to sanitize/normalize outgoing deltas. Useful for quantizing values (like rounding positions) or stripping noisy fields.
+The type of client (player or bot).
 
 ```typescript
-type DeltaNormalizer<TState = GameState> = (delta: PartialDeep<TState>) => PartialDeep<TState>
+type ClientType = 'player' | 'bot'
 ```
 
-**Behavior:**
+## Protocol
 
-- Called right before diffing against the last known remote state.
-- The returned object is what will be evaluated and potentially sent.
-- Default is the identity function: `delta => delta`.
+The Lab13Client uses a simple text-based protocol over WebSocket:
 
-**Example:** Round `x`/`y` positions and pass deletions as `null`.
+### Incoming Messages
+
+- `@playerId` - Assigns your player ID
+- `+clientId` - Client connected notification
+- `-clientId` - Client disconnected notification
+- `bclientId` - Bot connected notification
+- `?i` - Request for player ID list
+- `.iclientId[|b]` - Player ID list update (with optional bot marker)
+
+### Outgoing Messages
+
+- `?i` - Request current player IDs
+- `.iplayerId[|b]` - Response with your player ID (with optional bot marker)
+- `bplayerId` - Bot announcement
+
+## Usage Examples
+
+### Basic Setup
 
 ```js
-const client = new Js13kClient('my-room', {
-  deltaNormalizer: (delta) => ({
-    ...delta,
-    players: Object.fromEntries(
-      Object.entries(delta.players || {}).map(([id, p]) => [
-        id,
-        p == null
-          ? null
-          : {
-              ...p,
-              x: Math.round(p.x || 0),
-              y: Math.round(p.y || 0),
-            },
-      ])
-    ),
-  }),
+import { PartySocket } from 'partysocket'
+import { Lab13Client } from 'https://esm.sh/js13k'
+
+// Create WebSocket connection
+const socket = new PartySocket({
+  host: 'your-party-server.com',
+  room: 'my-game-room',
+})
+
+// Create Lab13Client wrapper
+const client = Lab13Client(socket)
+
+// Set up event handlers
+client.on('player-id-updated', (event) => {
+  console.log('Got my ID:', event.detail)
+})
+
+client.on('client-connected', (event) => {
+  console.log('Client joined:', event.detail)
+})
+
+client.on('client-disconnected', (event) => {
+  console.log('Client left:', event.detail)
+})
+
+// Query for current players
+client.queryPlayerIds()
+```
+
+### Bot Support
+
+```js
+// Create a monitoring bot client
+const botClient = Lab13Client(socket, { bot: true })
+
+// Listen for bot-specific events
+client.on('bot-ids-updated', (event) => {
+  console.log('Current monitor bots:', event.detail)
+})
+
+// Get different client types
+const allClients = client.clientIds() // All clients
+const players = client.playerIds() // Only players
+const bots = client.botIds() // Only bots
+const myType = client.clientType() // 'player' or 'bot'
+```
+
+> **Note**: Per JS13K Online competition rules, bots can only monitor the game. They cannot interact with or alter game state.
+
+### Game Integration
+
+```js
+// Track all clients
+let clients = new Map()
+
+client.on('client-ids-updated', (event) => {
+  // Clear old clients
+  clients.clear()
+
+  // Add all current clients
+  event.detail.forEach((id) => {
+    clients.set(id, { id, connected: true })
+  })
+
+  console.log('Updated client list:', Array.from(clients.values()))
+})
+
+client.on('client-connected', (event) => {
+  const clientId = event.detail
+  clients.set(clientId, { id: clientId, connected: true })
+  console.log('Client joined:', clientId)
+})
+
+client.on('client-disconnected', (event) => {
+  const clientId = event.detail
+  clients.delete(clientId)
+  console.log('Client left:', clientId)
 })
 ```
 
-### GameState
+### Global Access
 
-Base type for game state. You should extend this with your own interface.
+The Lab13Client is also available globally in the browser:
 
-```typescript
-type GameState = Record<string, any>
+```js
+// Access globally
+const client = window.Lab13Client(socket)
 ```
-
-**Example:**
-
-```typescript
-interface MyGameState extends GameState {
-  players: Record<
-    string,
-    {
-      x: number
-      y: number
-      name: string
-      health: number
-    }
-  >
-  world: {
-    items: Array<{ id: number; type: string; x: number; y: number }>
-    score: number
-  }
-}
-```
-
-### GetPlayerState\<TState\>
-
-Utility type that extracts the player state type from your game state.
-
-```typescript
-type GetPlayerState<TState extends GameState> = TState['players'][string]
-```
-
-**Example:**
-
-```typescript
-interface MyGameState {
-  players: Record<
-    string,
-    {
-      x: number
-      y: number
-      health: number
-    }
-  >
-}
-
-// PlayerType is { x: number; y: number; health: number }
-type PlayerType = GetPlayerState<MyGameState>
-```
-
-### PartialDeep\<T\>
-
-Utility type that makes all properties of an object and its nested objects optional.
-
-```typescript
-type PartialDeep<T> = {
-  [P in keyof T]?: T[P] extends object ? PartialDeep<T[P]> : T[P]
-}
-```
-
-This is used for delta updates where you only need to specify the properties that changed.
-
-### MessageData
-
-Internal message format used by the WebSocket protocol.
-
-```typescript
-interface MessageData {
-  id?: string // Player ID assignment
-  connect?: string // Player connection notification
-  disconnect?: string // Player disconnection notification
-  state?: any // Initial state dump
-  delta?: any // State changes
-}
-```
-
-## Server API
-
-While you typically don't need to interact with the server directly, understanding its behavior can be helpful.
-
-### Server Behavior
-
-The JS13K Online server:
-
-1. **Manages Connections**: Assigns unique IDs to each connection
-2. **Manages Player State**: Creates/removes entries in `state.players`
-3. **Relays Messages**: Broadcasts deltas to all connected clients
-4. **State Persistence**: Maintains state in memory (not persistent across server restarts)
-
-### Message Flow
-
-1. **Client connects** → Server sends `{ id: "player-id" }` and `{ state: currentState }`
-2. **Client sends delta** → Server merges into state and broadcasts to all other clients
-3. **Client disconnects** → Server removes from `state.players` and broadcasts `{ disconnect: "player-id" }`
-
-### Room Isolation
-
-Each room is completely isolated:
-
-- State is maintained separately per room
-- Messages are only broadcast within the same room
-- Player IDs are unique within a room but may repeat across rooms
 
 ## Error Handling
 
 ### Connection Errors
 
 ```js
-client.on('disconnected', () => {
-  // Handle connection loss
-  showReconnectingMessage()
+client.on('error', (error) => {
+  console.error('Connection error:', error)
+  // Handle connection issues
 })
 
-client.on('connected', () => {
-  // Handle reconnection
-  hideReconnectingMessage()
+client.on('close', () => {
+  console.log('Connection closed')
+  // Handle disconnection
 })
 ```
 
-### Message Parsing Errors
-
-The client automatically handles JSON parsing errors and logs them to the console. Invalid messages are ignored.
-
-### State Validation
-
-Since the server trusts all clients, consider client-side validation:
+### Missing Player ID
 
 ```js
-client.on('delta', (delta) => {
-  // Validate incoming changes
-  if (delta.players) {
-    Object.entries(delta.players).forEach(([playerId, playerDelta]) => {
-      if (!isValidPlayerUpdate(playerDelta)) {
-        console.warn('Invalid update from player:', playerId)
-        return // Skip this update
-      }
-    })
-  }
-
-  // Apply validated changes
-  updateGameFromDelta(delta)
-})
+const myId = client.playerId()
+if (!myId) {
+  console.log('Waiting for player ID...')
+  // Wait for player-id-updated event
+}
 ```
 
 ## Best Practices
 
+### Event Management
+
+1. **Remove listeners** when components unmount to prevent memory leaks
+2. **Use specific event handlers** rather than generic ones
+3. **Handle connection state** appropriately
+
+### Client Management
+
+1. **Query player IDs** after connection to get current state
+2. **Track client state** separately from connection state
+3. **Handle disconnections** gracefully
+4. **Use appropriate event types** for different client types
+
+### Bot Integration
+
+1. **Listen for bot events** to handle AI players differently
+2. **Separate bot logic** from player logic
+3. **Use client type checking** when needed
+
 ### Performance
 
-1. **Use throttling** to limit update frequency
-2. **Implement delta evaluation** for expensive updates
-3. **Minimize state size** by only storing necessary data
-4. **Use spatial partitioning** for large worlds
+1. **Limit event handler complexity** to avoid blocking
+2. **Use efficient data structures** for client tracking
+3. **Avoid excessive queries** for player IDs
 
-### Reliability
-
-1. **Handle disconnections** gracefully
-2. **Validate incoming state** changes
-3. **Implement reconnection** logic
-4. **Use authoritative patterns** for critical game logic
-
-### Security
-
-1. **Validate all input** from other clients
-2. **Use consensus patterns** for important decisions
-3. **Implement rate limiting** on the client side
-4. **Don't trust client state** for critical game mechanics
-
-This API reference covers all public methods and types in the JS13K Online SDK. For more examples and patterns, see the other documentation pages.
+This API reference covers all public methods and types in the Lab 13 SDK. The client provides a simple interface for managing player connections and IDs in multiplayer games.

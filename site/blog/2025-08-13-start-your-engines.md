@@ -5,9 +5,9 @@ authors: [benallfree]
 tags: [js13k]
 ---
 
-# 🚀 js13k-online v0.0.1 is Here!
+# 🚀 js13k v0.0.1 is Here!
 
-We're excited to announce the first release of **js13k-online**, a complete multiplayer infrastructure for the JS13K game jam! This release brings everything you need to build tiny multiplayer games that fit within the 13KB limit.
+We're excited to announce the first release of **js13k**, a complete multiplayer infrastructure for the JS13K game jam! This release brings everything you need to build tiny multiplayer games that fit within the 13KB limit.
 
 ## What's New in v0.0.1
 
@@ -34,7 +34,7 @@ We're excited to announce the first release of **js13k-online**, a complete mult
 ## Quick Start
 
 ```javascript
-import Js13kClient from 'https://esm.sh/js13k-online'
+import Js13kClient from 'https://esm.sh/js13k'
 
 const client = new Js13kClient('my-awesome-game')
 
@@ -76,4 +76,4 @@ Ready to create your first JS13K multiplayer game? Head over to the [documentati
 
 ---
 
-_js13k-online is built on [partyserver](https://www.npmjs.com/package/partyserver) and designed specifically for the JS13K game jam. Happy coding! 🎮_
+_js13k is built on [partyserver](https://www.npmjs.com/package/partyserver) and designed specifically for the JS13K game jam. Happy coding! 🎮_

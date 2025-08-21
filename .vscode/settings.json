@@ -1,7 +1,8 @@
 {
   "files.associations": {
-    "wrangler.json": "jsonc"
+    "wrangler.jsonc": "jsonc"
   },
+
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "[typescript]": {

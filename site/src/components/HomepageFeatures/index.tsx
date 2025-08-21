@@ -13,15 +13,19 @@ const FeatureList: FeatureItem[] = [
   {
     title: 'Sponsored by Cloudflare',
     Svg: require('@site/static/img/cloudflare.svg').default,
-    description: <>Cloudflare proudly supports JS13K Online.</>,
+    description: (
+      <>
+        Cloudflare proudly supports <a href="https://js13kgames.com/2025/online">JS13K Online</a>.
+      </>
+    ),
   },
   {
     title: 'Focus on the Game',
     Svg: require('@site/static/img/IonIosGameControllerB.svg').default,
     description: (
       <>
-        You don't need to write any server code to participate in the Online category. JS13K Online is hosted on
-        Cloudflare and will handle all the server-side logic for you.
+        You don't need to write any server code to participate in the Online category. The JS13K Online relay server is
+        hosted on Cloudflare and will handle all the server-side logic for you.
       </>
     ),
   },

@@ -1,0 +1,17 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle with subtle gradient -->
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a1a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#333333;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <circle cx="100" cy="100" r="90" fill="url(#grad)" />
+  
+  <!-- Number "1" -->
+  <path d="M80 50 L80 150 L90 150 L90 60 L85 50 Z" fill="#00ccff" stroke="#0099cc" stroke-width="2"/>
+  
+  <!-- Number "3" -->
+  <path d="M110 50 H130 A20 20 0 0 1 150 70 V80 H130 V90 H150 V110 A20 20 0 0 1 130 130 H110 V110 H130 V90 H110 V70 H130 V50 Z" fill="#ff3366" stroke="#cc0033" stroke-width="2"/>
+  
+</svg>

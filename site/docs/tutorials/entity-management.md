@@ -5,7 +5,7 @@ sidebar_position: 10
 
 # Managing Entities and Collections
 
-JS13K Online distinguishes between regular collections and entity collections. Understanding the difference helps you avoid race conditions and design predictable state updates.
+Lab 13 distinguishes between regular collections and entity collections. Understanding the difference helps you avoid race conditions and design predictable state updates.
 
 ## Two kinds of collections
 
@@ -30,7 +30,7 @@ Why underscore? It signals “this object holds entities with strong deletion se
 ## Creating GUID‑keyed entities
 
 ```js
-import Js13kClient, { generateUUID } from 'https://esm.sh/js13k-online'
+import Js13kClient, { generateUUID } from 'https://esm.sh/js13k'
 
 // Create a new mouse entity in an entity collection
 const mouseId = generateUUID()

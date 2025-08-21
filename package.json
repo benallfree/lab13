@@ -1,5 +1,5 @@
 {
-  "name": "js13k-mmo-root",
+  "name": "lab13-root",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -26,5 +26,20 @@
     "sdk",
     "site",
     "server"
+  ],
+  "trustedDependencies": [
+    "advzip-bin",
+    "core-js",
+    "core-js-pure",
+    "cwebp-bin",
+    "ect-bin",
+    "esbuild",
+    "gifsicle",
+    "jpegtran-bin",
+    "mozjpeg",
+    "optipng-bin",
+    "pngquant-bin",
+    "sharp",
+    "workerd"
   ]
 }

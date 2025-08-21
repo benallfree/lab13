@@ -1,5 +1,5 @@
 ---
-'js13k-online': patch
+'js13k': patch
 ---
 
 Unbundle for improved tree shaking

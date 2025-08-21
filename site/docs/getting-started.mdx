@@ -6,18 +6,37 @@ import UUIDGenerator from '@site/src/components/UUIDGenerator'
 
 # Getting Started
 
-The experimental Online (MMO) category is powered by our hosted version of [PartyServer](https://www.npmjs.com/package/partyserver), Cloudflare's PartyKit-inspired scalable server based on [Cloudflare Workers](https://developers.cloudflare.com/workers/).
+The **JS13K Online** category challenges developers to create MMO (Massively Multiplayer Online) versions of their games. This experimental category is powered by our hosted version of [PartyServer](https://www.npmjs.com/package/partyserver), Cloudflare's PartyKit-inspired scalable server based on [Cloudflare Workers](https://developers.cloudflare.com/workers/).
 
-The best part? You get a complete SDK that handles all the complexity for you. No server programming required!
+## What is JS13K Online?
+
+JS13K Online is a special category in the JS13K competition that focuses on multiplayer games. While the base [JS13K Online protocol](https://js13kgames.com/online) provides the core communication primitives, **Lab13's SDK extends this protocol** with additional conveniences and features to make multiplayer game development easier.
+
+### Lab13 SDK Extensions
+
+The Lab13 SDK builds upon the base JS13K Online protocol and adds:
+
+- **Player ID Management**: Automatic tracking and querying of connected players
+- **Enhanced Events**: Rich event system for player connections, disconnections, and state updates
+- **Bot Support**: Built-in support for AI players and bot management
+- **Protocol Extensions**: Additional message types for common multiplayer scenarios
+- **Type Safety**: Full TypeScript support with proper event typing
 
 ## Installation
 
 ```html
 <script type="module">
-  import Js13kClient from 'https://esm.sh/js13k-online'
+  import { Lab13Client } from 'https://esm.sh/lab13-sdk'
+  import { PartySocket } from 'https://esm.sh/partysocket'
 
-  // Your game code here
-  const client = new Js13kClient('my-game-room')
+  // Create a PartySocket connection to your room
+  const socket = new PartySocket({
+    host: 'your-party-server.partykit.dev',
+    room: 'my-game-room',
+  })
+
+  // Initialize the Lab13 client with the socket
+  const client = Lab13Client(socket)
 </script>
 ```
 
@@ -110,73 +129,105 @@ Let's create a simple multiplayer game where players can move around and see eac
 
 ```html
 <script type="module">
-  import Js13kClient from 'https://esm.sh/js13k-online'
+  import { Lab13Client } from 'https://esm.sh/lab13-sdk'
+  import { PartySocket } from 'https://esm.sh/partysocket'
 
   const gameDiv = document.getElementById('game')
   const statusDiv = document.getElementById('status')
-  const playerElements = new Map()
+  const clientElements = new Map()
 
-  const client = new Js13kClient('my-awesome-game-v1')
-
-  client.on('connected', () => {
-    statusDiv.textContent = 'Connected! Move with arrow keys.'
+  // Create the socket connection
+  const socket = new PartySocket({
+    host: 'your-party-server.partykit.dev',
+    room: 'my-awesome-game-v1',
   })
 
-  client.on('id', (myId) => {
-    client.updateMyState({ x: 400, y: 300 })
+  // Initialize the Lab13 client
+  const client = Lab13Client(socket)
+
+  client.on('player-id-updated', (event) => {
+    const myId = event.detail
+    statusDiv.textContent = `Connected! My ID: ${myId}. Move with arrow keys.`
+    // Initialize player position
+    client.sendToAll(`init:${JSON.stringify({ x: 400, y: 300 })}`)
   })
 </script>
 ```
 
-#### Step 4 — Listen for state updates and connections
+#### Step 4 — Listen for client events
 
 ```html
 <script type="module">
-  client.on('delta', () => {
-    renderPlayers()
+  client.on('client-connected', (event) => {
+    const clientId = event.detail
+    console.log('Client connected:', clientId)
   })
 
-  client.on('state', () => {
-    renderPlayers()
-  })
-
-  client.on('connect', (playerId) => {
-    console.log('Player connected:', playerId)
-  })
-
-  client.on('disconnect', (playerId) => {
-    const element = playerElements.get(playerId)
+  client.on('client-disconnected', (event) => {
+    const clientId = event.detail
+    console.log('Client disconnected:', clientId)
+    const element = clientElements.get(clientId)
     if (element) {
       element.remove()
-      playerElements.delete(playerId)
+      clientElements.delete(clientId)
     }
+  })
+
+  client.on('client-ids-updated', (event) => {
+    const clientIds = event.detail
+    console.log('Current clients:', clientIds)
+    // Query each client for their state
+    clientIds.forEach((id) => {
+      client.sendToPlayer(id, 'getState')
+    })
   })
 </script>
 ```
 
-#### Step 5 — Render all players
+#### Step 5 — Handle custom messages
 
 ```html
 <script type="module">
-  function renderPlayers() {
-    const state = client.getState()
-    const myId = client.getMyId()
-    if (!state.players) return
+  socket.addEventListener('message', (event) => {
+    const msg = event.data.toString()
 
-    Object.entries(state.players).forEach(([playerId, playerState]) => {
-      if (playerState.x == null || playerState.y == null) return
+    // Handle custom game messages
+    if (msg.startsWith('init:')) {
+      const state = JSON.parse(msg.slice(5))
+      createClientElement(client.playerId(), state)
+    } else if (msg.startsWith('move:')) {
+      const [clientId, x, y] = msg.slice(5).split(',')
+      updateClientPosition(clientId, parseInt(x), parseInt(y))
+    } else if (msg === 'getState') {
+      // Respond with current state
+      const myState = getMyState()
+      client.sendToPlayer(client.playerId(), `init:${JSON.stringify(myState)}`)
+    }
+  })
 
-      let element = playerElements.get(playerId)
-      if (!element) {
-        element = document.createElement('div')
-        element.className = 'player' + (playerId === myId ? ' me' : '')
-        gameDiv.appendChild(element)
-        playerElements.set(playerId, element)
-      }
+  function createClientElement(clientId, state) {
+    let element = clientElements.get(clientId)
+    if (!element) {
+      element = document.createElement('div')
+      element.className = 'player' + (clientId === client.playerId() ? ' me' : '')
+      gameDiv.appendChild(element)
+      clientElements.set(clientId, element)
+    }
+    element.style.left = state.x + 'px'
+    element.style.top = state.y + 'px'
+  }
 
-      element.style.left = playerState.x + 'px'
-      element.style.top = playerState.y + 'px'
-    })
+  function updateClientPosition(clientId, x, y) {
+    const element = clientElements.get(clientId)
+    if (element) {
+      element.style.left = x + 'px'
+      element.style.top = y + 'px'
+    }
+  }
+
+  function getMyState() {
+    // Return current player state
+    return { x: 400, y: 300 } // This would be your actual state
   }
 </script>
 ```
@@ -187,6 +238,7 @@ Let's create a simple multiplayer game where players can move around and see eac
 <script type="module">
   const keys = new Set()
   let moveSpeed = 3
+  let myState = { x: 400, y: 300 }
 
   document.addEventListener('keydown', (e) => {
     keys.add(e.code)
@@ -203,8 +255,8 @@ Let's create a simple multiplayer game where players can move around and see eac
 ```html
 <script type="module">
   function gameLoop() {
-    const myState = client.getMyState()
-    if (!myState) {
+    const myId = client.playerId()
+    if (!myId) {
       requestAnimationFrame(gameLoop)
       return
     }
@@ -220,10 +272,15 @@ Let's create a simple multiplayer game where players can move around and see eac
     if (dx !== 0 || dy !== 0) {
       const newX = Math.max(0, Math.min(620, myState.x + dx))
       const newY = Math.max(0, Math.min(380, myState.y + dy))
-      client.updateMyState({ x: newX, y: newY })
+      myState = { x: newX, y: newY }
+
+      // Send movement to all clients
+      client.sendToAll(`move:${myId},${newX},${newY}`)
+
+      // Update local display
+      updateClientPosition(myId, newX, newY)
     }
 
-    renderPlayers()
     requestAnimationFrame(gameLoop)
   }
 
@@ -263,65 +320,91 @@ Let's create a simple multiplayer game where players can move around and see eac
     <div id="status">Connecting...</div>
 
     <script type="module">
-      import Js13kClient from 'https://esm.sh/js13k-online'
+      import { Lab13Client } from 'https://esm.sh/lab13-sdk'
+      import { PartySocket } from 'https://esm.sh/partysocket'
 
       const gameDiv = document.getElementById('game')
       const statusDiv = document.getElementById('status')
-      const playerElements = new Map()
+      const clientElements = new Map()
 
-      const client = new Js13kClient('my-awesome-game-v1')
-
-      client.on('connected', () => {
-        statusDiv.textContent = 'Connected! Move with arrow keys.'
+      const socket = new PartySocket({
+        host: 'your-party-server.partykit.dev',
+        room: 'my-awesome-game-v1',
       })
 
-      client.on('id', (myId) => {
-        client.updateMyState({ x: 400, y: 300 })
+      const client = Lab13Client(socket)
+
+      client.on('player-id-updated', (event) => {
+        const myId = event.detail
+        statusDiv.textContent = `Connected! My ID: ${myId}. Move with arrow keys.`
+        client.sendToAll(`init:${JSON.stringify({ x: 400, y: 300 })}`)
       })
 
-      client.on('delta', () => {
-        renderPlayers()
+      client.on('client-connected', (event) => {
+        const clientId = event.detail
+        console.log('Client connected:', clientId)
       })
 
-      client.on('state', () => {
-        renderPlayers()
-      })
-
-      client.on('connect', (playerId) => {
-        console.log('Player connected:', playerId)
-      })
-
-      client.on('disconnect', (playerId) => {
-        const element = playerElements.get(playerId)
+      client.on('client-disconnected', (event) => {
+        const clientId = event.detail
+        console.log('Client disconnected:', clientId)
+        const element = clientElements.get(clientId)
         if (element) {
           element.remove()
-          playerElements.delete(playerId)
+          clientElements.delete(clientId)
         }
       })
 
-      function renderPlayers() {
-        const state = client.getState()
-        const myId = client.getMyId()
-        if (!state.players) return
-
-        Object.entries(state.players).forEach(([playerId, playerState]) => {
-          if (playerState.x == null || playerState.y == null) return
-
-          let element = playerElements.get(playerId)
-          if (!element) {
-            element = document.createElement('div')
-            element.className = 'player' + (playerId === myId ? ' me' : '')
-            gameDiv.appendChild(element)
-            playerElements.set(playerId, element)
-          }
-
-          element.style.left = playerState.x + 'px'
-          element.style.top = playerState.y + 'px'
+      client.on('client-ids-updated', (event) => {
+        const clientIds = event.detail
+        console.log('Current clients:', clientIds)
+        clientIds.forEach((id) => {
+          client.sendToPlayer(id, 'getState')
         })
+      })
+
+      socket.addEventListener('message', (event) => {
+        const msg = event.data.toString()
+
+        if (msg.startsWith('init:')) {
+          const state = JSON.parse(msg.slice(5))
+          createClientElement(client.playerId(), state)
+        } else if (msg.startsWith('move:')) {
+          const [clientId, x, y] = msg.slice(5).split(',')
+          updateClientPosition(clientId, parseInt(x), parseInt(y))
+        } else if (msg === 'getState') {
+          const myState = getMyState()
+          client.sendToPlayer(client.playerId(), `init:${JSON.stringify(myState)}`)
+        }
+      })
+
+      function createClientElement(clientId, state) {
+        let element = clientElements.get(clientId)
+        if (!element) {
+          element = document.createElement('div')
+          element.className = 'player' + (clientId === client.playerId() ? ' me' : '')
+          gameDiv.appendChild(element)
+          clientElements.set(clientId, element)
+        }
+        element.style.left = state.x + 'px'
+        element.style.top = state.y + 'px'
+      }
+
+      function updateClientPosition(clientId, x, y) {
+        const element = clientElements.get(clientId)
+        if (element) {
+          element.style.left = x + 'px'
+          element.style.top = y + 'px'
+        }
+      }
+
+      function getMyState() {
+        return myState
       }
 
       const keys = new Set()
       let moveSpeed = 3
+      let myState = { x: 400, y: 300 }
 
       document.addEventListener('keydown', (e) => {
         keys.add(e.code)
@@ -332,8 +415,8 @@ Let's create a simple multiplayer game where players can move around and see eac
       })
 
       function gameLoop() {
-        const myState = client.getMyState()
-        if (!myState) {
+        const myId = client.playerId()
+        if (!myId) {
           requestAnimationFrame(gameLoop)
           return
         }
@@ -349,9 +432,11 @@ Let's create a simple multiplayer game where players can move around and see eac
         if (dx !== 0 || dy !== 0) {
           const newX = Math.max(0, Math.min(620, myState.x + dx))
           const newY = Math.max(0, Math.min(380, myState.y + dy))
-          client.updateMyState({ x: newX, y: newY })
+          myState = { x: newX, y: newY }
+
+          client.sendToAll(`move:${myId},${newX},${newY}`)
+          updateClientPosition(myId, newX, newY)
         }
-        renderPlayers()
 
         requestAnimationFrame(gameLoop)
       }
@@ -364,27 +449,30 @@ Let's create a simple multiplayer game where players can move around and see eac
 
 </details>
 
-## Room Names
+## Adding Bot Support
 
-Your `room` parameter creates a private space for your game. All communication is isolated to this room, so choose a unique name:
+You can easily add monitoring bots to your game:
 
 ```js
-// Good room names
-const client = new Js13kClient('super-mario-battle-2025')
-const client = new Js13kClient('chess-masters-js13k')
+// Create a monitoring bot client
+const botClient = Lab13Client(socket, { bot: true })
 
-// Avoid generic names that might conflict
-const client = new Js13kClient('game') // Too generic!
-const client = new Js13kClient('test') // Others might use this
+// Listen for bot events
+client.on('bot-ids-updated', (event) => {
+  console.log('Current monitor bots:', event.detail)
+})
+
+// Get different client types
+const allClients = client.clientIds() // All clients
+const players = client.playerIds() // Only players
+const bots = client.botIds() // Only bots
 ```
 
-### Generate Unique Room Key
-
-If you're concerned that your room name might not be unique, you can use a room key instead. Here's a guaranteed unique room key just for your game:
-
-<UUIDGenerator />
+> **Note**: Per JS13K Online rules, bots can only monitor the game. They cannot interact with or alter game state.
 
 ## What's Next?
 
 - Learn about [Game Loop](./game-loop) to understand the connection flow
 - Dive into [Game State Management](./tutorials/game-state) for advanced state handling
+- Explore [Entity Management](./tutorials/entity-management) for complex multiplayer games
+- [Lab13 SDK API Reference](./api-reference)

@@ -1,5 +1,5 @@
 ---
-'js13k-online-server': patch
+'js13k-server': patch
 ---
 
 Added tombstoning support

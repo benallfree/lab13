@@ -72,28 +72,46 @@
       }
     </style>
     <script type="module">
-      import { Js13kClient } from '/sdk/index.js'
+      import PartySocket from 'https://esm.sh/partysocket'
+      import { Lab13Client } from '/sdk/index.js'
 
-      const client = new Js13kClient('presence')
-      client.on('open', () => setStatus('connected'))
-      client.on('close', () => setStatus('disconnected'))
+      const socket = new PartySocket({
+        host: 'relay.js13kgames.com',
+        party: 'mewsterpiece',
+        room: 'presence',
+      })
+
+      const lab13Client = Lab13Client(socket)
+      lab13Client.on('player-id-updated', (event) => {
+        setStatus(`id: ${event.detail}`)
+      })
+
+      setStatus('connecting')
+      socket.addEventListener('open', () => setStatus('connected'))
+      socket.addEventListener('close', () => setStatus('disconnected'))
+
       function setStatus(kind, details) {
         const dot = document.getElementById('status-dot')
         const text = document.getElementById('status-text')
         const retry = document.getElementById('retry-text')
         if (!dot || !text || !retry) return
-        if (kind === 'connected') {
-          dot.style.background = 'var(--ok)'
-          text.textContent = 'Connected'
-        } else if (kind === 'connecting') {
-          dot.style.background = 'var(--warn)'
-          text.textContent = 'Connecting…'
-        } else if (kind === 'error') {
-          dot.style.background = 'var(--bad)'
-          text.textContent = 'Error'
-        } else {
-          dot.style.background = 'var(--bad)'
-          text.textContent = 'Disconnected'
+        switch (kind) {
+          case 'connected':
+            dot.style.background = 'var(--ok)'
+            text.textContent = 'Connected'
+            break
+          case 'connecting':
+            dot.style.background = 'var(--warn)'
+            text.textContent = 'Connecting…'
+            break
+          case 'disconnected':
+            dot.style.background = 'var(--bad)'
+            text.textContent = 'Disconnected'
+            break
+          default:
+            dot.style.background = 'var(--ok)'
+            text.textContent = kind
+            break
         }
         retry.textContent = details || ''
       }
@@ -108,8 +126,8 @@
         <span id="retry-text" class="muted"></span>
       </div>
       <p>
-        This demo shows how to register an active player with JS13K Online using minimal code. Opening this page
-        establishes a WebSocket connection and registers your presence in the "presence" room.
+        This demo shows how to register an active player with Lab 13 using minimal code. Opening this page establishes a
+        WebSocket connection and registers your presence in the "presence" room.
       </p>
       <p class="muted">Keep this tab open to remain online.</p>
     </main>

@@ -5,7 +5,7 @@ sidebar_position: 1
 
 # Game State Management
 
-The JS13K Online system uses a **trusted shared state relay** architecture where each client maintains a synchronized copy of the game state, and the server relays changes between all connected players.
+The Lab 13 system uses a **trusted shared state relay** architecture where each client maintains a synchronized copy of the game state, and the server relays changes between all connected players.
 
 ## State Structure
 
@@ -201,7 +201,7 @@ Games with shared world elements:
 
 ```js
 // Black Cats Demo - shared mice state
-import { generateUUID } from 'https://esm.sh/js13k-online'
+import { generateUUID } from 'https://esm.sh/js13k'
 
 // Spawn a new mouse
 function spawnMouse() {

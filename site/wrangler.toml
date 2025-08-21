@@ -1,0 +1,8 @@
+# For more details on how to configure Wrangler, refer to:
+# https://developers.cloudflare.com/workers/wrangler/configuration/
+
+name = "lab13"
+compatibility_date = "2025-08-13"
+
+[assets]
+directory = "./build"

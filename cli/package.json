@@ -1,0 +1,56 @@
+{
+  "name": "l13",
+  "version": "0.0.1-rc.3",
+  "description": "A CLI for the js13kGames competition",
+  "author": {
+    "name": "benallfree",
+    "url": "https://github.com/benallfree"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/benallfree/js13k",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/benallfree/js13k"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "build:watch": "tsdown --watch",
+    "js13k": "tsx --watch src/index.ts "
+  },
+  "module": "dist/index.js",
+  "bin": {
+    "js13k": "dist/index.js",
+    "lab13": "dist/index.js",
+    "l13": "dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/express": "^5.0.3",
+    "@types/ws": "^8.18.1",
+    "nodemon": "^3.1.10",
+    "prettier": "^3.6.2",
+    "prettier-plugin-organize-imports": "^4.2.0",
+    "tsdown": "^0.14.1",
+    "tsx": "^4.20.4",
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "commander": "^14.0.0",
+    "express": "^5.1.0",
+    "hono": "^4.9.2",
+    "inquirer": "^12.9.3",
+    "js13k-vite-plugins": "^0.4.0",
+    "partykit": "^0.0.115",
+    "tiged": "^2.12.7",
+    "vite": "^7.1.2",
+    "ws": "^8.18.3"
+  },
+  "trustedDependencies": [
+    "advzip-bin",
+    "ect-bin"
+  ]
+}

@@ -5,21 +5,29 @@ sidebar_position: 3
 
 # Working with the Game Loop
 
-When you connect to the JS13K Online server using the SDK, several things happen automatically. Understanding this flow will help you build more robust games.
+When you connect to the JS13K Online server using the Lab13 SDK, several things happen automatically. Understanding this flow will help you build more robust multiplayer games.
 
 ## Connection Process
 
-The `Js13kClient` handles the entire connection process for you:
+The Lab13 SDK handles the connection process and extends the base JS13K Online protocol:
 
 ```js
-const client = new Js13kClient('my-game-room')
+import { Lab13Client } from 'https://esm.sh/lab13-sdk'
+import { PartySocket } from 'https://esm.sh/partysocket'
+
+const socket = new PartySocket({
+  host: 'your-party-server.partykit.dev',
+  room: 'my-game-room',
+})
+
+const client = Lab13Client(socket)
 
 // Connection happens automatically!
-// The client will:
+// The Lab13 SDK will:
 // 1. Connect to the WebSocket
-// 2. Receive your unique player ID
-// 3. Receive the current game state
-// 4. Set up event listeners
+// 2. Handle player ID assignment
+// 3. Track connected clients (players and bots)
+// 4. Set up enhanced event listeners
 ```
 
 ## Initialization
@@ -27,7 +35,15 @@ const client = new Js13kClient('my-game-room')
 Set up your client, canvas, and input. Initialize your player as soon as you receive your ID.
 
 ```js
-const client = new Js13kClient('cats')
+import { Lab13Client } from 'https://esm.sh/lab13-sdk'
+import { PartySocket } from 'https://esm.sh/partysocket'
+
+const socket = new PartySocket({
+  host: 'your-party-server.partykit.dev',
+  room: 'cats',
+})
+
+const client = Lab13Client(socket)
 
 // Canvas
 const canvas = document.getElementById('gameCanvas')
@@ -57,111 +73,139 @@ document.addEventListener('keyup', (e) => {
 })
 
 // Initialize my player when ID arrives
-client.on('id', () => {
+client.on('player-id-updated', (event) => {
+  const myId = event.detail
   const nameInput = document.getElementById('name-input')
-  client.updateMyState({
-    x: canvas.width / 2,
-    y: canvas.height / 2,
-    score: 0,
-    name: nameInput && 'value' in nameInput ? nameInput.value || '' : '',
-  })
+
+  // Send initial state to all players
+  client.sendToAll(
+    `init:${JSON.stringify({
+      x: canvas.width / 2,
+      y: canvas.height / 2,
+      score: 0,
+      name: nameInput && 'value' in nameInput ? nameInput.value || '' : '',
+    })}`
+  )
 })
 ```
 
 ## Connection Events
 
-The SDK provides several events to track the connection lifecycle:
+The Lab13 SDK provides enhanced events that extend the base JS13K Online protocol:
 
-### Connected Event
-
-Fired when the WebSocket connection is established:
-
-```js
-client.on('connected', () => {
-  console.log('Connected to server!')
-  // Now you can start sending updates
-})
-```
-
-### Receiving Your Player ID
+### Player ID Assignment
 
 Every client gets a unique ID that persists for the duration of their session:
 
 ```js
-client.on('id', (playerId) => {
+client.on('player-id-updated', (event) => {
+  const playerId = event.detail
   console.log('My player ID:', playerId)
 
   // You can also get your ID anytime with:
-  const myId = client.getMyId()
+  const myId = client.playerId()
 
   // Initialize your player state
-  client.updateMyState({
-    name: 'Player',
-    x: 100,
-    y: 100,
-    color: 'blue',
+  client.sendToAll(
+    `init:${JSON.stringify({
+      name: 'Player',
+      x: 100,
+      y: 100,
+      color: 'blue',
+    })}`
+  )
+})
+```
+
+### Client Connection Tracking
+
+The Lab13 SDK automatically tracks when clients (players and bots) join or leave:
+
+```js
+client.on('client-connected', (event) => {
+  const clientId = event.detail
+  console.log(`Client ${clientId} joined the game`)
+
+  // Check if it's a bot or player
+  if (client.botIds().includes(clientId)) {
+    console.log('Bot joined:', clientId)
+    // Handle bot-specific logic
+  } else {
+    console.log('Player joined:', clientId)
+    // Query their state
+    client.sendToPlayer(clientId, 'getState')
+  }
+})
+
+client.on('client-disconnected', (event) => {
+  const clientId = event.detail
+  console.log(`Client ${clientId} left the game`)
+  // Remove them from your UI
+  removeClientFromUI(clientId)
+})
+
+client.on('client-ids-updated', (event) => {
+  const clientIds = event.detail
+  console.log('Current clients:', clientIds)
+  // Query all clients for their state
+  clientIds.forEach((id) => {
+    client.sendToPlayer(id, 'getState')
   })
 })
-```
 
-### Initial State
-
-The server sends the complete current state when you connect:
-
-```js
-client.on('state', (gameState) => {
-  console.log('Initial game state:', gameState)
-
-  // The state structure looks like:
-  // {
-  //   players: {
-  //     'player-id-1': { x: 100, y: 200, name: 'Alice' },
-  //     'player-id-2': { x: 300, y: 150, name: 'Bob' }
-  //   }
-  // }
-
-  // Initialize your game with existing players
-  renderAllPlayers(gameState.players)
-})
-```
-
-## Other Players Connecting/Disconnecting
-
-Track when other players join or leave:
-
-```js
-client.on('connect', (playerId) => {
-  console.log(`Player ${playerId} joined the game`)
-  // Their state will be in the next delta update
-})
-
-client.on('disconnect', (playerId) => {
-  console.log(`Player ${playerId} left the game`)
-  // Remove them from your UI
-  removePlayerFromUI(playerId)
+// Bot-specific tracking
+client.on('bot-ids-updated', (event) => {
+  const botIds = event.detail
+  console.log('Current bots:', botIds)
+  // Update bot AI systems
 })
 ```
 
 ## Handling Disconnections
 
-The SDK handles connection issues gracefully, but you can listen for disconnection:
+The Lab13 SDK handles connection issues gracefully, but you can listen for disconnection:
 
 ```js
-client.on('disconnected', () => {
+socket.addEventListener('close', () => {
   console.log('Lost connection to server')
   // Show a "reconnecting..." message
   showReconnectingMessage()
 })
 
-// When reconnected, you'll get 'connected' and 'state' events again
-client.on('connected', () => {
+// When reconnected, you'll get client events again
+socket.addEventListener('open', () => {
   hideReconnectingMessage()
+  // Query for current clients
+  client.queryPlayerIds()
 })
 ```
 
-## Mutating State
+## Custom Message Handling
 
-Use `client.updateMyState(partial)` to change your own player, and `client.updateState(partial)` for shared/global data. Only the fields you provide are merged; everything else stays the same.
+Since Lab13 extends the base protocol, you'll need to handle custom game messages:
+
+```js
+socket.addEventListener('message', (event) => {
+  const msg = event.data.toString()
+
+  // Handle custom game messages
+  if (msg.startsWith('init:')) {
+    const state = JSON.parse(msg.slice(5))
+    createClientElement(client.playerId(), state)
+  } else if (msg.startsWith('move:')) {
+    const [clientId, x, y] = msg.slice(5).split(',')
+    updateClientPosition(clientId, parseInt(x), parseInt(y))
+  } else if (msg === 'getState') {
+    // Respond with current state
+    const myState = getMyState()
+    client.sendToPlayer(client.playerId(), `init:${JSON.stringify(myState)}`)
+  }
+})
+```
+
+## State Management
+
+Use the Lab13 SDK's communication methods to manage game state:
 
 ```js
 // Example: move my player based on input
@@ -169,24 +213,78 @@ function tick() {
   const dx = (keys.ArrowRight ? 1 : 0) - (keys.ArrowLeft ? 1 : 0)
   const dy = (keys.ArrowDown ? 1 : 0) - (keys.ArrowUp ? 1 : 0)
 
-  const mine = client.getMyState(true)
-  client.updateMyState({ x: (mine.x || 0) + dx, y: (mine.y || 0) + dy })
+  if (dx !== 0 || dy !== 0) {
+    const myState = getMyState()
+    const newX = (myState.x || 0) + dx
+    const newY = (myState.y || 0) + dy
+
+    // Update local state
+    updateMyState({ x: newX, y: newY })
+
+    // Send movement to all clients
+    client.sendToAll(`move:${client.playerId()},${newX},${newY}`)
+  }
 }
 
 // Example: spawn a shared world item
 const itemId = 'item-' + Math.random().toString(36).slice(2)
-client.updateState({
-  items: {
-    [itemId]: { x: 200, y: 120, owner: client.getMyId() },
-  },
+client.sendToAll(`spawn:${itemId}:${JSON.stringify({ x: 200, y: 120, owner: client.playerId() })}`)
+```
+
+## Bot Integration
+
+The Lab13 SDK makes it easy to integrate monitoring bots into your games:
+
+```js
+// Create a monitoring bot client
+const botClient = Lab13Client(socket, { bot: true })
+
+// Bot monitoring behavior
+botClient.on('player-id-updated', (event) => {
+  const botId = event.detail
+  console.log('Monitor bot ID assigned:', botId)
+
+  // Start monitoring (no game interaction)
+  setInterval(() => {
+    const stats = {
+      players: botClient.playerIds().length,
+      totalClients: botClient.clientIds().length,
+      timestamp: Date.now(),
+    }
+    console.log('Game stats:', stats)
+  }, 5000)
+})
+
+// Handle bot events in your main client
+client.on('bot-ids-updated', (event) => {
+  const bots = event.detail
+  console.log('Active monitor bots:', bots)
+
+  // Update monitoring systems
+  updateMonitoring(bots)
 })
 ```
 
-## How saving works (local-first)
+> **Important**: Bots can only monitor the game. They cannot send game state updates or interact with gameplay per JS13K Online competition rules.
 
-- When you call `updateMyState` or `updateState`, the SDK writes the change to your local state immediately (optimistic), then batches and sends a delta to the server.
-- The server relays your delta to all clients. You will also receive your own delta via `client.on('delta', ...)`, which keeps everyone in sync.
-- Read the latest local copy anytime with `client.getState()`, `client.getMyState()`, or `client.getPlayerState(id)`.
+## How State Synchronization Works
+
+- When you send messages via `sendToPlayer` or `sendToAll`, the Lab13 SDK uses the base JS13K Online protocol to relay your messages.
+- The server broadcasts your messages to other clients using the standard protocol.
+- You handle incoming messages by listening to the socket's `message` event and parsing custom game messages.
+- The Lab13 SDK automatically handles player ID management and connection tracking.
+
+## Lab13 SDK vs Base Protocol
+
+The Lab13 SDK enhances the base JS13K Online protocol with:
+
+- **Automatic Client Tracking**: No need to manually query for connected clients
+- **Enhanced Events**: Rich event system for client management
+- **Bot Support**: Built-in support for AI players
+- **Type Safety**: Full TypeScript support with proper event typing
+- **Convenience Methods**: Higher-level APIs for common multiplayer patterns
+
+The base protocol provides the core communication primitives, while Lab13 adds the conveniences that make multiplayer game development easier.
 
 ## Learn more
 
@@ -197,3 +295,4 @@ The tutorials (@tutorials/) feature more advanced state management patterns:
 - [Throttling Updates](./tutorials/throttling)
 - [Evaluating Deltas](./tutorials/delta-evaluator)
 - [State Ownership](./tutorials/ownership)
+- [Lab13 SDK API Reference](./api-reference)

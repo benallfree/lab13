@@ -1,12 +1,12 @@
-# JS13K Online Monorepo
+# Lab 13 Monorepo
 
-The official client SDK for the 2025 JS13K Online Challenge.
+The official client SDK for the 2025 Lab 13 Challenge.
 
 ## Installation
 
 ```html
 <script type="module">
-  import Js13kClient from 'https://esm.sh/js13k-online'
+  import Js13kClient from 'https://esm.sh/js13k'
 </script>
 ```
 

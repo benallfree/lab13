@@ -5,9 +5,9 @@ import { themes as prismThemes } from 'prism-react-renderer'
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
 const config: Config = {
-  title: 'JS13K Online',
-  tagline: 'Turn your JS13K game into an MMO',
-  favicon: 'img/favicon.webp',
+  title: 'Lab 13',
+  tagline: 'Unofficial JS13K experiments and tutorials',
+  favicon: 'img/13.svg',
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
   future: {
@@ -15,7 +15,7 @@ const config: Config = {
   },
 
   // Set the production url of your site here
-  url: 'https://online.js13kgames.com',
+  url: 'https://js13k.benallfree.com',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
   baseUrl: '/',
@@ -23,7 +23,7 @@ const config: Config = {
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
   organizationName: 'benallfree', // Usually your GitHub org/user name.
-  projectName: 'js13k-online', // Usually your repo name.
+  projectName: 'js13k-site', // Usually your repo name.
 
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
@@ -44,7 +44,7 @@ const config: Config = {
           sidebarPath: './sidebars.ts',
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
-          editUrl: 'https://github.com/benallfree/js13k-online/tree/main/my-website',
+          editUrl: 'https://github.com/benallfree/js13k/tree/main/site',
         },
         blog: {
           showReadingTime: true,
@@ -54,7 +54,7 @@ const config: Config = {
           },
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
-          editUrl: 'https://github.com/benallfree/js13k-online/tree/main/my-website',
+          editUrl: 'https://github.com/benallfree/js13k/tree/main/site',
           // Useful options to enforce blogging best practices
           onInlineTags: 'warn',
           onInlineAuthors: 'warn',
@@ -78,22 +78,22 @@ const config: Config = {
     // Replace with your project's social card
     image: 'img/oembed.webp',
     navbar: {
-      title: 'JS13K Online',
+      title: '',
       logo: {
-        alt: 'JS13K Online Logo',
-        src: 'img/favicon.webp',
+        alt: 'Lab 13',
+        src: 'img/13.svg',
       },
       items: [
-        { to: '/lobby', label: 'Lobby', position: 'left' },
+        { to: '/lobby', label: 'Games', position: 'left' },
         {
           type: 'docSidebar',
           sidebarId: 'tutorialSidebar',
-          position: 'right',
-          label: 'Docs',
+          position: 'left',
+          label: 'Tutorials',
         },
         { to: '/blog', label: 'Blog', position: 'right' },
         {
-          href: 'https://github.com/benallfree/js13k-online',
+          href: 'https://github.com/benallfree/js13k',
           label: 'GitHub',
           position: 'right',
         },
@@ -133,12 +133,12 @@ const config: Config = {
             },
             {
               label: 'GitHub',
-              href: 'https://github.com/benallfree/js13k-online',
+              href: 'https://github.com/benallfree/js13k',
             },
           ],
         },
       ],
-      copyright: `MIT open source by Ben Allfree. Sponsored by Cloudflare.`,
+      copyright: `MIT open source by Ben Allfree.`,
     },
     prism: {
       theme: prismThemes.github,

@@ -2,9 +2,9 @@
   "mode": "pre",
   "tag": "rc",
   "initialVersions": {
-    "js13k-online": "0.0.1",
-    "js13k-online-server": "0.0.0",
-    "js13k-online-site": "0.0.0"
+    "js13k": "0.0.1",
+    "js13k-server": "0.0.0",
+    "js13k-site": "0.0.0"
   },
   "changesets": []
 }
