@@ -60,7 +60,7 @@ That's it! Your game now has real-time multiplayer capabilities.
 
 See js13k in action with these working examples:
 
-- 🎨 **[Paint Demo](/lobby/paint)** - Collaborative pixel art with real-time drawing
+- 🎨 **[Mewsterpiece](/lobby/mewsterpiece)** - Collaborative cat coloring book
 - 🏎️ **[Cars Demo](/lobby/cars)** - Multiplayer racing with physics
 - 🐱 **[Black Cats Demo](/lobby/cats)** - Chase mice with black cats
 - ✈️ **[Flight Simulator](/lobby/flight)** - 3D multiplayer flight simulation
