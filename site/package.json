@@ -7,7 +7,7 @@
     "start": "docusaurus start",
     "build": "docusaurus build",
     "swizzle": "docusaurus swizzle",
-    "deploy": "cd ../sdk && bun run build && cd ../site && wrangler deploy",
+    "deploy": "cd ../sdk && bun run build && cd ../site && bun run build &&wrangler deploy",
     "clear": "docusaurus clear",
     "serve": "docusaurus serve",
     "write-translations": "docusaurus write-translations",
