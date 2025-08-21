@@ -12,6 +12,7 @@ The Lab13 SDK extends the base JS13K Online protocol with additional convenience
 - **Protocol Extensions**: Additional message types for common multiplayer scenarios
 - **Type Safety**: Full TypeScript support with proper event typing
 - **Convenience Methods**: Higher-level APIs for common multiplayer patterns
+- **State Management**: Built-in state synchronization with deep merging and delta updates
 
 While you can use the raw JS13K Online protocol directly, the Lab13 SDK handles the complexity of player ID management and connection tracking for you.
 
@@ -48,6 +49,15 @@ npm i lab13-sdk
   client.on('client-disconnected', (event) => {
     console.log('Client left:', event.detail)
   })
+
+  // State management
+  client.on('state-updated', (event) => {
+    console.log('State updated:', event.detail.state)
+    console.log('Delta received:', event.detail.delta)
+  })
+
+  // Generate unique IDs for game entities
+  const entityId = client.generateId() // e.g., "k7m9n2p4q5r6s8t9"
 </script>
 ```
 
@@ -67,6 +77,40 @@ client.on('bot-ids-updated', (event) => {
 
 > **Note**: Per JS13K Online rules, bots can only monitor the game. They cannot interact with or alter game state.
 
+## State Management
+
+The SDK provides built-in state synchronization with automatic deep merging:
+
+```js
+// Get current state
+const currentState = client.state()
+
+// Update state (automatically syncs to all clients)
+client.mutateState({
+  players: {
+    [playerId]: {
+      position: { x: 100, y: 200 },
+      health: 100,
+    },
+  },
+})
+
+// Listen for state updates
+client.on('state-updated', (event) => {
+  const { state, delta } = event.detail
+  // Handle state changes
+  updateGameDisplay(state)
+})
+```
+
+### State Protocol
+
+The SDK implements a state synchronization protocol:
+
+- **`?s<replyId>`**: Request full state from a specific client
+- **`.s<json>`**: Response with full state data
+- **`d<json>`**: Delta update to merge into current state
+
 ## API Reference
 
 ### Core Methods
@@ -77,11 +121,17 @@ client.on('bot-ids-updated', (event) => {
 - `botIds()` - Get array of all connected bot IDs
 - `clientType()` - Get your client type ('player' or 'bot')
 - `queryPlayerIds()` - Request updated player list from server
+- `generateId()` - Generate a compact 16-character unique ID
 
 ### Communication Methods
 
 - `sendToPlayer(playerId, message)` - Send message to specific player
 - `sendToAll(message)` - Broadcast message to all players
+
+### State Management Methods
+
+- `state()` - Get current state object
+- `mutateState(delta)` - Update state and sync to all clients
 
 ### Event Handling
 
@@ -96,6 +146,7 @@ client.on('bot-ids-updated', (event) => {
 - `client-ids-updated` - Complete client list changed
 - `player-ids-updated` - Player list changed (excluding bots)
 - `bot-ids-updated` - Bot list changed
+- `state-updated` - State was updated (includes current state and delta)
 
 ## Protocol Extensions
 
@@ -103,9 +154,10 @@ Lab13 extends the base JS13K Online protocol with:
 
 1. **Player ID Queries** (`?i` messages) - Automatically track connected players
 2. **Bot Support** (`b` messages) - Separate bot tracking for monitoring
-3. **Enhanced Events** - Rich event system for player and bot management
-4. **Type Safety** - Full TypeScript support with proper event typing
-5. **Convenience Methods** - Higher-level APIs for common multiplayer patterns
+3. **State Management** (`?s`, `.s`, `d` messages) - State synchronization with deep merging
+4. **Enhanced Events** - Rich event system for player and bot management
+5. **Type Safety** - Full TypeScript support with proper event typing
+6. **Convenience Methods** - Higher-level APIs for common multiplayer patterns
 
 The base protocol provides the core communication primitives, while Lab13 adds the conveniences that make multiplayer game development easier.
 
