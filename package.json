@@ -24,8 +24,7 @@
   },
   "workspaces": [
     "sdk",
-    "site",
-    "server"
+    "site"
   ],
   "trustedDependencies": [
     "advzip-bin",
