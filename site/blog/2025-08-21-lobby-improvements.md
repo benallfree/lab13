@@ -9,6 +9,8 @@ tags: [js13k, lab13]
 
 Lab13 now features a lobby showing the player count and online status of all JS13K Online games! The new lobby provides real-time visibility into game activity, making it easy to find active games and join the fun.
 
+![](2025-08-21-13-40-41.png)
+
 ## What's New
 
 ### 🟢 Now Playing Section
