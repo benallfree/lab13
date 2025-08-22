@@ -21,9 +21,9 @@ Some entities should be owned by exactly one client. The owner simulates and wri
 
 ### Marking ownership on spawn
 
-Give each spawned item an `owner` set to your player id. In the Cats demo, a mouse is created with `owner: client.getMyId()`:
+Give each spawned item an `owner` set to your player id. In the Cats demo, a mouse is created with `owner: client.playerId()`:
 
-```327:343:site/static/games/cats/index.html
+```js
 // Generate a new mouse
 function spawnMouse() {
   const mouseId = generateUUID()
@@ -32,10 +32,10 @@ function spawnMouse() {
     y: Math.random() * (canvas.height - 40) + 20,
     vx: (Math.random() - 0.5) * 2,
     vy: (Math.random() - 0.5) * 2,
-    owner: client.getMyId(),
+    owner: client.playerId(),
   }
 
-  client.updateState({
+  client.mutateState({
     _mice: {
       [mouseId]: newMouse,
     },
@@ -47,14 +47,14 @@ function spawnMouse() {
 
 Each client renders everything, but only moves items they own. Non‑owners do not mutate those items.
 
-```345:376:site/static/games/cats/index.html
+```js
 // Update mice positions (only for mice you own)
 function updateMice() {
-  const state = client.getState()
+  const state = client.state()
   if (!state._mice) return
 
   Object.entries(state._mice).forEach(([mouseId, mouse]) => {
-    if (mouse.owner === client.getMyId()) {
+    if (mouse.owner === client.playerId()) {
       // Update position
       mouse.x += mouse.vx
       mouse.y += mouse.vy
@@ -72,7 +72,7 @@ function updateMice() {
       mouse.y = Math.max(10, Math.min(canvas.height - 10, mouse.y))
 
       // Send updated position
-      client.updateState({
+      client.mutateState({
         _mice: {
           [mouseId]: mouse,
         },
@@ -111,17 +111,17 @@ function simpleHash(str) {
   return h >>> 0
 }
 
-// Run on an interval or in response to 'delta' events
+// Run on an interval or in response to 'state-updated' events
 function adoptOrphans() {
-  const state = client.getState()
+  const state = client.state()
   const livePlayerIds = Object.keys(state._players || {})
-  const myId = client.getMyId()
+  const myId = client.playerId()
 
   Object.entries(state._mice || {}).forEach(([mouseId, mouse]) => {
     const ownerAlive = mouse.owner && state._players?.[mouse.owner] != null
     if (!ownerAlive && amDesignatedOwner(mouseId, livePlayerIds, myId)) {
       // Adopt by setting owner to me; keep other fields unchanged
-      client.updateState({ _mice: { [mouseId]: { ...mouse, owner: myId } } })
+      client.mutateState({ _mice: { [mouseId]: { ...mouse, owner: myId } } })
     }
   })
 }
@@ -141,22 +141,22 @@ Key idea: elect a master deterministically (e.g., lowest player id). Only the ma
 
 ```js
 class MasterClient {
-  constructor(roomId) {
-    this.client = new Js13kClient(roomId)
+  constructor(client) {
+    this.client = client
     this.isMaster = false
     this.masterId = undefined
     this.connectedPlayers = new Set()
 
-    this.client.on('connect', (playerId) => {
-      this.connectedPlayers.add(playerId)
+    this.client.on('client-connected', (event) => {
+      this.connectedPlayers.add(event.detail)
       this.recomputeMaster()
     })
-    this.client.on('disconnect', (playerId) => {
-      this.connectedPlayers.delete(playerId)
+    this.client.on('client-disconnected', (event) => {
+      this.connectedPlayers.delete(event.detail)
       this.recomputeMaster() // promotes next leader if the master left
     })
-    this.client.on('id', (myId) => {
-      this.myId = myId
+    this.client.on('player-id-updated', (event) => {
+      this.myId = event.detail
       this.recomputeMaster()
     })
   }
@@ -208,9 +208,9 @@ Promotion occurs automatically when the current master disconnects or when a new
 
 ```js
 // Any client can run this; only the elected master will keep the loop running
-client.on('disconnect', () => master.recomputeMaster())
-client.on('connect', () => master.recomputeMaster())
-client.on('id', () => master.recomputeMaster())
+client.on('client-disconnected', () => master.recomputeMaster())
+client.on('client-connected', () => master.recomputeMaster())
+client.on('player-id-updated', () => master.recomputeMaster())
 ```
 
 ## Best practices
@@ -219,9 +219,9 @@ client.on('id', () => master.recomputeMaster())
 - Only the owner mutates owned items; everyone else treats them as read‑only.
 - Handle disconnections: either accept orphans (like Cats) or adopt them deterministically.
 - Combine with throttling/quantization/evaluation to reduce network noise:
-  - `deltaNormalizer` to snap movement
-  - `deltaEvaluator` to skip low‑value updates
-  - `throttleMs` to batch frequent changes
+  - Manual normalization to snap movement
+  - Custom delta evaluation to skip low‑value updates
+  - Manual throttling to batch frequent changes
 
 ## See also
 

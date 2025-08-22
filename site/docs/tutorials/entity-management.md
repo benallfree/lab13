@@ -30,21 +30,21 @@ Why underscore? It signals “this object holds entities with strong deletion se
 ## Creating GUID‑keyed entities
 
 ```js
-import Js13kClient, { generateUUID } from 'https://esm.sh/js13k'
+import { Lab13Client } from 'https://esm.sh/js13k'
 
 // Create a new mouse entity in an entity collection
 const mouseId = generateUUID()
-client.updateState({
+client.mutateState({
   _mice: {
-    [mouseId]: { x: 100, y: 150, owner: client.getMyId() },
+    [mouseId]: { x: 100, y: 150, owner: client.playerId() },
   },
 })
 
 // Update it later
-client.updateState({ _mice: { [mouseId]: { x: 120 } } })
+client.mutateState({ _mice: { [mouseId]: { x: 120 } } })
 
 // Delete via tombstone (null) — further updates for mouseId will be dropped
-client.updateState({ _mice: { [mouseId]: null } })
+client.mutateState({ _mice: { [mouseId]: null } })
 ```
 
 Behind the scenes, the SDK/server will:
@@ -65,10 +65,14 @@ Example:
 
 ```js
 // Update my player state
-client.updateMyState({ x: 300, y: 240, name: 'Player' })
+client.mutateState({
+  _players: {
+    [client.playerId()]: { x: 300, y: 240, name: 'Player' },
+  },
+})
 
 // Remove another entity collection entry you own (game‑specific rules)
-client.updateState({ _mice: { [someMouseId]: null } })
+client.mutateState({ _mice: { [someMouseId]: null } })
 ```
 
 ## Choosing a structure

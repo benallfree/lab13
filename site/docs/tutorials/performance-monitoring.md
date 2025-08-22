@@ -23,20 +23,25 @@ class PerformanceMonitor {
 
   setupMonitoring() {
     // Track messages
-    this.client.on('delta', () => {
+    this.client.on('state-updated', (event) => {
       this.metrics.messagesReceived++
-      this.metrics.stateSize = JSON.stringify(this.client.getState()).length
+      this.metrics.stateSize = JSON.stringify(this.client.state()).length
     })
 
     // Measure latency
     setInterval(() => {
       const start = performance.now()
-      this.client.updateMyState({ ping: start })
+      this.client.mutateState({
+        _players: {
+          [this.client.playerId()]: { ping: start },
+        },
+      })
     }, 5000)
 
-    this.client.on('delta', (delta) => {
-      if (delta._players?.[this.client.getMyId()]?.ping) {
-        const latency = performance.now() - delta._players[this.client.getMyId()].ping
+    this.client.on('state-updated', (event) => {
+      const { delta } = event.detail
+      if (delta._players?.[this.client.playerId()]?.ping) {
+        const latency = performance.now() - delta._players[this.client.playerId()].ping
         this.metrics.averageLatency = (this.metrics.averageLatency + latency) / 2
       }
     })
@@ -45,8 +50,8 @@ class PerformanceMonitor {
   getReport() {
     return {
       ...this.metrics,
-      playersConnected: Object.keys(this.client.getState()._players).length,
-      connectionStatus: this.client.isConnected(),
+      playersConnected: Object.keys(this.client.state()._players || {}).length,
+      connectionStatus: this.client.playerId() !== null,
     }
   }
 }

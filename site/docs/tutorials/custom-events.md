@@ -9,19 +9,20 @@ The SDK and server recognize a small set of standard message keys and forward ev
 
 ## Standard keys
 
-- **id**: Your connection id. Emitted once on connect via `client.on('id', (myId) => ...)`.
-- **state**: The initial full game state. `client.on('state', (state) => ...)`.
-- **delta**: Incremental state updates from other clients. `client.on('delta', (delta) => ...)`.
-- **connect**: Another client connected. `client.on('connect', (playerId) => ...)`.
-- **disconnect**: A client disconnected. `client.on('disconnect', (playerId) => ...)`.
-- **stats**: Room/lobby stats broadcast by the server. Not special‑cased by the SDK; you can subscribe with `client.on('stats', (payload) => ...)`.
+- **player-id-updated**: Your connection id. Emitted once on connect via `client.on('player-id-updated', (event) => ...)`.
+- **state-updated**: State updates from other clients. `client.on('state-updated', (event) => ...)`.
+- **client-connected**: Another client connected. `client.on('client-connected', (event) => ...)`.
+- **client-disconnected**: A client disconnected. `client.on('client-disconnected', (event) => ...)`.
+- **client-ids-updated**: List of all connected clients updated. `client.on('client-ids-updated', (event) => ...)`.
+- **player-ids-updated**: List of all connected players updated. `client.on('player-ids-updated', (event) => ...)`.
+- **bot-ids-updated**: List of all connected bots updated. `client.on('bot-ids-updated', (event) => ...)`.
 
 Any other top‑level keys are treated as custom events and are forwarded untouched to all clients and emitted by the SDK using the same key name.
 
 ## When to use deltas vs custom events
 
-- **Deltas** (`client.updateState(...)`, `client.updateMyState(...)`): For shared, durable game state that should be merged and reflected in everyone’s `client.getState()`.
-- **Custom events** (`ws.send({ someKey: ... })`): For ephemeral signals that don’t belong in shared state (e.g., chat messages, sound triggers, one‑shot actions, pings).
+- **Deltas** (`client.mutateState(...)`): For shared, durable game state that should be merged and reflected in everyone's `client.state()`.
+- **Custom events** (`ws.send({ someKey: ... })`): For ephemeral signals that don't belong in shared state (e.g., chat messages, sound triggers, one‑shot actions, pings).
 
 ## Receiving custom events
 
@@ -45,11 +46,11 @@ Because the SDK focuses its public API on state (deltas), use the underlying Web
 
 ```js
 // Send a chat message to all other clients
-const ws = client /* Js13kClient */['socket'] // access the underlying WebSocket
-ws?.send(JSON.stringify({ chat: { text: 'Hello!', from: client.getMyId() } }))
+const ws = client.socket // access the underlying WebSocket
+ws?.send(JSON.stringify({ chat: { text: 'Hello!', from: client.playerId() } }))
 
 // Trigger a custom emote
-ws?.send(JSON.stringify({ emote: { type: 'wave', playerId: client.getMyId() } }))
+ws?.send(JSON.stringify({ emote: { type: 'wave', playerId: client.playerId() } }))
 ```
 
 Notes:
@@ -64,11 +65,12 @@ If your custom data should persist in shared state, include it in a delta instea
 
 ```js
 // Persist weather in shared world state
-client.updateState({ world: { weather: 'rain' } })
+client.mutateState({ world: { weather: 'rain' } })
 
-// Everyone receives it in the next delta
-client.on('delta', (d) => {
-  if (d.world?.weather) applyWeather(d.world.weather)
+// Everyone receives it in the next state-updated event
+client.on('state-updated', (event) => {
+  const { delta } = event.detail
+  if (delta.world?.weather) applyWeather(delta.world.weather)
 })
 ```
 

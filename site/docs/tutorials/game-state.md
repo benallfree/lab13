@@ -33,6 +33,27 @@ Your game state is a JavaScript object that gets synchronized across all clients
 
 Keys that start with `_` and contain objects are treated as entity collections. Entries are presumed to be GUID‑keyed, and setting an entry to `null` tombstones it so no future updates to that GUID are accepted. This prevents race conditions on deleted entities. See the tutorial "Managing Entities and Collections" for when to use underscored vs non‑underscored collections.
 
+### Tombstoning
+
+When you set an entity to `null` in an entity collection, it becomes "tombstoned":
+
+- The entity is marked as deleted
+- Future updates to that entity ID are ignored
+- This prevents race conditions on deleted entities
+- Tombstones persist for the duration of the session
+
+```js
+// This mouse is now deleted and cannot be resurrected
+client.mutateState({
+  _mice: { [mouseId]: null },
+})
+
+// This update will be ignored due to tombstoning
+client.mutateState({
+  _mice: { [mouseId]: { x: 300, y: 400 } }, // Ignored!
+})
+```
+
 ## The `_players` Collection
 
 The `_players` object is special - the server automatically manages player connections and disconnections:
@@ -64,25 +85,21 @@ The SDK provides several methods for working with state:
 
 ```js
 // Get the complete game state
-const fullState = client.getState()
+const fullState = client.state()
 console.log(fullState._players, fullState.world)
 
 // Get your own player state
-const myState = client.getMyState()
-console.log('My position:', myState.x, myState.y)
+const myState = fullState._players[client.playerId()]
+console.log('My position:', myState?.x, myState?.y)
 
 // Get another player's state
-const otherPlayer = client.getPlayerState('other-player-id')
+const otherPlayer = fullState._players['other-player-id']
 console.log('Other player health:', otherPlayer?.health)
-
-// Get a copy (safe to modify without affecting the original)
-const myStateCopy = client.getMyState(true)
-myStateCopy.x += 10 // Won't affect the real state
 ```
 
 ### Updating State
 
-There are two main ways to update state:
+The primary method for updating state is `mutateState()`:
 
 #### Update Your Player State
 
@@ -90,17 +107,27 @@ Most common - update your own player data:
 
 ```js
 // Update specific properties of your player
-client.updateMyState({
-  x: newX,
-  y: newY,
+client.mutateState({
+  _players: {
+    [client.playerId()]: {
+      x: newX,
+      y: newY,
+    },
+  },
 })
 
 // Update nested properties
-client.updateMyState({
-  inventory: [...myState.inventory, 'new-item'],
-  stats: {
-    ...myState.stats,
-    level: myState.stats.level + 1,
+const currentState = client.state()
+const myState = currentState._players[client.playerId()] || {}
+client.mutateState({
+  _players: {
+    [client.playerId()]: {
+      inventory: [...(myState.inventory || []), 'new-item'],
+      stats: {
+        ...(myState.stats || {}),
+        level: (myState.stats?.level || 0) + 1,
+      },
+    },
   },
 })
 ```
@@ -111,7 +138,7 @@ For global game state (use carefully):
 
 ```js
 // Update world state
-client.updateState({
+client.mutateState({
   world: {
     score: currentScore + 100,
     items: updatedItems,
@@ -119,7 +146,7 @@ client.updateState({
 })
 
 // Update multiple players (for game master scenarios)
-client.updateState({
+client.mutateState({
   _players: {
     'player-1': { health: 50 },
     'player-2': { health: 75 },
@@ -127,20 +154,54 @@ client.updateState({
 })
 ```
 
-## Delta System
+## Delta System and Deep Merging
 
-The SDK uses a delta-based system for efficiency - only changes are sent over the network:
+The SDK uses a delta-based system for efficiency - only changes are sent over the network. It also uses deep merging to combine state updates:
 
 ```js
-// Instead of sending the entire state every time...
-const fullState = {
+// Initial state
+const state = {
   _players: {
-    'me': { x: 100, y: 200, health: 100, name: 'Alice', inventory: [...] }
-  }
+    'player-1': { x: 100, y: 200, health: 100, name: 'Alice' },
+  },
 }
 
-// Only the changes are sent:
-client.updateMyState({ x: 101, y: 202 }) // Only position changed
+// Update only position
+client.mutateState({
+  _players: {
+    'player-1': { x: 150, y: 250 },
+  },
+})
+
+// Result: health and name are preserved, only x and y are updated
+// { _players: { 'player-1': { x: 150, y: 250, health: 100, name: 'Alice' } } }
+```
+
+### Deep Merge Behavior
+
+- **Objects**: Merged recursively
+- **Arrays**: Replaced entirely (not merged)
+- **Primitives**: Replaced
+- **Null values**: Delete the key (for entity collections, this creates a tombstone)
+
+```js
+// Deep merge example
+const currentState = {
+  player: {
+    position: { x: 100, y: 200 },
+    inventory: ['sword', 'shield'],
+    stats: { health: 100, mana: 50 },
+  },
+}
+
+// Update
+client.mutateState({
+  player: {
+    position: { x: 150 }, // Only x changes, y is preserved
+    inventory: ['sword', 'shield', 'potion'], // Array is replaced
+    stats: { health: 75 }, // Only health changes, mana is preserved
+  },
+})
 ```
 
 ### Listening for Changes
@@ -149,7 +210,8 @@ Track state changes with events:
 
 ```js
 // Listen for any state changes
-client.on('delta', (delta) => {
+client.on('state-updated', (event) => {
+  const { state, delta } = event.detail
   console.log('State changed:', delta)
 
   // Delta might look like:
@@ -159,10 +221,14 @@ client.on('delta', (delta) => {
   updateGameVisuals(delta)
 })
 
-// Listen for the initial state
-client.on('state', (fullState) => {
-  console.log('Initial state received:', fullState)
-  initializeGame(fullState)
+// Listen for the initial state (same event)
+client.on('state-updated', (event) => {
+  const { state, delta } = event.detail
+  if (!delta) {
+    // This is the initial state
+    console.log('Initial state received:', state)
+    initializeGame(state)
+  }
 })
 ```
 
@@ -174,23 +240,31 @@ Most games focus on player state:
 
 ```js
 // Racing game
-client.updateMyState({
-  x: carX,
-  y: carY,
-  rotation: carAngle,
-  speed: currentSpeed,
-  lap: currentLap,
+client.mutateState({
+  _players: {
+    [client.playerId()]: {
+      x: carX,
+      y: carY,
+      rotation: carAngle,
+      speed: currentSpeed,
+      lap: currentLap,
+    },
+  },
 })
 
 // RPG game
-client.updateMyState({
-  x: characterX,
-  y: characterY,
-  level: playerLevel,
-  health: currentHealth,
-  equipment: {
-    weapon: 'sword',
-    armor: 'chainmail',
+client.mutateState({
+  _players: {
+    [client.playerId()]: {
+      x: characterX,
+      y: characterY,
+      level: playerLevel,
+      health: currentHealth,
+      equipment: {
+        weapon: 'sword',
+        armor: 'chainmail',
+      },
+    },
   },
 })
 ```
@@ -206,25 +280,24 @@ import { generateUUID } from 'https://esm.sh/js13k'
 // Spawn a new mouse
 function spawnMouse() {
   const mouseId = generateUUID()
-  client.updateState({
+  client.mutateState({
     _mice: {
       [mouseId]: {
         x: Math.random() * 800,
         y: Math.random() * 600,
         vx: (Math.random() - 0.5) * 2,
         vy: (Math.random() - 0.5) * 2,
-        owner: client.getMyId(), // Only owner can move this mouse
+        owner: client.playerId(), // Only owner can move this mouse
       },
     },
   })
 }
 
-// Remove a mouse when caught
+// Remove a mouse when caught using tombstoning
 function catchMouse(mouseId) {
-  const state = client.getState()
-  const updatedMice = { ...state._mice }
-  delete updatedMice[mouseId]
-  client.updateState({ _mice: updatedMice })
+  client.mutateState({
+    _mice: { [mouseId]: null },
+  })
 }
 ```
 
@@ -233,7 +306,7 @@ function catchMouse(mouseId) {
 
 ```js
 // Tower defense - shared world state
-client.updateState({
+client.mutateState({
   world: {
     towers: [
       { id: 1, x: 100, y: 100, type: 'cannon', owner: myId },
@@ -244,7 +317,7 @@ client.updateState({
 })
 
 // City builder - collaborative building
-client.updateState({
+client.mutateState({
   world: {
     buildings: {
       1: { type: 'house', x: 100, y: 100, owner: myId },
@@ -274,27 +347,34 @@ for (let i = 0; i < 100; i++) {
 
 ### Delta Evaluation
 
-Control when updates should be sent:
+The Lab 13 SDK doesn't currently support delta evaluation in the same way as the previous version. Instead, you can implement your own throttling and evaluation logic:
 
 ```js
-const client = new Js13kClient('my-room', {
-  throttleMs: 16, // 60 FPS
-  deltaEvaluator: (delta, remoteState, playerId) => {
-    // Only send position updates if player moved significantly
-    if (delta._players?.[playerId]) {
-      const playerDelta = delta._players[playerId]
-      const oldPos = remoteState._players?.[playerId] || {}
+// Manual throttling for position updates
+let lastUpdateTime = 0
+const UPDATE_THROTTLE = 50 // ms
 
-      if (playerDelta.x !== undefined || playerDelta.y !== undefined) {
-        const dx = Math.abs(playerDelta.x - (oldPos.x || 0))
-        const dy = Math.abs(playerDelta.y - (oldPos.y || 0))
-        return dx > 5 || dy > 5 // Only send if moved > 5 pixels
-      }
-    }
+function updatePlayerPosition(x, y) {
+  const now = Date.now()
+  if (now - lastUpdateTime < UPDATE_THROTTLE) {
+    return // Skip update if too soon
+  }
 
-    return true // Send other updates normally
-  },
-})
+  // Only send if movement is significant
+  const currentState = client.state()
+  const myState = currentState._players[client.playerId()] || {}
+  const dx = Math.abs(x - (myState.x || 0))
+  const dy = Math.abs(y - (myState.y || 0))
+
+  if (dx > 5 || dy > 5) {
+    client.mutateState({
+      _players: {
+        [client.playerId()]: { x, y },
+      },
+    })
+    lastUpdateTime = now
+  }
+}
 ```
 
 ## State Validation
@@ -329,25 +409,48 @@ client.on('delta', (delta) => {
 })
 ```
 
-### Normalizing Outgoing Deltas (normalizeDelta)
+### Normalizing Outgoing Deltas
 
-Before your changes are evaluated and sent, you can normalize them. This is helpful to reduce network noise (e.g., round positions).
+You can normalize your deltas before sending them to reduce network noise (e.g., round positions):
 
 ```js
-const client = new Js13kClient('my-room', {
-  deltaNormalizer: (delta) => ({
-    ...delta,
-    _players: Object.fromEntries(
-      Object.entries(delta._players || {}).map(([id, p]) => [
-        id,
-        p == null ? null : { ...p, x: Math.round(p.x || 0), y: Math.round(p.y || 0) },
-      ])
-    ),
-  }),
-})
+// Helper function to normalize position data
+function normalizePosition(delta) {
+  if (delta._players) {
+    const normalized = { ...delta }
+    normalized._players = {}
+
+    Object.entries(delta._players).forEach(([id, player]) => {
+      if (player && typeof player === 'object') {
+        normalized._players[id] = {
+          ...player,
+          x: player.x !== undefined ? Math.round(player.x) : player.x,
+          y: player.y !== undefined ? Math.round(player.y) : player.y,
+        }
+      } else {
+        normalized._players[id] = player
+      }
+    })
+
+    return normalized
+  }
+  return delta
+}
+
+// Use before sending updates
+function updatePlayerPosition(x, y) {
+  const delta = {
+    _players: {
+      [client.playerId()]: { x, y },
+    },
+  }
+
+  const normalized = normalizePosition(delta)
+  client.mutateState(normalized)
+}
 ```
 
-You can also use `deltaNormalizer` to strip local-only fields that should not be mirrored in shared state. For example, in the Black Cats demo (`site/static/lobby/cats/index.html`) we omit `mouse.vx` and `mouse.vy` so velocity is simulated locally only.
+You can also strip local-only fields that should not be mirrored in shared state. For example, in the Black Cats demo, velocity (`vx`, `vy`) is simulated locally only and not sent over the network.
 
 ### Authoritative Patterns
 

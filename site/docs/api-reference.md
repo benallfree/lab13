@@ -102,6 +102,16 @@ Requests an updated list of all player IDs from the server.
 client.queryPlayerIds()
 ```
 
+##### `generateId(): string`
+
+Generates a compact 16-character unique identifier.
+
+```js
+// Generate unique ID for game entities
+const entityId = client.generateId() // e.g., "k7m9n2p4q5r6s8t9"
+const playerId = client.generateId() // e.g., "a1b2c3d4e5f6g7h8"
+```
+
 #### Communication
 
 ##### `sendToPlayer(playerId: string, message: string): void`
@@ -128,6 +138,45 @@ Broadcasts a message to all connected players.
 ```js
 client.sendToAll('move:player-123,100,200')
 client.sendToAll('chat:Hello everyone!')
+```
+
+#### State Management
+
+##### `state(): T`
+
+Returns the current game state.
+
+```js
+const currentState = client.state()
+console.log('Current players:', currentState._players)
+console.log('World state:', currentState.world)
+```
+
+##### `mutateState(delta: PartialDeep<T>): void`
+
+Updates the game state and broadcasts changes to all clients.
+
+**Parameters:**
+
+- `delta` (PartialDeep\<T\>): Partial state changes to apply
+
+```js
+// Update your player state
+client.mutateState({
+  _players: {
+    [client.playerId()]: { x: 100, y: 200, health: 75 },
+  },
+})
+
+// Update world state
+client.mutateState({
+  world: { score: 1500, level: 3 },
+})
+
+// Delete an entity using tombstoning
+client.mutateState({
+  _mice: { [mouseId]: null },
+})
 ```
 
 #### Event System
@@ -275,6 +324,25 @@ client.on('bot-ids-updated', (event) => {
 })
 ```
 
+#### `state-updated`
+
+Fired when the game state is updated (either from initial state or delta updates).
+
+**Event Detail:**
+
+- `{ state: Record<string, any>; delta: Record<string, any> }`: Object containing the full state and the delta that caused the update
+
+```js
+client.on('state-updated', (event) => {
+  console.log('📊 State updated:', event.detail.state)
+  console.log('📈 Delta applied:', event.detail.delta)
+
+  // Update your game visuals
+  updateGameFromState(event.detail.state)
+  applyDeltaChanges(event.detail.delta)
+})
+```
+
 ### WebSocket Events
 
 The client also supports all standard WebSocket events through the underlying PartySocket:
@@ -302,6 +370,7 @@ The return type of the Lab13Client function.
 ```typescript
 type Lab13ClientApi = {
   queryPlayerIds: () => void
+  generateId: () => string
   on: <K extends keyof Lab13ClientEventMap>(
     event: K,
     callback: (
@@ -336,6 +405,7 @@ type Lab13ClientEventMap = {
   'client-ids-updated': CustomEvent<string[]>
   'player-ids-updated': CustomEvent<string[]>
   'bot-ids-updated': CustomEvent<string[]>
+  'state-updated': CustomEvent<{ state: Record<string, any>; delta: Record<string, any> }>
 } & WebSocketEventMap
 ```
 
@@ -369,12 +439,88 @@ The Lab13Client uses a simple text-based protocol over WebSocket:
 - `bclientId` - Bot connected notification
 - `?i` - Request for player ID list
 - `.iclientId[|b]` - Player ID list update (with optional bot marker)
+- `d{delta}` - State delta update (JSON)
+- `.s{state}` - Full state update (JSON)
 
 ### Outgoing Messages
 
 - `?i` - Request current player IDs
 - `.iplayerId[|b]` - Response with your player ID (with optional bot marker)
 - `bplayerId` - Bot announcement
+- `d{delta}` - State delta update (JSON)
+
+## State Management and Tombstoning
+
+The Lab 13 SDK provides built-in state synchronization with automatic tombstoning for entity collections.
+
+### Entity Collections
+
+Keys that start with `_` are treated as entity collections with special deletion semantics:
+
+```js
+// Entity collection - uses tombstoning
+client.mutateState({
+  _mice: {
+    [mouseId]: { x: 100, y: 200, owner: client.playerId() },
+  },
+})
+
+// Delete an entity using tombstoning
+client.mutateState({
+  _mice: { [mouseId]: null },
+})
+
+// Regular collection - no tombstoning
+client.mutateState({
+  world: {
+    items: ['sword', 'shield', 'potion'],
+  },
+})
+```
+
+### Tombstoning
+
+When you set an entity to `null` in an entity collection, it becomes "tombstoned":
+
+- The entity is marked as deleted
+- Future updates to that entity ID are ignored
+- This prevents race conditions on deleted entities
+- Tombstones persist for the duration of the session
+
+```js
+// This mouse is now deleted and cannot be resurrected
+client.mutateState({
+  _mice: { [mouseId]: null },
+})
+
+// This update will be ignored due to tombstoning
+client.mutateState({
+  _mice: { [mouseId]: { x: 300, y: 400 } }, // Ignored!
+})
+```
+
+### Deep Merging
+
+The SDK uses deep merging to combine state updates:
+
+```js
+// Initial state
+const state = {
+  _players: {
+    'player-1': { x: 100, y: 200, health: 100 },
+  },
+}
+
+// Update only position
+client.mutateState({
+  _players: {
+    'player-1': { x: 150, y: 250 },
+  },
+})
+
+// Result: health is preserved, only x and y are updated
+// { _players: { 'player-1': { x: 150, y: 250, health: 100 } } }
+```
 
 ## Usage Examples
 
@@ -404,6 +550,11 @@ client.on('client-connected', (event) => {
 
 client.on('client-disconnected', (event) => {
   console.log('Client left:', event.detail)
+})
+
+client.on('state-updated', (event) => {
+  console.log('State updated:', event.detail.state)
+  console.log('Delta applied:', event.detail.delta)
 })
 
 // Query for current players
@@ -461,6 +612,68 @@ client.on('client-disconnected', (event) => {
 })
 ```
 
+### State Management
+
+```js
+// Initialize player state when connected
+client.on('player-id-updated', (event) => {
+  const myId = event.detail
+  client.mutateState({
+    _players: {
+      [myId]: {
+        x: Math.random() * 800,
+        y: Math.random() * 600,
+        name: 'Player',
+        health: 100,
+      },
+    },
+  })
+})
+
+// Listen for state updates
+client.on('state-updated', (event) => {
+  const { state, delta } = event.detail
+
+  // Update player positions
+  if (delta._players) {
+    Object.entries(delta._players).forEach(([playerId, playerData]) => {
+      if (playerData && playerData.x !== undefined) {
+        updatePlayerPosition(playerId, playerData.x, playerData.y)
+      }
+    })
+  }
+
+  // Handle entity deletions
+  if (delta._mice) {
+    Object.entries(delta._mice).forEach(([mouseId, mouseData]) => {
+      if (mouseData === null) {
+        removeMouseFromGame(mouseId)
+      }
+    })
+  }
+})
+
+// Create and delete entities
+function spawnMouse() {
+  const mouseId = client.generateId()
+  client.mutateState({
+    _mice: {
+      [mouseId]: {
+        x: Math.random() * 800,
+        y: Math.random() * 600,
+        owner: client.playerId(),
+      },
+    },
+  })
+}
+
+function catchMouse(mouseId) {
+  client.mutateState({
+    _mice: { [mouseId]: null },
+  })
+}
+```
+
 ### Global Access
 
 The Lab13Client is also available globally in the browser:
@@ -495,32 +708,3 @@ if (!myId) {
   // Wait for player-id-updated event
 }
 ```
-
-## Best Practices
-
-### Event Management
-
-1. **Remove listeners** when components unmount to prevent memory leaks
-2. **Use specific event handlers** rather than generic ones
-3. **Handle connection state** appropriately
-
-### Client Management
-
-1. **Query player IDs** after connection to get current state
-2. **Track client state** separately from connection state
-3. **Handle disconnections** gracefully
-4. **Use appropriate event types** for different client types
-
-### Bot Integration
-
-1. **Listen for bot events** to handle AI players differently
-2. **Separate bot logic** from player logic
-3. **Use client type checking** when needed
-
-### Performance
-
-1. **Limit event handler complexity** to avoid blocking
-2. **Use efficient data structures** for client tracking
-3. **Avoid excessive queries** for player IDs
-
-This API reference covers all public methods and types in the Lab 13 SDK. The client provides a simple interface for managing player connections and IDs in multiplayer games.
