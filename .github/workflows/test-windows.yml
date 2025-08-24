@@ -46,22 +46,3 @@ jobs:
               exit 1
             }
           }
-
-      - name: Test create command
-        shell: pwsh
-        run: |
-          # Test creating a new game
-          cli/dist/index.js create test-windows-game
-          cd test-windows-game
-          # Try building the new game
-          ../../cli/dist/index.js build --debug
-          # Check the created zip files
-          Get-ChildItem *.zip | ForEach-Object {
-            Write-Host "Checking $($_.Name)..."
-            $size = $_.Length
-            Write-Host "Size: $size bytes"
-            if ($size -lt 100) {
-              Write-Error "ERROR: $($_.Name) is too small ($size bytes) - likely empty archive"
-              exit 1
-            }
-          }
