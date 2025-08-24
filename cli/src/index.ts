@@ -21,7 +21,8 @@ program
   .option('--watch', 'Watch for file changes and rebuild')
   .option('--base <path>', 'Public base path when served in production')
   .option('--out <dir>', 'Output directory', 'dist')
-  .action((options) => runBuild(options.watch, options.base, options.out))
+  .option('--debug', 'Enable debug mode', false)
+  .action((options) => runBuild(options.watch, options.base, options.out, options.debug))
 
 program.command('preview').description('Serve the built dist/ directory with Express').action(runPreview)
 

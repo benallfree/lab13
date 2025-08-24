@@ -4,7 +4,9 @@ import path from 'node:path'
 import type { Plugin } from 'vite'
 import { build as viteBuild } from 'vite'
 
-export async function runBuild(watch = false, base?: string, outDir = 'dist'): Promise<void> {
+export async function runBuild(watch = false, base?: string, outDir = 'dist', debug = false): Promise<void> {
+  const dbg = (...args: any[]) => (debug ? console.log(`[DEBUG]`, ...args) : undefined)
+
   const cwd = process.cwd()
   const packageJsonPath = path.join(cwd, 'package.json')
 
@@ -22,9 +24,11 @@ export async function runBuild(watch = false, base?: string, outDir = 'dist'): P
 
   // Function to perform post-build tasks (zipping, size calculation)
   const performPostBuildTasks = async () => {
+    dbg(`CWD is ${cwd}`)
     const distPath = path.join(cwd, outDir)
-
+    dbg(`DIST PATH is ${distPath}`)
     if (fs.existsSync(distPath)) {
+      dbg(`DIST PATH exists`)
       try {
         // Initialize 7z-wasm
         const sevenZip = await SevenZip()
@@ -35,16 +39,18 @@ export async function runBuild(watch = false, base?: string, outDir = 'dist'): P
 
         // Copy dist folder contents to virtual filesystem
         const copyDirToFS = (srcPath: string, destPath: string) => {
+          dbg(`Copying directory ${srcPath} to VFS ${destPath}`)
           const items = fs.readdirSync(srcPath)
           for (const item of items) {
             const srcItemPath = path.join(srcPath, item)
             const destItemPath = path.join(destPath, item)
             const stats = fs.statSync(srcItemPath)
-
+            dbg(`Item ${srcItemPath} is ${stats.isDirectory() ? 'a directory' : 'a file'}`)
             if (stats.isDirectory()) {
               sevenZip.FS.mkdir(destItemPath)
               copyDirToFS(srcItemPath, destItemPath)
             } else {
+              dbg(`Copying item ${srcItemPath} to ${destItemPath}`)
               const content = fs.readFileSync(srcItemPath)
               const stream = sevenZip.FS.open(destItemPath, 'w+')
               sevenZip.FS.write(stream, content, 0, content.length)
@@ -67,11 +73,13 @@ export async function runBuild(watch = false, base?: string, outDir = 'dist'): P
 
         // Create zip archives with different compression methods
         for (const method of compressionMethods) {
+          dbg(`Creating zip archive with method ${method.name}`)
           const zipName = `${gameName}-${packageVersion}.${method.name}.zip`
           const zipPath = path.join(cwd, zipName)
-
+          dbg(`ZIP PATH is ${zipPath}`)
           // Clean up existing zip file if it exists
           if (fs.existsSync(zipPath)) {
+            dbg(`Removing existing zip file ${zipPath}`)
             fs.unlinkSync(zipPath)
           }
 
@@ -86,14 +94,17 @@ export async function runBuild(watch = false, base?: string, outDir = 'dist'): P
             zipName,
             `${tempDir}/*`,
           ]
+          dbg(`Calling 7z with args ${args.join(' ')}`)
           sevenZip.callMain(args)
 
           // Read the created zip file from virtual filesystem
           const zipData = sevenZip.FS.readFile(zipName)
           fs.writeFileSync(zipPath, zipData)
+          dbg(`Wrote zip file ${zipPath}`)
 
           // Calculate size
           const stats = fs.statSync(zipPath)
+          dbg(`Stats for ${zipPath} are ${stats.size} bytes`)
           results.push({
             method: method.name,
             size: stats.size,
