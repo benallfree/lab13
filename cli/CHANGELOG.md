@@ -1,5 +1,11 @@
 # js13k
 
+## 0.0.1-rc.6
+
+### Patch Changes
+
+- 09b93f9: Add terser support
+
 ## 0.0.1-rc.5
 
 ### Patch Changes

@@ -6,5 +6,11 @@
     "lab13-sdk": "0.0.1-rc.23",
     "lab13-site": "0.0.0"
   },
-  "changesets": ["chatty-loops-turn", "forty-cities-tease", "red-bananas-wait", "slimy-buttons-pick"]
+  "changesets": [
+    "chatty-loops-turn",
+    "forty-cities-tease",
+    "petite-planets-pump",
+    "red-bananas-wait",
+    "slimy-buttons-pick"
+  ]
 }
