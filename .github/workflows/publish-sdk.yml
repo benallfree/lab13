@@ -6,7 +6,6 @@ on:
       - main
     paths:
       - 'sdk/package.json'
-      - 'bun.lock'
 
 jobs:
   publish:

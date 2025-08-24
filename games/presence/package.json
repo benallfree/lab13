@@ -1,0 +1,21 @@
+{
+  "name": "lab13-presence",
+  "scripts": {
+    "dev": "l13 dev",
+    "build": "l13 build",
+    "watch": "chokidar 'src/**/*.ts' --initial -c 'bun run build --base=games/presence'",
+    "postbuild": "rm -rf ../../site/static/games/presence && cp -r dist ../../site/static/games/presence",
+    "preview": "l13 preview"
+  },
+  "files": [
+    "dist",
+    "meta.json"
+  ],
+  "devDependencies": {
+    "chokidar-cli": "^3.0.0",
+    "l13": "workspace:*",
+    "lab13-sdk": "workspace:*",
+    "partysocket": "^1.1.5",
+    "vanjs-core": "^1.5.5"
+  }
+}

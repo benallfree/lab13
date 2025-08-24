@@ -4,7 +4,6 @@ import { runBuild } from './commands/build'
 import { runCreate } from './commands/create'
 import { runDev } from './commands/dev'
 import { runPreview } from './commands/preview'
-import { runRelay } from './commands/relay'
 
 const program = new Command()
 
@@ -16,12 +15,16 @@ program
 
 program.command('dev').description('Run the Vite dev server with js13k defaults').action(runDev)
 
-program.command('build').description('Build the project with js13k Vite defaults').action(runBuild)
+program
+  .command('build')
+  .description('Build the project with js13k Vite defaults')
+  .option('--watch', 'Watch for file changes and rebuild')
+  .option('--base <path>', 'Public base path when served in production')
+  .option('--out <dir>', 'Output directory', 'dist')
+  .action((options) => runBuild(options.watch, options.base, options.out))
 
 program.command('preview').description('Serve the built dist/ directory with Express').action(runPreview)
 
 program.command('create').description('Scaffold a new project from the official examples').action(runCreate)
-
-program.command('relay').description('WebSocket relay at /parties/relay/<room>').action(runRelay)
 
 program.parseAsync()

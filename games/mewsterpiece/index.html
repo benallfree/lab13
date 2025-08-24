@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <script type="module">
+      import { PartySocket } from 'https://js13kgames.com/2025/online/partysocket.js'
+      window.PartySocket = PartySocket
+    </script>
+    <title>Mewsterpiece</title>
+  </head>
+  <body>
+    <!-- Status indicator -->
+    <div id="statusIndicator" class="status-indicator">
+      <div class="status-content">
+        <div class="status-spinner"></div>
+        <span id="statusText">Searching for other players...</span>
+      </div>
+    </div>
+
+    <div class="level-ui">
+      <div class="timer">
+        <span id="timerDisplay">5:00</span>
+      </div>
+      <div class="level-info">
+        <span id="levelDisplay">Level 1: Tilly</span>
+      </div>
+      <div class="cat-thumbnails" id="catThumbnails">
+        <!-- Cat thumbnails will be generated here -->
+      </div>
+    </div>
+
+    <div class="controls">
+      <label for="colorPicker">Color:</label>
+      <input type="color" id="colorPicker" value="#000000" />
+      <label for="radiusSlider">Size:</label>
+      <input type="range" id="radiusSlider" min="1" max="60" step="1" value="5" />
+      <span id="radiusValue">5</span>
+    </div>
+    <canvas id="canvas" width="800" height="600"></canvas>
+
+    <div class="status">
+      <div>Click and drag to paint pixels</div>
+      <div>All painters are connected in real-time using Lab13 SDK</div>
+    </div>
+    <script type="module" src="./src/index.ts"></script>
+  </body>
+</html>

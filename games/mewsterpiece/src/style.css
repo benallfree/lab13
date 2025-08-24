@@ -70,14 +70,6 @@ button:active {
   transform: translateY(1px);
 }
 
-/* Secondary button variant */
-button#svgCancelBtn {
-  --b1: #64748b;
-  --b2: #475569;
-  --hover1: #475569;
-  --hover2: #334155;
-}
-
 .below-canvas {
   margin: 10px auto 16px;
   display: flex;
@@ -109,15 +101,6 @@ button#svgCancelBtn {
 label {
   font-weight: 600;
   color: #475467;
-}
-
-#connectionStatus {
-  padding: 4px 10px;
-  border-radius: 999px;
-  border: 1px solid currentColor;
-  background: #ffffff;
-  font-size: 12px;
-  line-height: 1;
 }
 
 #radiusValue {
@@ -196,49 +179,187 @@ label {
     0 1px 4px rgba(0, 0, 0, 0.08);
 }
 
-/* SVG Modal styles */
-#svgModal {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.svg-modal-content {
-  background: white;
-  padding: 12px;
-  max-width: 90vw;
-  max-height: 90vh;
-  overflow: auto;
-}
-
-.svg-modal-layout {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.svg-preview-container {
+.level-ui {
+  margin: 0 auto 16px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
   align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.08),
+    0 1px 2px rgba(0, 0, 0, 0.06);
+  width: fit-content;
 }
 
-#svgPreviewCanvas {
-  border: 1px solid #ccc;
-  background: #f9f9f9;
+.timer {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1f6feb;
+  text-align: center;
 }
 
-.svg-button-group {
+.level-info {
+  font-size: 16px;
+  font-weight: 600;
+  color: #475467;
+  text-align: center;
+}
+
+.cat-thumbnails {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
-/* Button spacing */
-#openSvgModalBtn {
-  margin-left: 8px;
+.cat-thumbnail {
+  width: 60px;
+  height: 60px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  background: #f9fafb;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cat-thumbnail:hover {
+  border-color: #1f6feb;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(31, 111, 235, 0.15);
+}
+
+.cat-thumbnail.current {
+  border-color: #1f6feb;
+  background: #eff6ff;
+  box-shadow: 0 0 0 2px rgba(31, 111, 235, 0.2);
+}
+
+.cat-thumbnail.completed {
+  border-color: #10b981;
+  background: #f0fdf4;
+}
+
+.cat-thumbnail.locked {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cat-thumbnail.locked:hover {
+  transform: none;
+  border-color: #e5e7eb;
+  box-shadow: none;
+}
+
+.cat-thumbnail svg {
+  width: 100%;
+  height: 100%;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cat-thumbnail .lock-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 20px;
+  color: #9ca3af;
+}
+
+.cat-thumbnail .level-number {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  background: #1f6feb;
+  color: white;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 4px;
+  border-radius: 4px;
+  line-height: 1;
+}
+
+/* Status indicator styles */
+.status-indicator {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  transition:
+    opacity 0.3s ease,
+    visibility 0.3s ease;
+}
+
+.status-indicator.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.status-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.08),
+    0 1px 2px rgba(0, 0, 0, 0.06);
+  font-size: 12px;
+  color: #475467;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.status-spinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid #e5e7eb;
+  border-top: 2px solid #1f6feb;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.status-indicator.connected .status-content {
+  border-color: #10b981;
+  background: #f0fdf4;
+}
+
+.status-indicator.connected .status-spinner {
+  border-color: #10b981;
+  border-top-color: #10b981;
+  animation: none;
+}
+
+.status-indicator.offline .status-content {
+  border-color: #f59e0b;
+  background: #fffbeb;
+}
+
+.status-indicator.offline .status-spinner {
+  border-color: #f59e0b;
+  border-top-color: #f59e0b;
+  animation: none;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }

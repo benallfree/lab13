@@ -1,60 +1,64 @@
-## js13k CLI
+## Lab13 CLI
 
 Command‑line tools for building and serving js13kGames projects.
 
 ### Quick start
 
 ```bash
-npx js13k --help
+npx l13 --help
 ```
 
 Run a specific command:
 
 ```bash
-npx js13k <command>
+npx l13 <command>
 ```
 
 ### Commands
 
-- **dev**: Run the dev server with js13k defaults.
+- **dev**: Run the Vite dev server with l13 defaults.
 
   ```bash
-  npx js13k dev
+  npx l13 dev
   ```
 
-- **build**: Build the project with js13k defaults (outputs to `dist/`).
+- **build**: Build the project with l13 Vite defaults (outputs to `dist/`).
 
   ```bash
-  npx js13k build
+  npx l13 build
   ```
 
-- **preview**: Serve the built `dist/` directory and print the local URL.
+  Options:
+  - `--watch`: Watch for file changes and rebuild
+  - `--base <path>`: Public base path when served in production
+  - `--out <dir>`: Output directory (default: `dist`)
+
+  The build process automatically:
+  - Creates a zip file named `<package-name>-<version>.zip`
+  - Calculates and displays size information
+  - Shows a progress bar indicating usage of the 13KB limit
+  - Reports remaining space or if the limit is exceeded
+
+- **preview**: Serve the built `dist/` directory with Express.
 
   ```bash
-  npx js13k preview
+  npx l13 preview
   ```
 
-- **relay**: Start a minimal WebSocket relay at `/parties/relay/<room>`.
-
-  ```bash
-  npx js13k relay
-  ```
-
-  - **PORT**: Set the port via the `PORT` env var (default: `4321`).
-  - Clients connect to: `ws://localhost:<PORT>/parties/relay/<room>`
+  - **PORT**: Set the port via the `PORT` env var (default: `4173`).
 
 - **create**: Scaffold a new project from the official examples.
 
   ```bash
-  npx js13k create
+  npx l13 create
   ```
 
   Follow the prompts to pick an example and target directory.
 
 ### Help
 
-- Global help: `npx js13k --help`
-- Command help: `npx js13k <command> --help`
+- Global help: `npx l13 --help`
+- Command help: `npx l13 <command> --help`
 
 ### If ECT fails to install with npx/bunx
 
@@ -62,21 +66,20 @@ This CLI relies on native binaries (`ECT`, `advzip`) provided via postinstall st
 
 If you hit trust/permission issues, install the CLI as a dev dependency and run it via your project scripts (so installation is fully trusted first):
 
-- npm: `npm i -D js13k`
-- pnpm: `pnpm add -D js13k`
-- yarn: `yarn add -D js13k`
-- bun: `bun add -d js13k`
+- npm: `npm i -D l13`
+- pnpm: `pnpm add -D l13`
+- yarn: `yarn add -D l13`
+- bun: `bun add -d l13`
 
 Add scripts to `package.json`:
 
 ```json
 {
   "scripts": {
-    "js13k": "js13k",
-    "dev": "js13k dev",
-    "build": "js13k build",
-    "preview": "js13k preview",
-    "relay": "js13k relay"
+    "l13": "l13",
+    "dev": "l13 dev",
+    "build": "l13 build",
+    "preview": "l13 preview"
   }
 }
 ```
@@ -88,5 +91,5 @@ npm run dev
 # or any script above, e.g.:
 npm run build
 # or access the CLI directly:
-npm run js13k -- --help
+npm run l13 -- --help
 ```

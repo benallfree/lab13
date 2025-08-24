@@ -1,6 +1,6 @@
 import Link from '@docusaurus/Link'
 import { usePluginData } from '@docusaurus/useGlobalData'
-import { Lab13Client } from '@site/static/sdk'
+import { onClientJoined, onClientLeft, onIdentReceived } from '@site/src/lib/online'
 import Layout from '@theme/Layout'
 import { PartySocket } from 'partysocket'
 import { useEffect, useRef } from 'react'
@@ -57,17 +57,24 @@ export default function Lobby() {
         room: game.slug,
       })
 
-      const lab13Client = Lab13Client(socket, { bot: true })
-
-      lab13Client.on('player-id-updated', (event) => {
-        lab13Client.queryPlayerIds()
-      })
-      lab13Client.on('player-ids-updated', (event) => {
-        console.log('player-ids-updated', event.detail)
+      onClientJoined((clientId) => {
+        console.log('clientJoined', clientId)
         updateGameStats(game.slug, (stats) => {
-          stats.playerIds = new Set(lab13Client.playerIds())
+          stats.playerIds.add(clientId)
         })
-      })
+      }, socket)
+      onClientLeft((clientId) => {
+        console.log('clientLeft', clientId)
+        updateGameStats(game.slug, (stats) => {
+          stats.playerIds.delete(clientId)
+        })
+      }, socket)
+      onIdentReceived((clientId) => {
+        console.log('identReceived', clientId)
+        updateGameStats(game.slug, (stats) => {
+          stats.playerIds.add(clientId)
+        })
+      }, socket)
 
       socketsRef.current.set(game.slug, socket)
     })

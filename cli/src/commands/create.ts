@@ -4,11 +4,11 @@ import path from 'node:path'
 import tiged from 'tiged'
 
 async function listRemoteExamples(): Promise<string[]> {
-  const url = 'https://api.github.com/repos/benallfree/js13k-cli/contents/examples'
+  const url = 'https://api.github.com/repos/benallfree/lab13/games'
   try {
     const res = await (globalThis as any).fetch(url, {
       headers: {
-        'User-Agent': 'js13k',
+        'User-Agent': 'lab13',
         Accept: 'application/vnd.github+json',
       },
     })
@@ -49,8 +49,8 @@ export async function runCreate(): Promise<void> {
     },
   ])
 
-  const repo = 'benallfree/js13k-cli'
-  const templatePath = `examples/${exampleName}`
+  const repo = 'benallfree/lab13'
+  const templatePath = `games/${exampleName}`
   const source = `${repo}/${templatePath}`
   const emitter = tiged(source, { force: true, verbose: true })
 

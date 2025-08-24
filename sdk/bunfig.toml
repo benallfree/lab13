@@ -1,0 +1,6 @@
+[test]
+# Use TypeScript for tests
+preload = ["./src/util/__tests__/setup.ts"]
+
+[test.env]
+NODE_ENV = "test"

@@ -1,0 +1,17 @@
+{
+  "name": "lab13-mewsterpiece",
+  "scripts": {
+    "dev": "l13 dev",
+    "build": "l13 build --base=/games/mewsterpiece --out=../../site/static/games/mewsterpiece",
+    "watch": "chokidar 'src/**/*.ts' --initial -c 'bun run build'",
+    "preview": "l13 preview",
+    "calculate-cats": "cd src && bun run calculate-cats.ts"
+  },
+  "devDependencies": {
+    "@types/svg-path-bounds": "^1.0.2",
+    "chokidar-cli": "^3.0.0",
+    "l13": "workspace:*",
+    "lab13-sdk": "workspace:*",
+    "svg-path-bounds": "^1.0.2"
+  }
+}

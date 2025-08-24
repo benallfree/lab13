@@ -2,57 +2,43 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <script type="module">
-      import { PartySocket } from 'partysocket'
-      window.PartySocket = PartySocket
-    </script>
-    <title>MMO Canvas Painter</title>
+    <title>Mewsterpiece</title>
+    <script type="module" crossorigin src="/games/mewsterpiece/assets/index-DPOPDhg6.js"></script>
+    <link rel="stylesheet" crossorigin href="/games/mewsterpiece/assets/index-DlDYp8U0.css">
   </head>
   <body>
+    <!-- Status indicator -->
+    <div id="statusIndicator" class="status-indicator">
+      <div class="status-content">
+        <div class="status-spinner"></div>
+        <span id="statusText">Searching for other players...</span>
+      </div>
+    </div>
+
+    <div class="level-ui">
+      <div class="timer">
+        <span id="timerDisplay">5:00</span>
+      </div>
+      <div class="level-info">
+        <span id="levelDisplay">Level 1: Tilly</span>
+      </div>
+      <div class="cat-thumbnails" id="catThumbnails">
+        <!-- Cat thumbnails will be generated here -->
+      </div>
+    </div>
+
     <div class="controls">
       <label for="colorPicker">Color:</label>
       <input type="color" id="colorPicker" value="#000000" />
       <label for="radiusSlider">Size:</label>
       <input type="range" id="radiusSlider" min="1" max="60" step="1" value="5" />
       <span id="radiusValue">5</span>
-      <button id="openSvgModalBtn" title="Insert SVG" aria-label="Insert SVG">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-          <rect x="3" y="5" width="18" height="14" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="2" />
-          <circle cx="9" cy="11" r="2" fill="none" stroke="currentColor" stroke-width="2" />
-          <path
-            d="M21 17l-5-5l-4 4l-2-2l-5 5"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
-      </button>
-      <span id="connectionStatus">Connecting...</span>
     </div>
     <canvas id="canvas" width="800" height="600"></canvas>
-    <div id="svgModal">
-      <div class="svg-modal-content">
-        <div class="svg-modal-layout">
-          <textarea id="svgInput" rows="10" cols="60" placeholder="<svg ...>...</svg>"></textarea>
-          <div class="svg-preview-container">
-            <canvas id="svgPreviewCanvas" width="400" height="300"></canvas>
-            <div class="svg-button-group">
-              <button id="svgInsertBtn">Insert</button>
-              <button id="svgCancelBtn">Cancel</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div id="syncOverlay">
-      <div class="overlay-content">searching for other players</div>
-    </div>
+
     <div class="status">
       <div>Click and drag to paint pixels</div>
-      <div>All painters are connected in real-time</div>
+      <div>All painters are connected in real-time using Lab13 SDK</div>
     </div>
-    <script type="module" src="./src/index.ts"></script>
   </body>
 </html>

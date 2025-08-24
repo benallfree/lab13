@@ -1,6 +1,6 @@
 {
   "name": "l13",
-  "version": "0.0.1-rc.3",
+  "version": "0.0.1-rc.4",
   "description": "A CLI for the js13kGames competition",
   "author": {
     "name": "benallfree",
@@ -14,7 +14,7 @@
   },
   "scripts": {
     "build": "tsdown",
-    "build:watch": "tsdown --watch",
+    "watch": "tsdown --watch",
     "js13k": "tsx --watch src/index.ts "
   },
   "module": "dist/index.js",
@@ -39,18 +39,14 @@
     "typescript": "^5.9.2"
   },
   "dependencies": {
+    "7z-wasm": "^1.2.0",
     "commander": "^14.0.0",
     "express": "^5.1.0",
     "hono": "^4.9.2",
     "inquirer": "^12.9.3",
-    "js13k-vite-plugins": "^0.4.0",
     "partykit": "^0.0.115",
     "tiged": "^2.12.7",
     "vite": "^7.1.2",
     "ws": "^8.18.3"
-  },
-  "trustedDependencies": [
-    "advzip-bin",
-    "ect-bin"
-  ]
+  }
 }
