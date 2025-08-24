@@ -23,14 +23,6 @@ export async function runBuild(watch = false, base?: string, outDir = 'dist'): P
   // Function to perform post-build tasks (zipping, size calculation)
   const performPostBuildTasks = async () => {
     const distPath = path.join(cwd, outDir)
-    const zipName = `${gameName}-${packageVersion}.zip`
-    const zipPath = path.join(cwd, zipName)
-
-    // Clean up existing zip file if it exists
-    if (fs.existsSync(zipPath)) {
-      fs.unlinkSync(zipPath)
-      console.log(`Cleaned up existing ${zipName}`)
-    }
 
     if (fs.existsSync(distPath)) {
       try {
@@ -63,41 +55,98 @@ export async function runBuild(watch = false, base?: string, outDir = 'dist'): P
 
         copyDirToFS(distPath, tempDir)
 
-        // Create zip archive
-        sevenZip.callMain(['a', '-tzip', zipName, `${tempDir}/*`])
+        // Compression methods to test
+        const compressionMethods = [
+          { name: 'deflate', flag: '' },
+          { name: 'lzma', flag: '-m0=lzma' },
+          { name: 'ppmd', flag: '-m0=ppmd' },
+          { name: 'bzip2', flag: '-m0=bzip2' },
+        ]
 
-        // Read the created zip file from virtual filesystem
-        const zipData = sevenZip.FS.readFile(zipName)
-        fs.writeFileSync(zipPath, zipData)
+        const results: Array<{ method: string; size: number; path: string }> = []
 
-        console.log(`Zipped ${outDir}/ to ${zipName}`)
+        // Create zip archives with different compression methods
+        for (const method of compressionMethods) {
+          const zipName = `${gameName}-${packageVersion}.${method.name}.zip`
+          const zipPath = path.join(cwd, zipName)
 
-        // Calculate and display size information
-        const stats = fs.statSync(zipPath)
-        const sizeInBytes = stats.size
+          // Clean up existing zip file if it exists
+          if (fs.existsSync(zipPath)) {
+            fs.unlinkSync(zipPath)
+          }
+
+          // Create zip archive silently
+          const args = [
+            'a',
+            '-tzip',
+            '-bd',
+            '-bso0',
+            '-bsp0',
+            ...(method.flag ? [method.flag] : []),
+            zipName,
+            `${tempDir}/*`,
+          ]
+          sevenZip.callMain(args)
+
+          // Read the created zip file from virtual filesystem
+          const zipData = sevenZip.FS.readFile(zipName)
+          fs.writeFileSync(zipPath, zipData)
+
+          // Calculate size
+          const stats = fs.statSync(zipPath)
+          results.push({
+            method: method.name,
+            size: stats.size,
+            path: zipPath,
+          })
+
+          console.log(`Created ${zipName}: ${stats.size} bytes`)
+        }
+
+        // Find the best compression (smallest size)
+        const bestResult = results.reduce((best, current) => (current.size < best.size ? current : best))
+
+        console.log('\n=== Compression Results ===')
+        results.forEach((result) => {
+          const isBest = result.method === bestResult.method
+          const marker = isBest ? '🏆 ' : '   '
+          console.log(`${marker}${result.method.toUpperCase()}: ${result.size} bytes`)
+        })
+
+        // Display final results using the best compression
+        const sizeInBytes = bestResult.size
         const sizeInKB = sizeInBytes / 1024
-        const maxSize = 13 * 1024 // 13KB in bytes
+        const maxSize = 13 * 1024 // 13312 bytes limit
         const remainingBytes = maxSize - sizeInBytes
         const remainingKB = remainingBytes / 1024
         const percentage = (sizeInBytes / maxSize) * 100
-
-        console.log(`Size: ${sizeInKB.toFixed(2)}KB (${sizeInBytes} bytes)`)
-        console.log(`Usage: ${percentage.toFixed(1)}% of 13KB limit`)
 
         // Create visual progress bar
         const blocks = 10 // 10 blocks = 10% each
         const filledBlocks = Math.min(Math.floor(percentage / 10), blocks)
         const emptyBlocks = blocks - filledBlocks
         const progressBar = '█'.repeat(filledBlocks) + '░'.repeat(emptyBlocks)
-        console.log(`[${progressBar}] ${percentage.toFixed(1)}%`)
 
-        if (remainingBytes > 0) {
-          console.log(`Remaining: ${remainingKB.toFixed(2)}KB (${remainingBytes} bytes)`)
-        } else {
-          console.log(`⚠️  Exceeds 13KB limit by ${Math.abs(remainingKB).toFixed(2)}KB`)
+        const sizeInfo = `${sizeInBytes} bytes`
+        const usageInfo = `${percentage.toFixed(1)}% of 13312 bytes`
+        const remainingInfo =
+          remainingBytes > 0 ? `+${remainingBytes} bytes remaining` : `⚠️ ${Math.abs(remainingBytes)} bytes over limit`
+
+        console.log(
+          `\n🏆 ${bestResult.method.toUpperCase()}: ${sizeInfo} | [${progressBar}] ${usageInfo} | ${remainingInfo}`
+        )
+
+        // Create a symlink or copy of the best result as the main zip
+        const mainZipPath = path.join(cwd, `${gameName}-${packageVersion}.zip`)
+        if (fs.existsSync(mainZipPath)) {
+          fs.unlinkSync(mainZipPath)
         }
+        fs.copyFileSync(bestResult.path, mainZipPath)
+        console.log(
+          `\n📦 Main zip file created: ${gameName}-${packageVersion}.zip (using ${bestResult.method.toUpperCase()})`
+        )
       } catch (error) {
-        console.error('Error creating zip file:', error)
+        console.error('Error creating zip files:', error)
       }
     } else {
       console.warn(`${outDir}/ folder not found, skipping zip creation`)
