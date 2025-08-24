@@ -1,5 +1,11 @@
 # js13k
 
+## 0.0.1-rc.7
+
+### Patch Changes
+
+- fb32a19: Add --debug flag
+
 ## 0.0.1-rc.6
 
 ### Patch Changes
