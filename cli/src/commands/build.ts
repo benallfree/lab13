@@ -170,6 +170,34 @@ export async function runBuild(watch = false, base?: string, outDir = 'dist'): P
         outDir,
         emptyOutDir: true,
         watch: watch ? {} : undefined,
+        minify: 'terser',
+        terserOptions: {
+          compress: {
+            drop_console: true,
+            drop_debugger: true,
+            //     pure_funcs: ['console.log', 'console.info', 'console.debug', 'console.warn'],
+            passes: 3,
+            //     unsafe: true,
+            //     toplevel: true,
+            //     booleans_as_integers: true,
+            //     typeofs: false,
+            //     keep_fargs: false,
+            //     keep_infinity: false,
+            //     negate_iife: true,
+            //     pure_getters: 'strict',
+          },
+          //   mangle: {
+          //     eval: true,
+          //     toplevel: true,
+          //     properties: {
+          //       regex: /.*/,
+          //     },
+          //   },
+          //   format: {
+          //     comments: false,
+          //   },
+          //   toplevel: true,
+        },
       },
       plugins: [postBuildPlugin],
     })
