@@ -4,6 +4,7 @@ import { runBuild } from './commands/build-cmd'
 import { runCreate } from './commands/create'
 import { runDev } from './commands/dev'
 import { runPreview } from './commands/preview'
+import { toBoolean } from './util'
 
 const program = new Command()
 
@@ -13,13 +14,14 @@ program
   .showHelpAfterError()
   .configureHelp({ sortSubcommands: true, sortOptions: true })
 
-program.command('dev').description('Run the Vite dev server with js13k defaults').action(runDev)
-
-const toBoolean = (value: string | undefined) => {
-  if (!value) return false
-  const v = value.toLowerCase()
-  return v === 'true' || v === '1' || v === 'yes'
-}
+program
+  .command('dev')
+  .description('Run the Vite dev server with js13k defaults')
+  .option('--base <path>', 'Public base path when served in production')
+  .option('--out <dir>', 'Output directory', 'dist')
+  .option('--debug', 'Enable debug mode', toBoolean(process.env.DEBUG))
+  .option('--roadroller', 'Enable roadroller', toBoolean(process.env.ROADROLLER))
+  .action((options) => runDev(options))
 
 program
   .command('build')
