@@ -2,9 +2,18 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { build as viteBuild } from 'vite'
 import { archivePlugin } from './plugins/archive'
+import { roadrollerPlugin } from './plugins/roadroller'
 import { terserPlugin } from './plugins/terser'
 
-export async function runBuild(watch = false, base?: string, outDir = 'dist', debug = false): Promise<void> {
+export type BuildOptions = {
+  watch?: boolean
+  base?: string
+  outDir?: string
+  debug?: boolean
+  roadroller?: boolean
+}
+export async function runBuild(options: BuildOptions): Promise<void> {
+  const { watch, base, outDir, debug, roadroller } = options
   const dbg = (...args: any[]) => (debug ? console.log(`[DEBUG]`, ...args) : undefined)
 
   const cwd = process.cwd()
@@ -33,13 +42,13 @@ export async function runBuild(watch = false, base?: string, outDir = 'dist', de
       },
       plugins: [
         terserPlugin(),
-        // roadrollerPlugin(),
+        roadroller ? roadrollerPlugin() : undefined,
         archivePlugin({
           gameName,
           packageVersion,
           debug,
         }),
-      ],
+      ].filter(Boolean),
     })
   } catch (error) {
     console.error('Build failed:', error)

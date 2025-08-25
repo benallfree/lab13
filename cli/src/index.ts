@@ -22,7 +22,8 @@ program
   .option('--base <path>', 'Public base path when served in production')
   .option('--out <dir>', 'Output directory', 'dist')
   .option('--debug', 'Enable debug mode', false)
-  .action((options) => runBuild(options.watch, options.base, options.out, options.debug))
+  .option('--roadroller', 'Enable roadroller', false)
+  .action((options) => runBuild(options))
 
 program.command('preview').description('Serve the built dist/ directory with Express').action(runPreview)
 
