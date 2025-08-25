@@ -1,5 +1,11 @@
 # js13k
 
+## 0.0.1-rc.11
+
+### Patch Changes
+
+- fc19f47: handle build errors gracefully
+
 ## 0.0.1-rc.10
 
 ### Patch Changes
