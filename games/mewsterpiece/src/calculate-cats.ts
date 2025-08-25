@@ -17,7 +17,8 @@ function calculatePathBounds(path: string) {
       maxY: bounds[3],
     }
   } catch (error) {
-    console.error(`Error parsing path for: ${path}`)
+    console.error(`❌ Error parsing path for: ${path}`)
+    console.error(`   Error: ${error}`)
     return {
       width: 0,
       height: 0,
@@ -34,10 +35,7 @@ const results = cats.map((cat) => {
   const bounds = calculatePathBounds(cat.path)
   return {
     name: cat.name,
-    ttl: cat.ttl,
     path: cat.path,
-    width: Math.round(bounds.width),
-    height: Math.round(bounds.height),
     bounds: {
       minX: Math.round(bounds.minX),
       minY: Math.round(bounds.minY),
@@ -47,14 +45,25 @@ const results = cats.map((cat) => {
   }
 })
 
-// Write results to cats.json
-const outputPath = './cats.json'
-fs.writeFileSync(outputPath, JSON.stringify(results, null, 2))
+// Generate the new cats.ts content
+const newCatsContent = `export const cats: any = ${JSON.stringify(results, null, 2)}`
 
-console.log(`✅ Calculated dimensions for ${results.length} cats`)
-console.log(`📁 Results written to ${outputPath}`)
+// Write the updated content back to cats.ts
+try {
+  fs.writeFileSync('./cats.ts', newCatsContent)
+  console.log(`✅ Calculated bounds for ${results.length} cats`)
+  console.log(`📁 Updated cats.ts`)
+} catch (error) {
+  console.error(`❌ Failed to write file: ${error}`)
+  process.exit(1)
+}
 
 // Display summary
+console.log('\n📊 Summary:')
 results.forEach((cat) => {
-  console.log(`${cat.name}: ${cat.width}x${cat.height}`)
+  const width = cat.bounds.maxX - cat.bounds.minX
+  const height = cat.bounds.maxY - cat.bounds.minY
+  console.log(
+    `  ${cat.name}: ${width}x${height} (bounds: ${cat.bounds.minX},${cat.bounds.minY} to ${cat.bounds.maxX},${cat.bounds.maxY})`
+  )
 })

@@ -17,31 +17,49 @@
       </div>
     </div>
 
-    <div class="level-ui">
-      <div class="timer">
-        <span id="timerDisplay">5:00</span>
+    <!-- Tab Navigation -->
+    <div class="tab-navigation">
+      <button id="drawTab" class="tab-button active">Draw</button>
+      <button id="finishedTab" class="tab-button">Finished</button>
+    </div>
+
+    <!-- Draw Tab Content -->
+    <div id="drawContent" class="tab-content active">
+      <div class="level-ui">
+        <div class="timer">
+          <span id="timerDisplay">5:00</span>
+        </div>
+        <div class="level-info">
+          <span id="levelDisplay">Level 1: Tilly</span>
+        </div>
       </div>
-      <div class="level-info">
-        <span id="levelDisplay">Level 1: Tilly</span>
+
+      <div class="controls">
+        <label for="colorPicker">Color:</label>
+        <input type="color" id="colorPicker" value="#000000" />
+        <label for="radiusSlider">Size:</label>
+        <input type="range" id="radiusSlider" min="1" max="60" step="1" value="5" />
+        <span id="radiusValue">5</span>
       </div>
-      <div class="cat-thumbnails" id="catThumbnails">
-        <!-- Cat thumbnails will be generated here -->
+      <canvas id="canvas" width="800" height="600"></canvas>
+
+      <div class="status">
+        <div>Click and drag to paint pixels</div>
+        <div>All painters are connected in real-time using Lab13 SDK</div>
       </div>
     </div>
 
-    <div class="controls">
-      <label for="colorPicker">Color:</label>
-      <input type="color" id="colorPicker" value="#000000" />
-      <label for="radiusSlider">Size:</label>
-      <input type="range" id="radiusSlider" min="1" max="60" step="1" value="5" />
-      <span id="radiusValue">5</span>
+    <!-- Finished Tab Content -->
+    <div id="finishedContent" class="tab-content">
+      <div class="gallery-header">
+        <h2>Completed Pictures</h2>
+        <p>Your finished artwork, from newest to oldest</p>
+      </div>
+      <div id="galleryGrid" class="gallery-grid">
+        <!-- Completed pictures will be generated here -->
+      </div>
     </div>
-    <canvas id="canvas" width="800" height="600"></canvas>
 
-    <div class="status">
-      <div>Click and drag to paint pixels</div>
-      <div>All painters are connected in real-time using Lab13 SDK</div>
-    </div>
     <script type="module" src="./src/index.ts"></script>
   </body>
 </html>
