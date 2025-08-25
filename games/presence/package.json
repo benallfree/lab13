@@ -1,5 +1,6 @@
 {
   "name": "lab13-presence",
+  "private": true,
   "scripts": {
     "dev": "l13 dev",
     "build": "l13 build",
