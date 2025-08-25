@@ -1,5 +1,14 @@
 # js13k
 
+## 0.0.1-rc.10
+
+### Patch Changes
+
+- 8f70824: Build preview in dev mode
+- 703049d: Support output dir for archiver
+- c49a2d4: Fix output dir bug
+- a740cc7: Support DEBUG and ROADROLLER env vars
+
 ## 0.0.1-rc.9
 
 ### Patch Changes
