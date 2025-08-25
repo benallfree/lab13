@@ -31,27 +31,22 @@ export async function runBuild(options: BuildOptions): Promise<void> {
     console.warn('Could not read package.json, using default values')
   }
 
-  try {
-    // Run Vite build with post-build plugin
-    await viteBuild({
-      base,
-      build: {
-        outDir: out,
-        emptyOutDir: true,
-        watch: watch ? {} : undefined,
-      },
-      plugins: [
-        terserPlugin(),
-        roadroller ? roadrollerPlugin() : undefined,
-        archivePlugin({
-          gameName,
-          packageVersion,
-          debug,
-        }),
-      ].filter(Boolean),
-    })
-  } catch (error) {
-    console.error('Build failed:', error)
-    process.exit(1)
-  }
+  // Run Vite build with post-build plugin
+  await viteBuild({
+    base,
+    build: {
+      outDir: out,
+      emptyOutDir: true,
+      watch: watch ? {} : undefined,
+    },
+    plugins: [
+      terserPlugin(),
+      roadroller ? roadrollerPlugin() : undefined,
+      archivePlugin({
+        gameName,
+        packageVersion,
+        debug,
+      }),
+    ].filter(Boolean),
+  })
 }

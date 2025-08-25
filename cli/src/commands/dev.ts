@@ -13,10 +13,15 @@ const devPlugin = (options: BuildOptions): Plugin => {
       isBuilding = true
       dbg(`${id}`, change)
       await runBuild(options)
-      setTimeout(() => {
-        dbg(`${id} releasing lock`)
-        isBuilding = false
-      }, 100)
+        .catch((err) => {
+          console.error(`${err}`)
+        })
+        .finally(() => {
+          setTimeout(() => {
+            dbg(`${id} releasing lock`)
+            isBuilding = false
+          }, 100)
+        })
     },
   }
 }
