@@ -1,5 +1,11 @@
 # js13k
 
+## 0.0.1-rc.8
+
+### Patch Changes
+
+- 9400bd0: Windows compat
+
 ## 0.0.1-rc.7
 
 ### Patch Changes
