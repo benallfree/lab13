@@ -8,12 +8,12 @@ import { terserPlugin } from './plugins/terser'
 export type BuildOptions = {
   watch?: boolean
   base?: string
-  outDir?: string
+  out?: string
   debug?: boolean
   roadroller?: boolean
 }
 export async function runBuild(options: BuildOptions): Promise<void> {
-  const { watch, base, outDir, debug, roadroller } = options
+  const { watch, base, out, debug, roadroller } = options
   const dbg = (...args: any[]) => (debug ? console.log(`[DEBUG]`, ...args) : undefined)
 
   const cwd = process.cwd()
@@ -36,7 +36,7 @@ export async function runBuild(options: BuildOptions): Promise<void> {
     await viteBuild({
       base,
       build: {
-        outDir,
+        outDir: out,
         emptyOutDir: true,
         watch: watch ? {} : undefined,
       },
