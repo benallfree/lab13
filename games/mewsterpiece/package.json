@@ -1,5 +1,6 @@
 {
   "name": "lab13-mewsterpiece",
+  "private": true,
   "scripts": {
     "dev": "l13 dev",
     "build": "l13 build --base=/games/mewsterpiece --out=../../site/static/games/mewsterpiece",
