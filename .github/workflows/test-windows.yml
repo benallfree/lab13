@@ -2,15 +2,13 @@ name: Test Windows Compatibility
 
 on:
   push:
-    branches:
-      - main
     paths:
       - 'cli/**'
+      - '.github/workflows/test-windows.yml'
   pull_request:
-    branches:
-      - main
     paths:
       - 'cli/**'
+      - '.github/workflows/test-windows.yml'
 
 jobs:
   test-windows:
@@ -34,15 +32,40 @@ jobs:
         working-directory: games/mewsterpiece
         shell: pwsh
         run: |
+          Write-Host "=== Starting build test ==="
+          Write-Host "Current directory: $(Get-Location)"
+          Write-Host "CLI exists: $(Test-Path ../../cli/dist/index.js)"
+
+          # List files before build
+          Write-Host "=== Files before build ==="
+          Get-ChildItem | ForEach-Object { Write-Host "  $($_.Name)" }
+
           # Test the build command with debug output
-          ../../cli/dist/index.js build --debug
+          Write-Host "=== Running CLI build command ==="
+          $result = & node ../../cli/dist/index.js build --debug 2>&1
+          $exitCode = $LASTEXITCODE
+          Write-Host "CLI exit code: $exitCode"
+          Write-Host "CLI output:"
+          Write-Host $result
+
+          # List files after build
+          Write-Host "=== Files after build ==="
+          Get-ChildItem | ForEach-Object { Write-Host "  $($_.Name)" }
+
           # Check if zip files were created and have content
-          Get-ChildItem *.zip | ForEach-Object {
-            Write-Host "Checking $($_.Name)..."
-            $size = $_.Length
-            Write-Host "Size: $size bytes"
-            if ($size -lt 100) {
-              Write-Error "ERROR: $($_.Name) is too small ($size bytes) - likely empty archive"
-              exit 1
+          Write-Host "=== Checking zip files ==="
+          $zipFiles = Get-ChildItem *.zip -ErrorAction SilentlyContinue
+          if ($zipFiles) {
+            $zipFiles | ForEach-Object {
+              Write-Host "Checking $($_.Name)..."
+              $size = $_.Length
+              Write-Host "Size: $size bytes"
+              if ($size -lt 100) {
+                Write-Error "ERROR: $($_.Name) is too small ($size bytes) - likely empty archive"
+                exit 1
+              }
             }
+          } else {
+            Write-Host "No zip files found!"
+            exit 1
           }

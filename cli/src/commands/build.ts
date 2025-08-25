@@ -43,10 +43,12 @@ export async function runBuild(watch = false, base?: string, outDir = 'dist', de
           const items = fs.readdirSync(srcPath)
           for (const item of items) {
             const srcItemPath = path.join(srcPath, item)
-            const destItemPath = path.join(destPath, item)
+            // Convert Windows paths to Unix-style for virtual filesystem
+            const destItemPath = path.join(destPath, item).replace(/\\/g, '/')
             const stats = fs.statSync(srcItemPath)
             dbg(`Item ${srcItemPath} is ${stats.isDirectory() ? 'a directory' : 'a file'}`)
             if (stats.isDirectory()) {
+              dbg(`Creating directory in VFS: ${destItemPath}`)
               sevenZip.FS.mkdir(destItemPath)
               copyDirToFS(srcItemPath, destItemPath)
             } else {
@@ -55,6 +57,7 @@ export async function runBuild(watch = false, base?: string, outDir = 'dist', de
               const stream = sevenZip.FS.open(destItemPath, 'w+')
               sevenZip.FS.write(stream, content, 0, content.length)
               sevenZip.FS.close(stream)
+              dbg(`Successfully copied ${srcItemPath} to VFS`)
             }
           }
         }
