@@ -13,23 +13,30 @@ export function archivePlugin(options: ArchivePluginOptions = {}): Plugin {
   const { gameName = 'game', packageVersion = '1.0.0', debug = false } = options
   const dbg = (...args: any[]) => (debug ? console.log(`[DEBUG]`, ...args) : undefined)
 
+  let outDir = path.join(process.cwd(), 'dist')
   return {
     name: 'js13k-archive',
+    configResolved(config) {
+      outDir = path.isAbsolute(config.build.outDir)
+        ? config.build.outDir
+        : path.join(process.cwd(), config.build.outDir)
+      dbg('Output directory:', outDir)
+      // Use outDir as needed
+    },
     closeBundle() {
       const cwd = process.cwd()
-      const outDir = 'dist' // This should match the build outDir
-      const distPath = path.join(cwd, outDir)
-      
+      const distPath = outDir
+
       dbg(`CWD is ${cwd}`)
       dbg(`DIST PATH is ${distPath}`)
-      
+
       if (!fs.existsSync(distPath)) {
         console.warn(`${outDir}/ folder not found, skipping zip creation`)
         return
       }
 
       dbg(`DIST PATH exists`)
-      
+
       // Use an async IIFE to handle the async operations
       ;(async () => {
         try {
@@ -65,7 +72,7 @@ export function archivePlugin(options: ArchivePluginOptions = {}): Plugin {
             }
           }
 
-          copyDirToFS(distPath, tempDir)
+          copyDirToFS(outDir, tempDir)
 
           // Compression methods to test
           const compressionMethods = [
@@ -145,7 +152,9 @@ export function archivePlugin(options: ArchivePluginOptions = {}): Plugin {
           const sizeInfo = `${sizeInBytes} bytes`
           const usageInfo = `${percentage.toFixed(1)}% of 13312 bytes`
           const remainingInfo =
-            remainingBytes > 0 ? `+${remainingBytes} bytes remaining` : `⚠️ ${Math.abs(remainingBytes)} bytes over limit`
+            remainingBytes > 0
+              ? `+${remainingBytes} bytes remaining`
+              : `⚠️ ${Math.abs(remainingBytes)} bytes over limit`
 
           console.log(
             `\n🏆 ${bestResult.method.toUpperCase()}: ${sizeInfo} | [${progressBar}] ${usageInfo} | ${remainingInfo}`
