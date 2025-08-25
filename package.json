@@ -42,5 +42,8 @@
     "pngquant-bin",
     "sharp",
     "workerd"
-  ]
+  ],
+  "patchedDependencies": {
+    "roadroller@2.1.0": "patches/roadroller@2.1.0.patch"
+  }
 }

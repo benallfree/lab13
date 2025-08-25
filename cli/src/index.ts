@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { Command } from 'commander'
-import { runBuild } from './commands/build'
+import { runBuild } from './commands/build-cmd'
 import { runCreate } from './commands/create'
 import { runDev } from './commands/dev'
 import { runPreview } from './commands/preview'

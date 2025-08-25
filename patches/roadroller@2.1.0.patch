@@ -1,0 +1,14 @@
+diff --git a/package.json b/package.json
+index 520649c6953d13f0a86bff23d7eff061b1342f9a..9ad669c28e6e00e7445ff0d1b442cc762abc736d 100644
+--- a/package.json
++++ b/package.json
+@@ -22,7 +22,8 @@
+   "types": "index.d.ts",
+   "exports": {
+     "import": "./index.mjs",
+-    "require": "./index.cjs"
++    "require": "./index.cjs",
++    "types": "./index.d.ts"
+   },
+   "bin": {
+     "roadroller": "./cli.mjs"

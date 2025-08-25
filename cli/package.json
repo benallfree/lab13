@@ -29,8 +29,8 @@
   "type": "module",
   "devDependencies": {
     "@types/bun": "latest",
+    "@types/clean-css": "^4.2.11",
     "@types/express": "^5.0.3",
-    "@types/ws": "^8.18.1",
     "nodemon": "^3.1.10",
     "prettier": "^3.6.2",
     "prettier-plugin-organize-imports": "^4.2.0",
@@ -40,13 +40,13 @@
   },
   "dependencies": {
     "7z-wasm": "^1.2.0",
+    "clean-css": "^5.3.3",
     "commander": "^14.0.0",
     "express": "^5.1.0",
-    "hono": "^4.9.2",
+    "html-minifier-terser": "^7.2.0",
     "inquirer": "^12.9.3",
-    "partykit": "^0.0.115",
+    "roadroller": "^2.1.0",
     "tiged": "^2.12.7",
-    "vite": "^7.1.2",
-    "ws": "^8.18.3"
+    "vite": "^7.1.2"
   }
 }

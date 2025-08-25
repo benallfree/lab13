@@ -27,5 +27,5 @@
     "noPropertyAccessFromIndexSignature": false
   },
 
-  "include": ["js13k/src/**/*.ts", "js13k/src/**/*.d.ts"]
+  "include": ["src/**/*.ts"]
 }
