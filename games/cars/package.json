@@ -2,8 +2,8 @@
   "name": "lab13-cars",
   "private": true,
   "scripts": {
-    "dev": "l13 dev --base=/games/cars --out=../../site/static/games/cars",
-    "build": "l13 build --base=/games/cars --out=../../site/static/games/cars",
+    "dev": "l13 dev --base=/games/cars --out=../../site/static/games/cars --exclude=meta.json --exclude=thumbnail.webp",
+    "build": "l13 build --base=/games/cars --out=../../site/static/games/cars --exclude=meta.json --exclude=thumbnail.webp",
     "preview": "bun run build && cd ../../site/static/games/cars && l13 preview"
   },
   "devDependencies": {
