@@ -2,8 +2,8 @@
   "name": "lab13-mewsterpiece",
   "private": true,
   "scripts": {
-    "dev": "l13 dev --base=/games/mewsterpiece --out=../../site/static/games/mewsterpiece",
-    "build": "l13 build --base=/games/mewsterpiece --out=../../site/static/games/mewsterpiece",
+    "dev": "l13 dev --base=/games/mewsterpiece --out=../../site/static/games/mewsterpiece --exclude=meta.json --exclude=thumbnail.webp",
+    "build": "l13 build --base=/games/mewsterpiece --out=../../site/static/games/mewsterpiece --exclude=meta.json --exclude=thumbnail.webp",
     "preview": "bun run build && cd ../../site/static/games/mewsterpiece && l13 preview",
     "calculate-cats": "cd src && bun run calculate-cats.ts"
   },
