@@ -8,8 +8,11 @@
     <meta name="title" content="Cars Demo: Lab 13 Challenge Series" />
     <meta name="description" content="Cars Demo: Lab 13 Challenge Series" />
     <meta name="author" content="benallfree" />
-    <script type="module" crossorigin src="/games/cars/assets/index-CwUurr1o.js"></script>
-    <link rel="stylesheet" crossorigin href="/games/cars/assets/index-CwleEdJ0.css">
+    <link rel="stylesheet" href="./src/style.css" />
+    <script type="module">
+      import { PartySocket } from 'https://js13kgames.com/2025/online/partysocket.js'
+      window.PartySocket = PartySocket
+    </script>
   </head>
   <body>
     <div class="controls">
@@ -24,5 +27,6 @@
       Each player gets a unique colored car<br />
       Your car is marked with "YOU"
     </div>
+    <script type="module" src="./src/index.ts"></script>
   </body>
 </html>
