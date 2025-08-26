@@ -8,8 +8,14 @@
     <meta name="title" content="Flight Simulator: Lab 13 Challenge Series" />
     <meta name="description" content="Flight Simulator: Lab 13 Challenge Series" />
     <meta name="author" content="benallfree" />
-    <script type="module" crossorigin src="/games/flight/assets/index-BOCqEGrh.js"></script>
-    <link rel="stylesheet" crossorigin href="/games/flight/assets/index-wjn0Tqd1.css">
+    <link rel="stylesheet" href="./src/style.css" />
+    <script type="module">
+      import { PartySocket } from 'https://js13kgames.com/2025/online/partysocket.js'
+      window.PartySocket = PartySocket
+
+      import * as THREE from 'https://esm.sh/three'
+      window.THREE = THREE
+    </script>
   </head>
   <body>
     <div class="controls">
@@ -28,5 +34,6 @@
       PITCH: 0°<br />
       ROLL: 0°
     </div>
+    <script type="module" src="./src/index.ts"></script>
   </body>
 </html>
