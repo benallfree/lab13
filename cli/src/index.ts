@@ -6,6 +6,11 @@ import { runDev } from './commands/dev'
 import { runPreview } from './commands/preview'
 import { toBoolean } from './util'
 
+// Helper function to collect multiple values for the same option
+function collect(value: string, previous: string[]): string[] {
+  return previous.concat([value])
+}
+
 const program = new Command()
 
 program
@@ -21,6 +26,7 @@ program
   .option('--out <dir>', 'Output directory', 'dist')
   .option('--debug', 'Enable debug mode', toBoolean(process.env.DEBUG))
   .option('--roadroller', 'Enable roadroller', toBoolean(process.env.ROADROLLER))
+  .option('--exclude <pattern>', 'Exclude files matching pattern (can be used multiple times)', collect, [])
   .action((options) => runDev(options))
 
 program
@@ -31,6 +37,7 @@ program
   .option('--out <dir>', 'Output directory', 'dist')
   .option('--debug', 'Enable debug mode', toBoolean(process.env.DEBUG))
   .option('--roadroller', 'Enable roadroller', toBoolean(process.env.ROADROLLER))
+  .option('--exclude <pattern>', 'Exclude files matching pattern (can be used multiple times)', collect, [])
   .action((options) => runBuild(options))
 
 program.command('preview').description('Serve the built dist/ directory with Express').action(runPreview)

@@ -31,6 +31,7 @@
     "@types/bun": "latest",
     "@types/clean-css": "^4.2.11",
     "@types/express": "^5.0.3",
+    "@types/minimatch": "^6.0.0",
     "nodemon": "^3.1.10",
     "prettier": "^3.6.2",
     "prettier-plugin-organize-imports": "^4.2.0",
@@ -45,6 +46,7 @@
     "express": "^5.1.0",
     "html-minifier-terser": "^7.2.0",
     "inquirer": "^12.9.3",
+    "minimatch": "^10.0.3",
     "roadroller": "^2.1.0",
     "tiged": "^2.12.7",
     "vite": "^7.1.2"

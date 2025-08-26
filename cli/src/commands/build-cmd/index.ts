@@ -11,10 +11,15 @@ export type BuildOptions = {
   out?: string
   debug?: boolean
   roadroller?: boolean
+  exclude?: string[]
 }
 export async function runBuild(options: BuildOptions): Promise<void> {
-  const { watch, base, out, debug, roadroller } = options
+  const { watch, base, out, debug, roadroller, exclude } = options
   const dbg = (...args: any[]) => (debug ? console.log(`[DEBUG]`, ...args) : undefined)
+
+  // Handle exclude option - it might be a string or array
+  const excludePatterns = Array.isArray(exclude) ? exclude : exclude ? [exclude] : []
+  console.log('excludePatterns', excludePatterns)
 
   const cwd = process.cwd()
   const packageJsonPath = path.join(cwd, 'package.json')
@@ -46,6 +51,7 @@ export async function runBuild(options: BuildOptions): Promise<void> {
         gameName,
         packageVersion,
         debug,
+        exclude: excludePatterns,
       }),
     ].filter(Boolean),
   })

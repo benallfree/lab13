@@ -1,4 +1,5 @@
 import SevenZip from '7z-wasm'
+import { minimatch } from 'minimatch'
 import fs from 'node:fs'
 import path from 'node:path'
 import type { Plugin } from 'vite'
@@ -7,11 +8,28 @@ interface ArchivePluginOptions {
   gameName?: string
   packageVersion?: string
   debug?: boolean
+  exclude?: string[]
 }
 
 export function archivePlugin(options: ArchivePluginOptions = {}): Plugin {
-  const { gameName = 'game', packageVersion = '1.0.0', debug = false } = options
+  const { gameName = 'game', packageVersion = '1.0.0', debug = false, exclude = [] } = options
   const dbg = (...args: any[]) => (debug ? console.log(`[DEBUG]`, ...args) : undefined)
+
+  // Function to check if a file should be excluded based on patterns
+  const shouldExclude = (filePath: string): boolean => {
+    if (exclude.length === 0) return false
+
+    // Get the relative path from the dist directory
+    const relativePath = path.relative(outDir, filePath)
+
+    return exclude.some((pattern) => {
+      const isMatch = minimatch(relativePath, pattern, { dot: true })
+      if (isMatch) {
+        dbg(`Excluding ${relativePath} (matches pattern: ${pattern})`)
+      }
+      return isMatch
+    })
+  }
 
   let outDir = path.join(process.cwd(), 'dist')
   return {
@@ -60,6 +78,11 @@ export function archivePlugin(options: ArchivePluginOptions = {}): Plugin {
               sevenZip.FS.mkdir(destItemPath)
               copyDirToFS(srcItemPath, destItemPath)
             } else {
+              // Check if file should be excluded
+              if (shouldExclude(srcItemPath)) {
+                dbg(`Skipping excluded file: ${srcItemPath}`)
+                continue
+              }
               dbg(`Copying item ${srcItemPath} to ${destItemPath}`)
               const content = fs.readFileSync(srcItemPath)
               const stream = sevenZip.FS.open(destItemPath, 'w+')
