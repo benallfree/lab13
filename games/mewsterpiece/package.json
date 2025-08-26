@@ -2,17 +2,16 @@
   "name": "lab13-mewsterpiece",
   "private": true,
   "scripts": {
-    "dev": "l13 dev",
+    "dev": "l13 dev --base=/games/mewsterpiece --out=../../site/static/games/mewsterpiece",
     "build": "l13 build --base=/games/mewsterpiece --out=../../site/static/games/mewsterpiece",
-    "watch": "chokidar 'src/**/*.ts' --initial -c 'bun run build'",
-    "preview": "l13 preview",
+    "preview": "bun run build && cd ../../site/static/games/mewsterpiece && l13 preview",
     "calculate-cats": "cd src && bun run calculate-cats.ts"
   },
   "devDependencies": {
     "@types/svg-path-bounds": "^1.0.2",
-    "chokidar-cli": "^3.0.0",
     "l13": "workspace:*",
     "lab13-sdk": "workspace:*",
-    "svg-path-bounds": "^1.0.2"
+    "svg-path-bounds": "^1.0.2",
+    "partysocket": "^1.1.5"
   }
 }

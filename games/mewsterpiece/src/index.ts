@@ -1,5 +1,4 @@
-/// <reference path="../partysocket.d.ts" />
-
+import type { PartySocket } from 'partysocket'
 import { cats } from './cats'
 import {
   onClientJoined,
@@ -19,6 +18,13 @@ import {
   state,
 } from './state'
 import './style.css'
+
+declare global {
+  interface Window {
+    PartySocket: typeof PartySocket
+    socket: PartySocket
+  }
+}
 
 // WebSocket connection
 window.socket = new window.PartySocket({
