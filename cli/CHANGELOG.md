@@ -1,5 +1,12 @@
 # js13k
 
+## 0.0.1-rc.12
+
+### Patch Changes
+
+- 5bce164: Add --exclude option
+- ee3b193: Debounce .zip writes in dev mode
+
 ## 0.0.1-rc.11
 
 ### Patch Changes

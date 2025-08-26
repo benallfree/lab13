@@ -7,6 +7,7 @@
     "lab13-site": "0.0.0"
   },
   "changesets": [
+    "blue-kings-rescue",
     "chatty-loops-turn",
     "cool-words-sort",
     "cute-regions-cover",
@@ -18,6 +19,7 @@
     "petite-planets-pump",
     "red-bananas-wait",
     "slimy-buttons-pick",
+    "slow-drinks-bake",
     "slow-groups-hunt",
     "wet-bananas-pay"
   ]
