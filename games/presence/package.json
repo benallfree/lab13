@@ -2,8 +2,8 @@
   "name": "lab13-presence",
   "private": true,
   "scripts": {
-    "dev": "l13 dev --base=/games/presence --out=../../site/static/games/presence",
-    "build": "l13 build --base=/games/presence --out=../../site/static/games/presence",
+    "dev": "l13 dev --base=/games/presence --out=../../site/static/games/presence --exclude=meta.json --exclude=thumbnail.webp",
+    "build": "l13 build --base=/games/presence --out=../../site/static/games/presence --exclude=meta.json --exclude=thumbnail.webp",
     "preview": "bun run build && cd ../../site/static/games/presence && l13 preview"
   },
   "files": [
