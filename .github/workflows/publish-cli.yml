@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'cli/package.json'
+      - 'bun.lock'
 
 jobs:
   publish:
