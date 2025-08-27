@@ -1,0 +1,15 @@
+{
+  "name": "lab13-cats",
+  "private": true,
+  "scripts": {
+    "dev": "l13 dev --base=/games/cats --out=../../site/static/games/cats --exclude=meta.json --exclude=thumbnail.webp",
+    "build": "l13 build --base=/games/cats --out=../../site/static/games/cats --exclude=meta.json --exclude=thumbnail.webp",
+    "preview": "bun run build && cd ../../site/static/games/cats && l13 preview"
+  },
+  "devDependencies": {
+    "@types/three": "^0.179.0",
+    "l13": "workspace:*",
+    "lab13-sdk": "workspace:*",
+    "partysocket": "^1.1.5"
+  }
+}

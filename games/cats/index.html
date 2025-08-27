@@ -8,8 +8,11 @@
     <meta name="title" content="Black Cats Demo: Lab 13 Challenge Series" />
     <meta name="description" content="Black Cats Demo: Lab 13 Challenge Series" />
     <meta name="author" content="benallfree" />
-    <script type="module" crossorigin src="/games/cats/assets/index-uewOzuin.js"></script>
-    <link rel="stylesheet" crossorigin href="/games/cats/assets/index-C1unblbY.css">
+    <link rel="stylesheet" href="./src/style.css" />
+    <script type="module">
+      import { PartySocket } from 'https://js13kgames.com/2025/online/partysocket.js'
+      window.PartySocket = PartySocket
+    </script>
   </head>
   <body>
     <div class="controls">
@@ -26,5 +29,6 @@
       Each player gets a unique black cat<br />
       Your cat label shows your name
     </div>
+    <script type="module" src="./src/index.ts"></script>
   </body>
 </html>
