@@ -59,6 +59,13 @@
         "partysocket": "^1.1.5",
       },
     },
+    "games/empty": {
+      "name": "lab13-empty",
+      "devDependencies": {
+        "l13": "workspace:*",
+        "partysocket": "^1.1.5",
+      },
+    },
     "games/flight": {
       "name": "lab13-flight",
       "devDependencies": {
@@ -1732,6 +1739,8 @@
     "lab13-cars": ["lab13-cars@workspace:games/cars"],
 
     "lab13-cats": ["lab13-cats@workspace:games/cats"],
+
+    "lab13-empty": ["lab13-empty@workspace:games/empty"],
 
     "lab13-flight": ["lab13-flight@workspace:games/flight"],
 
