@@ -20,7 +20,6 @@ export async function runBuild(options: BuildOptions): Promise<void> {
 
   // Handle exclude option - it might be a string or array
   const excludePatterns = Array.isArray(exclude) ? exclude : exclude ? [exclude] : []
-  console.log('excludePatterns', excludePatterns)
 
   const cwd = process.cwd()
   const packageJsonPath = path.join(cwd, 'package.json')
