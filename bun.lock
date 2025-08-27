@@ -50,6 +50,15 @@
         "type-fest": "^4.41.0",
       },
     },
+    "games/cats": {
+      "name": "lab13-cats",
+      "devDependencies": {
+        "@types/three": "^0.179.0",
+        "l13": "workspace:*",
+        "lab13-sdk": "workspace:*",
+        "partysocket": "^1.1.5",
+      },
+    },
     "games/flight": {
       "name": "lab13-flight",
       "devDependencies": {
@@ -1721,6 +1730,8 @@
     "l13": ["l13@workspace:cli"],
 
     "lab13-cars": ["lab13-cars@workspace:games/cars"],
+
+    "lab13-cats": ["lab13-cats@workspace:games/cats"],
 
     "lab13-flight": ["lab13-flight@workspace:games/flight"],
 
