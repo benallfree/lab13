@@ -567,7 +567,7 @@ function gameLoop() {
 setInterval(() => {
   const currentState = getState()
   // console.log('Current state:', JSON.stringify(currentState, null, 2))
-  if (Object.keys(currentState[MICE_ENTITY_COLLECTION_KEY] || {}).length < 1) {
+  if (Object.keys(currentState[MICE_ENTITY_COLLECTION_KEY] || {}).length < 5) {
     spawnMouse()
   }
 }, 1000)
