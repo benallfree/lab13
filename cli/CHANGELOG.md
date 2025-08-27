@@ -1,5 +1,11 @@
 # js13k
 
+## 0.0.1-rc.13
+
+### Patch Changes
+
+- 961fe70: Add --experimental flag for compression formats beyond Deflate
+
 ## 0.0.1-rc.12
 
 ### Patch Changes
