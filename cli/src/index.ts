@@ -26,6 +26,7 @@ program
   .option('--out <dir>', 'Output directory', 'dist')
   .option('--debug', 'Enable debug mode', toBoolean(process.env.DEBUG))
   .option('--roadroller', 'Enable roadroller', toBoolean(process.env.ROADROLLER))
+  .option('--experimental', 'Enable experimental compression methods', toBoolean(process.env.EXPERIMENTAL))
   .option('--exclude <pattern>', 'Exclude files matching pattern (can be used multiple times)', collect, [])
   .action((options) => runDev(options))
 
@@ -37,6 +38,7 @@ program
   .option('--out <dir>', 'Output directory', 'dist')
   .option('--debug', 'Enable debug mode', toBoolean(process.env.DEBUG))
   .option('--roadroller', 'Enable roadroller', toBoolean(process.env.ROADROLLER))
+  .option('--experimental', 'Enable experimental compression methods', toBoolean(process.env.EXPERIMENTAL))
   .option('--exclude <pattern>', 'Exclude files matching pattern (can be used multiple times)', collect, [])
   .action((options) => runBuild(options))
 

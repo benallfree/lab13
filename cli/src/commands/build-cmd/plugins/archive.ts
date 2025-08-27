@@ -9,10 +9,11 @@ interface ArchivePluginOptions {
   packageVersion?: string
   debug?: boolean
   exclude?: string[]
+  experimental?: boolean
 }
 
 export function archivePlugin(options: ArchivePluginOptions = {}): Plugin {
-  const { gameName = 'game', packageVersion = '1.0.0', debug = false, exclude = [] } = options
+  const { gameName = 'game', packageVersion = '1.0.0', debug = false, exclude = [], experimental = false } = options
   const dbg = (...args: any[]) => (debug ? console.log(`[DEBUG]`, ...args) : undefined)
 
   // Function to check if a file should be excluded based on patterns
@@ -98,9 +99,13 @@ export function archivePlugin(options: ArchivePluginOptions = {}): Plugin {
         // Compression methods to test
         const compressionMethods = [
           { name: 'deflate', flag: '' },
-          { name: 'lzma', flag: '-m0=lzma' },
-          { name: 'ppmd', flag: '-m0=ppmd' },
-          { name: 'bzip2', flag: '-m0=bzip2' },
+          ...(experimental
+            ? [
+                { name: 'lzma', flag: '-m0=lzma' },
+                { name: 'ppmd', flag: '-m0=ppmd' },
+                { name: 'bzip2', flag: '-m0=bzip2' },
+              ]
+            : []),
         ]
 
         const results: Array<{ method: string; size: number; path: string }> = []
@@ -178,6 +183,11 @@ export function archivePlugin(options: ArchivePluginOptions = {}): Plugin {
         console.log(
           `\n🏆 ${bestResult.method.toUpperCase()}: ${sizeInfo} | [${progressBar}] ${usageInfo} | ${remainingInfo}`
         )
+
+        // Suggest roadroller if over 13KB
+        if (sizeInBytes > maxSize) {
+          console.log(`\n💡 Consider using --roadroller for better compression!`)
+        }
 
         // Create a symlink or copy of the best result as the main zip
         const mainZipPath = path.join(cwd, `${gameName}-${packageVersion}.zip`)
