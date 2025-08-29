@@ -1,5 +1,15 @@
 # js13k
 
+## 0.0.2
+
+### Patch Changes
+
+- 2092d8a: Add --version
+- 9db6923: Disable screen clearing in dev mode
+- 7ac21e3: Rename primary command from js13k to l13
+- 0524a49: Add max compression to zip
+- a5cd63d: Build bundle on dev start
+
 ## 0.0.1
 
 ### Patch Changes
