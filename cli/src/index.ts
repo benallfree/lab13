@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { Command } from 'commander'
+import { version } from '../package.json'
 import { runBuild } from './commands/build-cmd'
 import { runCreate } from './commands/create'
 import { runDev } from './commands/dev'
@@ -15,6 +16,7 @@ const program = new Command()
 
 program
   .name('l13')
+  .version(version)
   .description('CLI for js13kGames tooling')
   .showHelpAfterError()
   .configureHelp({ sortSubcommands: true, sortOptions: true })
