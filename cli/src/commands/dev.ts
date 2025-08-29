@@ -37,4 +37,9 @@ export async function runDev(options: BuildOptions): Promise<void> {
   if (typeof (server as any).printUrls === 'function') {
     ;(server as any).printUrls()
   }
+
+  // Build initially on start
+  await runBuild(options).catch((err) => {
+    console.error(`Initial build failed: ${err}`)
+  })
 }
