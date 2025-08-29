@@ -3,21 +3,34 @@ import fs from 'node:fs'
 import path from 'node:path'
 import tiged from 'tiged'
 
-async function listRemoteExamples(): Promise<string[]> {
-  const url = 'https://api.github.com/repos/benallfree/lab13/games'
+type GameExample = {
+  name: string
+  description: string
+  slug: string
+}
+
+async function listRemoteExamples(): Promise<GameExample[]> {
+  const url = 'https://raw.githubusercontent.com/benallfree/lab13/refs/heads/main/games/meta.json'
   try {
     const res = await (globalThis as any).fetch(url, {
       headers: {
         'User-Agent': 'lab13',
-        Accept: 'application/vnd.github+json',
       },
     })
     if (!res?.ok) return []
     const data = await res.json()
     if (!Array.isArray(data)) return []
-    return data
-      .filter((e: any) => e && e.type === 'dir' && typeof e.name === 'string')
-      .map((e: any) => e.name as string)
+    return data.map((game: any) => {
+      // Extract slug from repository URL
+      const repoUrl = game.repository || ''
+      const match = repoUrl.match(/\/games\/([^\/]+)$/)
+      const slug = match ? match[1] : game.name.toLowerCase().replace(/\s+/g, '-')
+      return {
+        name: game.name,
+        description: game.description,
+        slug,
+      }
+    })
   } catch {
     return []
   }
@@ -36,7 +49,10 @@ export async function runCreate(): Promise<void> {
       name: 'exampleName',
       type: 'list',
       message: 'Select an example to scaffold:',
-      choices: examples,
+      choices: examples.map((example) => ({
+        name: `${example.name} - ${example.description}`,
+        value: example.slug,
+      })),
     },
   ])
 
