@@ -30,6 +30,7 @@ const devPlugin = (options: BuildOptions): Plugin => {
 export async function runDev(options: BuildOptions): Promise<void> {
   const { debug = false } = options || {}
   const server = await createViteServer({
+    clearScreen: false,
     plugins: [devPlugin(options)],
   })
   await server.listen()
