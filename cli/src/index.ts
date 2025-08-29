@@ -14,7 +14,7 @@ function collect(value: string, previous: string[]): string[] {
 const program = new Command()
 
 program
-  .name('js13k')
+  .name('l13')
   .description('CLI for js13kGames tooling')
   .showHelpAfterError()
   .configureHelp({ sortSubcommands: true, sortOptions: true })
