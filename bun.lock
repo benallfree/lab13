@@ -10,7 +10,7 @@
     },
     "cli": {
       "name": "l13",
-      "version": "0.0.1-rc.13",
+      "version": "0.0.2",
       "bin": {
         "js13k": "dist/index.js",
         "lab13": "dist/index.js",
@@ -44,8 +44,6 @@
     "games/cars": {
       "name": "lab13-cars",
       "devDependencies": {
-        "l13": "workspace:*",
-        "lab13-sdk": "workspace:*",
         "partysocket": "^1.1.5",
         "type-fest": "^4.41.0",
       },
@@ -54,15 +52,6 @@
       "name": "lab13-cats",
       "devDependencies": {
         "@types/three": "^0.179.0",
-        "l13": "workspace:*",
-        "lab13-sdk": "workspace:*",
-        "partysocket": "^1.1.5",
-      },
-    },
-    "games/empty": {
-      "name": "lab13-empty",
-      "devDependencies": {
-        "l13": "workspace:*",
         "partysocket": "^1.1.5",
       },
     },
@@ -70,18 +59,20 @@
       "name": "lab13-flight",
       "devDependencies": {
         "@types/three": "^0.179.0",
-        "l13": "workspace:*",
-        "lab13-sdk": "workspace:*",
         "partysocket": "^1.1.5",
         "three": "^0.179.1",
+      },
+    },
+    "games/hello-mmo": {
+      "name": "lab13-hello-mmo",
+      "devDependencies": {
+        "partysocket": "^1.1.5",
       },
     },
     "games/mewsterpiece": {
       "name": "lab13-mewsterpiece",
       "devDependencies": {
         "@types/svg-path-bounds": "^1.0.2",
-        "l13": "workspace:*",
-        "lab13-sdk": "workspace:*",
         "partysocket": "^1.1.5",
         "svg-path-bounds": "^1.0.2",
       },
@@ -89,8 +80,6 @@
     "games/presence": {
       "name": "lab13-presence",
       "devDependencies": {
-        "l13": "workspace:*",
-        "lab13-sdk": "workspace:*",
         "partysocket": "^1.1.5",
         "vanjs-core": "^1.5.5",
       },
@@ -1740,9 +1729,9 @@
 
     "lab13-cats": ["lab13-cats@workspace:games/cats"],
 
-    "lab13-empty": ["lab13-empty@workspace:games/empty"],
-
     "lab13-flight": ["lab13-flight@workspace:games/flight"],
+
+    "lab13-hello-mmo": ["lab13-hello-mmo@workspace:games/hello-mmo"],
 
     "lab13-mewsterpiece": ["lab13-mewsterpiece@workspace:games/mewsterpiece"],
 
