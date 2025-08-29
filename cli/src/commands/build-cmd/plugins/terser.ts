@@ -1,7 +1,6 @@
 import type { Plugin } from 'vite'
 
 export function terserPlugin(): Plugin {
-
   return {
     name: 'js13k-terser',
     config(config) {
