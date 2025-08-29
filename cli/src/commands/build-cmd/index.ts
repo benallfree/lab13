@@ -2,6 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { build as viteBuild } from 'vite'
 import { archivePlugin } from './plugins/archive'
+import { htmlMinifyPlugin } from './plugins/html-minify'
 import { roadrollerPlugin } from './plugins/roadroller'
 import { terserPlugin } from './plugins/terser'
 
@@ -11,13 +12,14 @@ export type BuildOptions = {
   out?: string
   debug?: boolean
   roadroller?: boolean
+  htmlMinify?: boolean
   terser?: boolean
   experimental?: boolean
   exclude?: string[]
   dev?: boolean
 }
 export async function runBuild(options: BuildOptions): Promise<void> {
-  const { watch, base, out, debug, roadroller, experimental, exclude, dev } = options
+  const { watch, base, out, debug, roadroller, htmlMinify, terser, experimental, exclude, dev } = options
   const dbg = (...args: any[]) => (debug ? console.log(`[DEBUG]`, ...args) : undefined)
 
   // Handle exclude option - it might be a string or array
@@ -54,6 +56,7 @@ export async function runBuild(options: BuildOptions): Promise<void> {
     },
     plugins: [
       terser !== false ? terserPlugin() : undefined,
+      htmlMinify !== false ? htmlMinifyPlugin() : undefined,
       roadroller ? roadrollerPlugin() : undefined,
       archivePlugin({
         gameName,
