@@ -97,13 +97,13 @@ export function archivePlugin(options: ArchivePluginOptions = {}): Plugin {
         copyDirToFS(outDir, tempDir)
 
         // Compression methods to test
-        const compressionMethods = [
-          { name: 'deflate', flag: '' },
+        const compressionMethods: { name: string; flags: string[] }[] = [
+          { name: 'deflate', flags: [] },
           ...(experimental
             ? [
-                { name: 'lzma', flag: '-m0=lzma' },
-                { name: 'ppmd', flag: '-m0=ppmd' },
-                { name: 'bzip2', flag: '-m0=bzip2' },
+                { name: 'lzma', flags: ['-m0=lzma'] },
+                { name: 'ppmd', flags: ['-m0=ppmd'] },
+                { name: 'bzip2', flags: ['-m0=bzip2'] },
               ]
             : []),
         ]
@@ -123,16 +123,7 @@ export function archivePlugin(options: ArchivePluginOptions = {}): Plugin {
           }
 
           // Create zip archive silently
-          const args = [
-            'a',
-            '-tzip',
-            '-bd',
-            '-bso0',
-            '-bsp0',
-            ...(method.flag ? [method.flag] : []),
-            zipName,
-            `${tempDir}/*`,
-          ]
+          const args = ['a', '-tzip', '-bd', '-bso0', '-bsp0', '-mx9', ...method.flags, zipName, `${tempDir}/*`]
           dbg(`Calling 7z with args ${args.join(' ')}`)
           sevenZip.callMain(args)
 
