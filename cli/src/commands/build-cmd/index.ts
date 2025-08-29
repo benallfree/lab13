@@ -13,9 +13,10 @@ export type BuildOptions = {
   roadroller?: boolean
   experimental?: boolean
   exclude?: string[]
+  dev?: boolean
 }
 export async function runBuild(options: BuildOptions): Promise<void> {
-  const { watch, base, out, debug, roadroller, experimental, exclude } = options
+  const { watch, base, out, debug, roadroller, experimental, exclude, dev } = options
   const dbg = (...args: any[]) => (debug ? console.log(`[DEBUG]`, ...args) : undefined)
 
   // Handle exclude option - it might be a string or array
@@ -39,6 +40,12 @@ export async function runBuild(options: BuildOptions): Promise<void> {
   // Run Vite build with post-build plugin
   await viteBuild({
     base,
+    define: dev
+      ? {}
+      : {
+          'import.meta.env.DEV': 'false',
+          'import.meta.env.PROD': 'true',
+        },
     build: {
       outDir: out,
       emptyOutDir: true,

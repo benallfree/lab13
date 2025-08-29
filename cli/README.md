@@ -32,6 +32,7 @@ npx l13 dev
 - `--roadroller` - Enable roadroller compression (can also use `ROADROLLER=true` env var)
 - `--experimental` - Enable experimental compression methods (can also use `EXPERIMENTAL=true` env var)
 - `--exclude <pattern>` - Exclude files matching pattern (can be used multiple times)
+- `--dev-bundle` - Build the zip bundle using Vite's dev mode
 
 **Features:**
 
@@ -57,6 +58,9 @@ npx l13 build
 - `--roadroller` - Enable roadroller compression (can also use `ROADROLLER=true` env var)
 - `--experimental` - Enable experimental compression methods (can also use `EXPERIMENTAL=true` env var)
 - `--exclude <pattern>` - Exclude files matching pattern (can be used multiple times)
+- `--dev` - Build the zip bundle using Vite's dev mode
+
+**Note:** By default, the bundle is built with production settings (`import.meta.env.DEV: false`, `import.meta.env.PROD: true`). Use `--dev` to disable these overrides and let Vite determine the environment variables.
 
 **Build Process:**
 

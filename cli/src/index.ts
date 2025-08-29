@@ -28,7 +28,8 @@ program
   .option('--roadroller', 'Enable roadroller', toBoolean(process.env.ROADROLLER))
   .option('--experimental', 'Enable experimental compression methods', toBoolean(process.env.EXPERIMENTAL))
   .option('--exclude <pattern>', 'Exclude files matching pattern (can be used multiple times)', collect, [])
-  .action((options) => runDev(options))
+  .option('--dev-bundle', `Build the zip bundle using Vite's dev mode`, false)
+  .action((options) => runDev({ ...options, dev: options.devBundle }))
 
 program
   .command('build')
@@ -40,6 +41,7 @@ program
   .option('--roadroller', 'Enable roadroller', toBoolean(process.env.ROADROLLER))
   .option('--experimental', 'Enable experimental compression methods', toBoolean(process.env.EXPERIMENTAL))
   .option('--exclude <pattern>', 'Exclude files matching pattern (can be used multiple times)', collect, [])
+  .option('--dev', `Build the zip bundle using Vite's dev mode`, false)
   .action((options) => runBuild(options))
 
 program.command('preview').description('Serve the built dist/ directory with Express').action(runPreview)
