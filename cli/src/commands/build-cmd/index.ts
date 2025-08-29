@@ -11,6 +11,7 @@ export type BuildOptions = {
   out?: string
   debug?: boolean
   roadroller?: boolean
+  terser?: boolean
   experimental?: boolean
   exclude?: string[]
   dev?: boolean
@@ -52,7 +53,7 @@ export async function runBuild(options: BuildOptions): Promise<void> {
       watch: watch ? {} : undefined,
     },
     plugins: [
-      terserPlugin(),
+      terser !== false ? terserPlugin() : undefined,
       roadroller ? roadrollerPlugin() : undefined,
       archivePlugin({
         gameName,
