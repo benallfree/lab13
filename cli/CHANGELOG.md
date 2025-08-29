@@ -1,5 +1,11 @@
 # js13k
 
+## 0.0.1-rc.14
+
+### Patch Changes
+
+- 2b9db26: Make zip bundle build with prod settings by default, add --dev and --dev-bundle flags
+
 ## 0.0.1-rc.13
 
 ### Patch Changes
