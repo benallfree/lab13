@@ -1,15 +1,7 @@
 {
   "name": "lab13-flight",
-  "private": true,
-  "scripts": {
-    "dev": "l13 dev --base=/games/flight --out=../../site/static/games/flight --exclude=meta.json --exclude=thumbnail.webp",
-    "build": "l13 build --base=/games/flight --out=../../site/static/games/flight --exclude=meta.json --exclude=thumbnail.webp",
-    "preview": "bun run build && cd ../../site/static/games/flight && l13 preview"
-  },
   "devDependencies": {
     "@types/three": "^0.179.0",
-    "l13": "workspace:*",
-    "lab13-sdk": "workspace:*",
     "partysocket": "^1.1.5",
     "three": "^0.179.1"
   }

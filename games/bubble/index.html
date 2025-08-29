@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bubble Pop</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        font-family: Arial, sans-serif;
+        overflow: hidden;
+        cursor: crosshair;
+      }
+      canvas {
+        display: block;
+        background: transparent;
+      }
+      #ui {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        color: white;
+        font-size: 24px;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        z-index: 100;
+      }
+      #gameOver {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 40px;
+        border-radius: 20px;
+        text-align: center;
+        display: none;
+        z-index: 200;
+      }
+      button {
+        background: #4caf50;
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        font-size: 18px;
+        border-radius: 10px;
+        cursor: pointer;
+        margin-top: 20px;
+      }
+      button:hover {
+        background: #45a049;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="ui">
+      <div>Score: <span id="score">0</span></div>
+      <div>Level: <span id="level">1</span></div>
+      <div>Time: <span id="time">60</span></div>
+    </div>
+
+    <div id="gameOver">
+      <h2>Game Over!</h2>
+      <p>Final Score: <span id="finalScore">0</span></p>
+      <button onclick="startGame()">Play Again</button>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <script>
+      const canvas = document.getElementById('gameCanvas')
+      const ctx = canvas.getContext('2d')
+      const scoreEl = document.getElementById('score')
+      const levelEl = document.getElementById('level')
+      const timeEl = document.getElementById('time')
+      const gameOverEl = document.getElementById('gameOver')
+      const finalScoreEl = document.getElementById('finalScore')
+
+      // Create audio context for sound effects
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)()
+
+      function playPopSound() {
+        const oscillator = audioContext.createOscillator()
+        const gainNode = audioContext.createGain()
+
+        oscillator.connect(gainNode)
+        gainNode.connect(audioContext.destination)
+
+        oscillator.frequency.setValueAtTime(800, audioContext.currentTime)
+        oscillator.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.1)
+
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime)
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1)
+
+        oscillator.start(audioContext.currentTime)
+        oscillator.stop(audioContext.currentTime + 0.1)
+      }
+
+      canvas.width = window.innerWidth
+      canvas.height = window.innerHeight
+
+      let score = 0
+      let level = 1
+      let timeLeft = 60
+      let gameRunning = false
+      let bubbles = []
+      let lastTime = 0
+      let bubbleSpawnTimer = 0
+
+      class Bubble {
+        constructor() {
+          this.x = Math.random() * canvas.width
+          this.y = canvas.height + 50
+          this.radius = Math.random() * 30 + 20
+          this.speed = Math.random() * 2 + 1
+          this.color = `hsl(${Math.random() * 360}, 70%, 60%)`
+          this.popped = false
+          this.points = Math.floor(this.radius / 5)
+        }
+
+        update() {
+          this.y -= this.speed
+          return this.y + this.radius < 0
+        }
+
+        draw() {
+          if (this.popped) return
+
+          ctx.save()
+          ctx.globalAlpha = 0.8
+
+          // Bubble glow
+          ctx.shadowColor = this.color
+          ctx.shadowBlur = 20
+
+          // Main bubble
+          ctx.beginPath()
+          ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2)
+          ctx.fillStyle = this.color
+          ctx.fill()
+
+          // Highlight
+          ctx.beginPath()
+          ctx.arc(this.x - this.radius * 0.3, this.y - this.radius * 0.3, this.radius * 0.3, 0, Math.PI * 2)
+          ctx.fillStyle = 'rgba(255,255,255,0.3)'
+          ctx.fill()
+
+          ctx.restore()
+        }
+
+        isClicked(mouseX, mouseY) {
+          const distance = Math.sqrt((mouseX - this.x) ** 2 + (mouseY - this.y) ** 2)
+          return distance <= this.radius && !this.popped
+        }
+
+        pop() {
+          this.popped = true
+          score += this.points
+          scoreEl.textContent = score
+
+          // Level up every 100 points
+          const newLevel = Math.floor(score / 100) + 1
+          if (newLevel > level) {
+            level = newLevel
+            levelEl.textContent = level
+          }
+
+          // Play pop sound
+          playPopSound()
+
+          // Create pop effect
+          createPopEffect(this.x, this.y, this.color)
+        }
+      }
+
+      function createPopEffect(x, y, color) {
+        for (let i = 0; i < 8; i++) {
+          const angle = (i / 8) * Math.PI * 2
+          const particle = {
+            x: x,
+            y: y,
+            vx: Math.cos(angle) * 3,
+            vy: Math.sin(angle) * 3,
+            life: 30,
+            color: color,
+          }
+
+          setTimeout(() => {
+            ctx.save()
+            ctx.globalAlpha = particle.life / 30
+            ctx.fillStyle = particle.color
+            ctx.beginPath()
+            ctx.arc(particle.x, particle.y, 3, 0, Math.PI * 2)
+            ctx.fill()
+            ctx.restore()
+          }, 0)
+        }
+      }
+
+      function spawnBubble() {
+        bubbles.push(new Bubble())
+      }
+
+      function updateBubbles() {
+        bubbles = bubbles.filter((bubble) => {
+          if (bubble.popped) return false
+          return !bubble.update()
+        })
+      }
+
+      function drawBubbles() {
+        bubbles.forEach((bubble) => bubble.draw())
+      }
+
+      function handleClick(e) {
+        if (!gameRunning) return
+
+        const rect = canvas.getBoundingClientRect()
+        const mouseX = e.clientX - rect.left
+        const mouseY = e.clientY - rect.top
+
+        bubbles.forEach((bubble) => {
+          if (bubble.isClicked(mouseX, mouseY)) {
+            bubble.pop()
+          }
+        })
+      }
+
+      function gameLoop(currentTime) {
+        if (!gameRunning) return
+
+        const deltaTime = currentTime - lastTime
+        lastTime = currentTime
+
+        // Clear canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+        // Spawn bubbles
+        bubbleSpawnTimer += deltaTime
+        const spawnRate = Math.max(500 - level * 50, 200) // Faster spawning with level
+        if (bubbleSpawnTimer > spawnRate) {
+          spawnBubble()
+          bubbleSpawnTimer = 0
+        }
+
+        // Update and draw bubbles
+        updateBubbles()
+        drawBubbles()
+
+        // Update time
+        timeLeft -= deltaTime / 1000
+        timeEl.textContent = Math.max(0, Math.ceil(timeLeft))
+
+        if (timeLeft <= 0) {
+          endGame()
+          return
+        }
+
+        requestAnimationFrame(gameLoop)
+      }
+
+      function startGame() {
+        score = 0
+        level = 1
+        timeLeft = 60
+        bubbles = []
+        gameRunning = true
+        lastTime = performance.now()
+        bubbleSpawnTimer = 0
+
+        scoreEl.textContent = score
+        levelEl.textContent = level
+        timeEl.textContent = timeLeft
+        gameOverEl.style.display = 'none'
+
+        requestAnimationFrame(gameLoop)
+      }
+
+      function endGame() {
+        gameRunning = false
+        finalScoreEl.textContent = score
+        gameOverEl.style.display = 'block'
+      }
+
+      // Event listeners
+      canvas.addEventListener('click', handleClick)
+      window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth
+        canvas.height = window.innerHeight
+      })
+
+      // Start the game
+      startGame()
+    </script>
+  </body>
+</html>

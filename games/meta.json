@@ -1,0 +1,51 @@
+[
+  {
+    "name": "Bubble Pop",
+    "description": "A single player game of popping bubbles",
+    "author": "Ben Allfree",
+    "repository": "https://github.com/benallfree/lab13/tree/main/games/bubble",
+    "thumbnail": "https://github.com/benallfree/lab13/blob/main/games/bubble/thumbnail.webp?raw=true"
+  },
+  {
+    "name": "Cars",
+    "description": "A multiplayer game of cars",
+    "author": "Ben Allfree",
+    "repository": "https://github.com/benallfree/lab13/tree/main/games/cars",
+    "thumbnail": "https://github.com/benallfree/lab13/blob/main/games/cars/thumbnail.webp?raw=true"
+  },
+  {
+    "name": "Cats",
+    "description": "A multiplayer game of cats",
+    "author": "Ben Allfree",
+    "repository": "https://github.com/benallfree/lab13/tree/main/games/cats",
+    "thumbnail": "https://github.com/benallfree/lab13/blob/main/games/cats/thumbnail.webp?raw=true"
+  },
+  {
+    "name": "Flight",
+    "description": "A multiplayer game of planes",
+    "author": "Ben Allfree",
+    "repository": "https://github.com/benallfree/lab13/tree/main/games/flight",
+    "thumbnail": "https://github.com/benallfree/lab13/blob/main/games/flight/thumbnail.webp?raw=true"
+  },
+  {
+    "name": "Hello MMO",
+    "description": "A demo showing how to connect to JS13K Online relay",
+    "author": "Ben Allfree",
+    "repository": "https://github.com/benallfree/lab13/tree/main/games/hello-mmo",
+    "thumbnail": "https://github.com/benallfree/lab13/blob/main/games/hello-mmo/thumbnail.webp?raw=true"
+  },
+  {
+    "name": "Mewsterpiece",
+    "description": "A multiplayer collaborative cat coloring book game",
+    "author": "Ben Allfree",
+    "repository": "https://github.com/benallfree/lab13/tree/main/games/mewsterpiece",
+    "thumbnail": "https://github.com/benallfree/lab13/blob/main/games/mewsterpiece/thumbnail.webp?raw=true"
+  },
+  {
+    "name": "Presence",
+    "description": "A demo showing how to use the JS13K Online presence API",
+    "author": "Ben Allfree",
+    "repository": "https://github.com/benallfree/lab13/tree/main/games/presence",
+    "thumbnail": "https://github.com/benallfree/lab13/blob/main/games/presence/thumbnail.webp?raw=true"
+  }
+]
