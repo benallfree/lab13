@@ -1,5 +1,26 @@
 # js13k
 
+## 0.0.1
+
+### Patch Changes
+
+- 5bce164: Add --exclude option
+- 07b1cb0: Add zip output and 13kb comparison
+- 2b9db26: Make zip bundle build with prod settings by default, add --dev and --dev-bundle flags
+- 3d49484: Roadroller support
+- fc19f47: handle build errors gracefully
+- fb32a19: Add --debug flag
+- 8f70824: Build preview in dev mode
+- 731d209: Add deflate, lzma, ppmd, bzip and choose winner
+- 703049d: Support output dir for archiver
+- c49a2d4: Fix output dir bug
+- 09b93f9: Add terser support
+- 07b1cb0: Drop js13k-vite-plugin due to binary compat issues
+- ee3b193: Debounce .zip writes in dev mode
+- 9400bd0: Windows compat
+- a740cc7: Support DEBUG and ROADROLLER env vars
+- 047c4a1: Add --experimental flag for compression formats beyond Deflate
+
 ## 0.0.1-rc.14
 
 ### Patch Changes
