@@ -1,0 +1,11 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+
+This is a JS13K project. The objective is to write code as concisely as possible. Generally, that means writing things that are very tree shakable. No classes. Use factory functions and composition. Use procedural styles rather than OOP.
+
+We have a bundler that aggressively uses terser and other minification and compression methods to keep the final zip file under 13kib.
+
+Eliminate unnecessary steps, but DRY is not as important because compression covers it.
