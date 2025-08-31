@@ -1,5 +1,8 @@
 import SevenZip from '7z-wasm'
+import ect from 'ect-bin'
+import { globSync } from 'glob'
 import { minimatch } from 'minimatch'
+import { execFile } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
 import type { Plugin } from 'vite'
@@ -71,13 +74,14 @@ export function archivePlugin(options: ArchivePluginOptions = {}): Plugin {
           const destItemPath = path.join(tempDir, path.relative(outDir, file).replace(/\\/g, '/'))
           dbg(`Copying file ${file} to ${destItemPath}`)
           const content = fs.readFileSync(file)
-              const stream = sevenZip.FS.open(destItemPath, 'w+')
-              sevenZip.FS.write(stream, content, 0, content.length)
-              sevenZip.FS.close(stream)
+          const stream = sevenZip.FS.open(destItemPath, 'w+')
+          sevenZip.FS.write(stream, content, 0, content.length)
+          sevenZip.FS.close(stream)
         }
 
         // Compression methods to test
         const compressionMethods: { name: string; flags: string[] }[] = [
+          { name: 'ect', flags: [] },
           { name: 'deflate', flags: [] },
           ...(experimental
             ? [
@@ -103,15 +107,41 @@ export function archivePlugin(options: ArchivePluginOptions = {}): Plugin {
             fs.unlinkSync(zipPath)
           }
 
-          // Create zip archive silently
-          const args = ['a', '-tzip', '-bd', '-bso0', '-bsp0', '-mx9', ...method.flags, zipName, `${tempDir}/*`]
-          dbg(`Calling 7z with args ${args.join(' ')}`)
-          sevenZip.callMain(args)
+          if (method.name === 'ect') {
+            // Use ECT for compression
+            try {
+              const args = ['-strip', '-zip', '-10009', zipName, ...allFiles]
+              dbg(`Calling ECT with args ${args.join(' ')}`)
 
-          // Read the created zip file from virtual filesystem
-          const zipData = sevenZip.FS.readFile(zipName)
-          fs.writeFileSync(zipPath, zipData)
-          dbg(`Wrote zip file ${zipPath}`)
+              // Use ECT binary from ect-bin package
+              await new Promise<void>((resolve, reject) => {
+                execFile(ect, args, (err) => {
+                  if (err) {
+                    reject(err)
+                  } else {
+                    dbg('ECT compression completed successfully')
+                    resolve()
+                  }
+                })
+              })
+            } catch (err) {
+              console.error(`ECT error for ${method.name}:`, err)
+              // Fall back to deflate if ECT fails
+              method.name = 'deflate'
+              method.flags = []
+            }
+          } else {
+            // Use 7z for compression
+            // Create zip archive silently
+            const args = ['a', '-tzip', '-bd', '-bso0', '-bsp0', '-mx9', ...method.flags, zipName, `${tempDir}/*`]
+            dbg(`Calling 7z with args ${args.join(' ')}`)
+            sevenZip.callMain(args)
+
+            // Read the created zip file from virtual filesystem
+            const zipData = sevenZip.FS.readFile(zipName)
+            fs.writeFileSync(zipPath, zipData)
+            dbg(`Wrote zip file ${zipPath}`)
+          }
 
           // Calculate size
           const stats = fs.statSync(zipPath)
