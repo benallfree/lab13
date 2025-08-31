@@ -1,5 +1,11 @@
 # js13k
 
+## 0.0.6
+
+### Patch Changes
+
+- 33b4c0f: Strip workspaces on package creation
+
 ## 0.0.5
 
 ### Patch Changes

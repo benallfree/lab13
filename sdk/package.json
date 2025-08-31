@@ -1,7 +1,7 @@
 {
   "name": "lab13-sdk",
-  "version": "0.0.1-rc.23",
-  "description": "JS13K Online communication protocol SDK for multiplayer games.",
+  "version": "0.0.1",
+  "description": "JS13K tools and game infrastructure SDK.",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
