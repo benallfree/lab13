@@ -10,7 +10,7 @@
     },
     "cli": {
       "name": "l13",
-      "version": "0.0.4",
+      "version": "0.0.5",
       "bin": {
         "js13k": "dist/index.js",
         "lab13": "dist/index.js",
@@ -55,6 +55,7 @@
       "name": "lab13-cats",
       "devDependencies": {
         "@types/three": "^0.179.0",
+        "lab13-sdk": "workspace:^0.0.1-rc.23",
         "partysocket": "^1.1.5",
       },
     },
