@@ -1,0 +1,33 @@
+# Function: mergeDeep()
+
+> **mergeDeep**\<`T`\>(`target`, `delta`, `deleteNulls`, `parentKey?`): [`PartialStructWithNullPropsDeep`](../type-aliases/PartialStructWithNullPropsDeep.md)\<`T`\>
+
+Defined in: [state/merge.ts:20](https://github.com/benallfree/lab13/blob/9ac0af7da9640b4b5437ad34793eec1f82ae6b92/sdk/src/online/state/merge.ts#L20)
+
+## Type Parameters
+
+### T
+
+`T` *extends* `Record`\<`string`, `any`\>
+
+## Parameters
+
+### target
+
+`T`
+
+### delta
+
+[`PartialStructWithNullPropsDeep`](../type-aliases/PartialStructWithNullPropsDeep.md)\<`T`\>
+
+### deleteNulls
+
+`boolean` = `false`
+
+### parentKey?
+
+`string`
+
+## Returns
+
+[`PartialStructWithNullPropsDeep`](../type-aliases/PartialStructWithNullPropsDeep.md)\<`T`\>

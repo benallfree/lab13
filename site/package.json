@@ -19,6 +19,7 @@
     "@docusaurus/preset-classic": "3.8.1",
     "@mdx-js/react": "^3.0.0",
     "clsx": "^2.0.0",
+    "docusaurus-plugin-typedoc": "^1.4.2",
     "mutative": "^1.2.0",
     "partysocket": "^1.1.5",
     "prism-react-renderer": "^2.3.0",

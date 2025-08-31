@@ -67,7 +67,17 @@ const config: Config = {
     ],
   ],
 
-  plugins: ['./plugins/dynamic-games-plugin.js'],
+  plugins: [
+    [
+      'docusaurus-plugin-typedoc',
+      {
+        entryPoints: ['../sdk/src/index.ts'], // Relative to Docusaurus root
+        tsconfig: '../sdk/tsconfig.json',
+        out: 'docs/api', // Outputs to docs/api
+      },
+    ],
+    './plugins/dynamic-games-plugin.js',
+  ],
 
   themeConfig: {
     colorMode: {
