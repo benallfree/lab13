@@ -2,16 +2,17 @@ import type { PartySocket } from 'partysocket'
 import { labCommand, onCommandMessage, sendCommandMessageToAll, sendCommandMessageToClient } from '../command'
 import { onClientJoined, onClientLeft } from '../core-events'
 import { deepCopy } from '../deepCopy'
+import { useMyId } from '../myId'
+import { filterPrivateKeys } from './filterPrivateKeys'
 import {
   mergeDeep,
   PartialDeep,
   PartialStructWithNullPropsDeep,
   PLAYER_ENTITY_COLLECTION_KEY,
   PlayerEntityCollectionKey,
-} from '../merge'
-import { useMyId } from '../myId'
-import { filterPrivateKeys } from './filterPrivateKeys'
+} from './merge'
 export * from './copier'
+export * from './merge'
 export * from './normalize'
 
 export const onStateMessage = <TStateShape extends StateBase>(

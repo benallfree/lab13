@@ -1,5 +1,5 @@
 import { StateBase } from '.'
-import { PartialDeep, PLAYER_ENTITY_COLLECTION_KEY } from '../merge'
+import { PartialDeep, PLAYER_ENTITY_COLLECTION_KEY } from './merge'
 
 export const createMyStateCopier =
   (myIdGetter: () => string | null) =>

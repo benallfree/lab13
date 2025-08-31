@@ -1,4 +1,4 @@
-import { PRIVATE_KEY_PREFIX } from '../merge'
+import { PRIVATE_KEY_PREFIX } from './merge'
 
 // Utility function to filter out private keys from state/delta objects
 
