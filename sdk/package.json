@@ -44,7 +44,7 @@
   },
   "homepage": "https://github.com/benallfree/lab13#readme",
   "scripts": {
-    "build": "tsc",
+    "build": "rm -rf dist/* && tsc",
     "dev": "chokidar 'src/**/*.ts' --initial -c 'bun run build' --ignore 'src/**/*.test.ts' --ignore 'src/**/__tests__/**'",
     "test": "bun test"
   },
