@@ -145,15 +145,24 @@ Follow the prompts to pick an example and target directory.
 
 ### Compression Features
 
-#### Default Compression (Deflate)
+#### Default Compression (Dual Deflate)
 
-By default, l13 uses Deflate compression which provides good balance of speed and size:
+By default, l13 uses a dual-compression approach with both **7zip deflate** and **ECT deflate** to ensure optimal file sizes:
 
 ```bash
 npx l13 build
 ```
 
-Creates: `<package-name>-<version>.zip` using Deflate compression
+**How it works:**
+
+- **7zip deflate** - Standard ZIP compression with 7zip's optimized deflate implementation
+- **ECT deflate** - Enhanced Compression Tool's deflate implementation, known to perform better in some cases
+- **Automatic selection** - l13 tests both methods and automatically chooses the smaller result
+- **Fallback** - If ECT is unavailable, falls back to 7zip deflate only
+
+Creates: `<package-name>-<version>.zip` using the best deflate compression result
+
+**Note:** ECT is known to achieve better compression ratios in many cases, but results can vary depending on the content. The dual approach ensures you always get the optimal size.
 
 #### Experimental Compression Methods
 
@@ -165,12 +174,14 @@ npx l13 build --experimental
 
 Tests all compression methods:
 
-- **Deflate** - Standard ZIP compression (default)
+- **Dual Deflate** - 7zip deflate + ECT deflate (best result selected)
 - **LZMA** - High compression ratio, slower
 - **PPMD** - Prediction by partial matching
 - **BZIP2** - Burrows-Wheeler transform compression
 
 The best (smallest) result becomes the main zip file.
+
+**Note:** When `--experimental` is enabled, l13 still uses the dual deflate approach (7zip + ECT) as the baseline, then compares against the additional algorithms.
 
 #### Asset Inlining
 
