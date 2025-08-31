@@ -17,3 +17,5 @@ export const useMyId = (options?: Partial<UseMyIdOptions>) => {
     getMyId: () => myId,
   }
 }
+
+export const onMyIdUpdated = onClientIdUpdated

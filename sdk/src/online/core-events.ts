@@ -9,4 +9,3 @@ export const onClientLeft = (callback: (clientId: string) => void, socket = wind
 export const onClientIdUpdated = (callback: (myClientId: string) => void, socket = window.socket) => {
   onCommandMessage(`@`, callback, socket)
 }
-export const onMyIdUpdated = onClientIdUpdated
