@@ -10,6 +10,10 @@ export function terserPlugin(): Plugin {
         build: {
           ...config.build,
           minify: 'terser',
+          target: 'es2022',
+          modulePreload: { polyfill: false },
+          assetsInlineLimit: 800,
+
           terserOptions: defaultTerserOptions,
         },
       }
