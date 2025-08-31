@@ -49,6 +49,7 @@
     "minimatch": "^10.0.3",
     "roadroller": "^2.1.0",
     "tiged": "^2.12.7",
-    "vite": "^7.1.2"
+    "vite": "^7.1.2",
+    "vite-plugin-html": "^3.2.2"
   }
 }

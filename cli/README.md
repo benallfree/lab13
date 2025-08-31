@@ -29,6 +29,14 @@ npx l13 dev
 - `--base <path>` - Public base path when served in production
 - `--out <dir>` - Output directory (default: `dist`)
 - `--debug` - Enable debug mode (can also use `DEBUG=true` env var)
+- `--html-minify` - Enable HTML minification (default: true)
+- `--no-html-minify` - Disable HTML minification
+- `--inline-css` - Inline CSS assets into HTML (default: true)
+- `--no-inline-css` - Disable inlining CSS assets into HTML
+- `--inline-js` - Inline JS assets into HTML (default: true)
+- `--no-inline-js` - Disable inlining JS assets into HTML
+- `--terser` - Enable Terser minification (default: true)
+- `--no-terser` - Disable Terser minification
 - `--roadroller` - Enable roadroller compression (can also use `ROADROLLER=true` env var)
 - `--experimental` - Enable experimental compression methods (can also use `EXPERIMENTAL=true` env var)
 - `--exclude <pattern>` - Exclude files matching pattern (can be used multiple times)
@@ -55,6 +63,14 @@ npx l13 build
 - `--base <path>` - Public base path when served in production
 - `--out <dir>` - Output directory (default: `dist`)
 - `--debug` - Enable debug mode (can also use `DEBUG=true` env var)
+- `--html-minify` - Enable HTML minification (default: true)
+- `--no-html-minify` - Disable HTML minification
+- `--inline-css` - Inline CSS assets into HTML (default: true)
+- `--no-inline-css` - Disable inlining CSS assets into HTML
+- `--inline-js` - Inline JS assets into HTML (default: true)
+- `--no-inline-js` - Disable inlining JS assets into HTML
+- `--terser` - Enable Terser minification (default: true)
+- `--no-terser` - Disable Terser minification
 - `--roadroller` - Enable roadroller compression (can also use `ROADROLLER=true` env var)
 - `--experimental` - Enable experimental compression methods (can also use `EXPERIMENTAL=true` env var)
 - `--exclude <pattern>` - Exclude files matching pattern (can be used multiple times)
@@ -65,9 +81,11 @@ npx l13 build
 **Build Process:**
 
 1. **Minification** - Terser with aggressive optimizations
-2. **Roadroller** (optional) - Advanced JavaScript packing and HTML minification
-3. **Compression** - Multiple ZIP compression methods with automatic selection
-4. **Size Analysis** - Visual progress bar and size reporting
+2. **HTML Minification** - HTML minifier with aggressive optimizations
+3. **Asset Inlining** - CSS and JavaScript inlining with CleanCSS optimization
+4. **Roadroller** (optional) - Advanced JavaScript packing
+5. **Compression** - Multiple ZIP compression methods with automatic selection
+6. **Size Analysis** - Visual progress bar and size reporting
 
 #### `preview` - Local Preview
 
@@ -120,13 +138,46 @@ Tests all compression methods:
 
 The best (smallest) result becomes the main zip file.
 
+#### Asset Inlining
+
+Control how CSS and JavaScript assets are handled during the build process:
+
+**CSS Inlining:**
+
+- **Enabled by default** - CSS is inlined into the HTML with CleanCSS level 2 optimization
+- **Disable with `--no-inline-css`** - CSS remains as external files
+
+**JavaScript Inlining:**
+
+- **Enabled by default** - JavaScript is inlined into the HTML
+- **Disable with `--no-inline-js`** - JavaScript remains as external files
+- **Automatically disabled with `--roadroller`** - Roadroller needs external JS files to pack
+
+**Examples:**
+
+```bash
+# Default behavior - both CSS and JS inlined
+npx l13 build
+
+# Keep CSS external, inline JS
+npx l13 build --no-inline-css
+
+# Keep JS external, inline CSS
+npx l13 build --no-inline-js
+
+# Keep both external
+npx l13 build --no-inline-css --no-inline-js
+
+# Roadroller automatically disables inline-js
+npx l13 build --roadroller
+```
+
 #### Roadroller Compression
 
 For maximum compression, enable roadroller which:
 
 - Packs JavaScript using advanced algorithms
-- Embeds CSS inline with minification
-- Minifies HTML aggressively
+- Requires external JavaScript files (automatically disables inline-js)
 - Optimizes for the 13KB limit
 
 ```bash
@@ -138,6 +189,8 @@ npx l13 build --roadroller
 - When your zip exceeds 13KB
 - For maximum size optimization
 - During final production builds
+
+**Note:** Roadroller automatically disables `--inline-js` since it needs external JavaScript files to pack them.
 
 ### File Exclusion
 

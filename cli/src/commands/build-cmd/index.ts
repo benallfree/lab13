@@ -3,6 +3,8 @@ import path from 'node:path'
 import { build as viteBuild } from 'vite'
 import { archivePlugin } from './plugins/archive'
 import { htmlMinifyPlugin } from './plugins/html-minify'
+import { inlineCssPlugin } from './plugins/inline-css'
+import { inlineJsPlugin } from './plugins/inline-js'
 import { roadrollerPlugin } from './plugins/roadroller'
 import { terserPlugin } from './plugins/terser'
 
@@ -17,9 +19,16 @@ export type BuildOptions = {
   experimental?: boolean
   exclude?: string[]
   dev?: boolean
+  inlineCss?: boolean
+  inlineJs?: boolean
 }
 export async function runBuild(options: BuildOptions): Promise<void> {
-  const { watch, base, out, debug, roadroller, htmlMinify, terser, experimental, exclude, dev } = options
+  const { watch, base, out, debug, roadroller, htmlMinify, terser, experimental, exclude, dev, inlineCss, inlineJs } =
+    options
+
+  // Roadroller and inline-js are incompatible - roadroller needs the JS file to be external
+  const effectiveInlineJs = roadroller ? false : inlineJs
+
   const dbg = (...args: any[]) => (debug ? console.log(`[DEBUG]`, ...args) : undefined)
 
   // Handle exclude option - it might be a string or array
@@ -57,6 +66,8 @@ export async function runBuild(options: BuildOptions): Promise<void> {
     plugins: [
       terser !== false ? terserPlugin() : undefined,
       htmlMinify !== false ? htmlMinifyPlugin() : undefined,
+      inlineCss !== false ? inlineCssPlugin() : undefined,
+      effectiveInlineJs !== false ? inlineJsPlugin() : undefined,
       roadroller ? roadrollerPlugin() : undefined,
       archivePlugin({
         gameName,
