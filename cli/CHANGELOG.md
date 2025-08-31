@@ -1,5 +1,21 @@
 # js13k
 
+## 0.0.3
+
+### Patch Changes
+
+- ecb397d: Write all assets to root for ECT compat
+- a6666ca: Add HTML minification
+- be3cfdc: Added --inline-css and --inline-js (both default true)
+- 69c0c45: Improved terser defaults
+- d6d4cbf: Fix `create` command
+- e843ca0: Ensure that RoadRoller runs after any inlining
+- 89e290e: Add --terser and --no-terser flag
+- 4426c56: Support ECT and 7zip Deflate by default
+- dd06832: Improve terser settings
+- 7e59d06: Enhance debug logs
+- 8f06238: Document support for external vite.config.ts
+
 ## 0.0.2
 
 ### Patch Changes
