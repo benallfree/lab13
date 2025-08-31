@@ -20,6 +20,7 @@ export function roadrollerPlugin(roadrollerOptions?: RoadrollerOptions): Plugin 
   return {
     name: 'vite:roadroller',
     transformIndexHtml: {
+      order: 'post',
       handler: async (html: string, ctx?: IndexHtmlTransformContext): Promise<string> => {
         // Only use this plugin during build
         if (!ctx || !ctx.bundle) {

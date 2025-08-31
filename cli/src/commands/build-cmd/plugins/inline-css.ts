@@ -5,7 +5,6 @@ export function inlineCssPlugin(): Plugin {
   return {
     name: 'inline-css',
     transformIndexHtml: {
-      order: 'post',
       handler(html, ctx) {
         if (!ctx.bundle) {
           return html

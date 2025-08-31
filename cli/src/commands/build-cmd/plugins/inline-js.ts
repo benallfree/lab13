@@ -4,7 +4,6 @@ export function inlineJsPlugin(): Plugin {
   return {
     name: 'inline-js',
     transformIndexHtml: {
-      order: 'post',
       handler(html, ctx) {
         if (!ctx.bundle) {
           return html
