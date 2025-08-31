@@ -54,7 +54,9 @@
     "bun-types": "latest",
     "chokidar": "^4.0.3",
     "chokidar-cli": "^3.0.0",
-    "partysocket": "^1.1.5",
     "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "partysocket": "^1.1.5"
   }
 }
