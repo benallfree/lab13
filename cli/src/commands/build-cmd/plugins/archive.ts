@@ -14,7 +14,7 @@ interface ArchivePluginOptions {
 
 export function archivePlugin(options: ArchivePluginOptions = {}): Plugin {
   const { gameName = 'game', packageVersion = '1.0.0', debug = false, exclude = [], experimental = false } = options
-  const dbg = (...args: any[]) => (debug ? console.log(`[DEBUG]`, ...args) : undefined)
+  const dbg = (...args: any[]) => (debug ? console.log(`[DEBUG] [archive]`, ...args) : undefined)
 
   // Function to check if a file should be excluded based on patterns
   const shouldExclude = (filePath: string): boolean => {
@@ -56,6 +56,9 @@ export function archivePlugin(options: ArchivePluginOptions = {}): Plugin {
 
       dbg(`DIST PATH exists`)
 
+      const allFiles = globSync('**/*', { cwd: outDir, absolute: true })
+      dbg(`All files: ${allFiles.join('\n')}`)
+
       try {
         // Initialize 7z-wasm
         const sevenZip = await SevenZip()
@@ -64,37 +67,14 @@ export function archivePlugin(options: ArchivePluginOptions = {}): Plugin {
         const tempDir = '/temp'
         sevenZip.FS.mkdir(tempDir)
 
-        // Copy dist folder contents to virtual filesystem
-        const copyDirToFS = (srcPath: string, destPath: string) => {
-          dbg(`Copying directory ${srcPath} to VFS ${destPath}`)
-          const items = fs.readdirSync(srcPath)
-          for (const item of items) {
-            const srcItemPath = path.join(srcPath, item)
-            // Convert Windows paths to Unix-style for virtual filesystem
-            const destItemPath = path.join(destPath, item).replace(/\\/g, '/')
-            const stats = fs.statSync(srcItemPath)
-            dbg(`Item ${srcItemPath} is ${stats.isDirectory() ? 'a directory' : 'a file'}`)
-            if (stats.isDirectory()) {
-              dbg(`Creating directory in VFS: ${destItemPath}`)
-              sevenZip.FS.mkdir(destItemPath)
-              copyDirToFS(srcItemPath, destItemPath)
-            } else {
-              // Check if file should be excluded
-              if (shouldExclude(srcItemPath)) {
-                dbg(`Skipping excluded file: ${srcItemPath}`)
-                continue
-              }
-              dbg(`Copying item ${srcItemPath} to ${destItemPath}`)
-              const content = fs.readFileSync(srcItemPath)
+        for (const file of allFiles) {
+          const destItemPath = path.join(tempDir, path.relative(outDir, file).replace(/\\/g, '/'))
+          dbg(`Copying file ${file} to ${destItemPath}`)
+          const content = fs.readFileSync(file)
               const stream = sevenZip.FS.open(destItemPath, 'w+')
               sevenZip.FS.write(stream, content, 0, content.length)
               sevenZip.FS.close(stream)
-              dbg(`Successfully copied ${srcItemPath} to VFS`)
-            }
-          }
         }
-
-        copyDirToFS(outDir, tempDir)
 
         // Compression methods to test
         const compressionMethods: { name: string; flags: string[] }[] = [
@@ -116,6 +96,7 @@ export function archivePlugin(options: ArchivePluginOptions = {}): Plugin {
           const zipName = `${gameName}-${packageVersion}.${method.name}.zip`
           const zipPath = path.join(cwd, zipName)
           dbg(`ZIP PATH is ${zipPath}`)
+
           // Clean up existing zip file if it exists
           if (fs.existsSync(zipPath)) {
             dbg(`Removing existing zip file ${zipPath}`)
