@@ -1,5 +1,11 @@
 # js13k
 
+## 0.0.4
+
+### Patch Changes
+
+- e705234: Fix ECT pathing
+
 ## 0.0.3
 
 ### Patch Changes
