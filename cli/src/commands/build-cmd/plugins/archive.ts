@@ -112,7 +112,7 @@ export function archivePlugin(options: ArchivePluginOptions = {}): Plugin {
               const args = ['-strip', '-zip', '-10009', zipName, ...allFiles]
               dbg(`Calling ECT with args ${args.join(' ')}`)
 
-              const ectBin = () => {
+              const ectBin = (() => {
                 const suffix =
                   process.platform === 'darwin'
                     ? 'macos/ect'
@@ -125,13 +125,13 @@ export function archivePlugin(options: ArchivePluginOptions = {}): Plugin {
                   return null
                 }
                 return path.resolve(ect, '..', suffix)
-              }
+              })()
               if (ectBin == null) {
                 throw new Error('ECT binary not found for this platform. Skipping ECT compression.')
               }
               // Use ECT binary from ect-bin package
               await new Promise<void>((resolve, reject) => {
-                execFile(ect, args, (err) => {
+                execFile(ectBin, args, (err) => {
                   if (err) {
                     reject(err)
                   } else {
