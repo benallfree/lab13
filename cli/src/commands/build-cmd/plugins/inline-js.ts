@@ -1,6 +1,12 @@
 import type { Plugin } from 'vite'
 
-export function inlineJsPlugin(): Plugin {
+export type InlineJsPluginOptions = {
+  debug?: boolean
+}
+
+export function inlineJsPlugin(options: InlineJsPluginOptions = {}): Plugin {
+  const { debug = false } = options
+  const dbg = (...args: any[]) => (debug ? console.log(`[DEBUG] [inline-js]`, ...args) : undefined)
   return {
     name: 'inline-js',
     transformIndexHtml: {
@@ -9,12 +15,16 @@ export function inlineJsPlugin(): Plugin {
           return html
         }
 
+        dbg('Inlining JS in index.html')
+
         const inlinedAssets = new Set<string>()
 
+        dbg(`before`, html)
         // Inline JS files - look for Vite's processed script tags
         html = html.replace(/<script[^>]*src=([^>\s]+)[^>]*><\/script>/g, (match, src) => {
           // Skip external URLs
           if (src.startsWith('http://') || src.startsWith('https://') || src.startsWith('//')) {
+            dbg(`Skipping external JS: ${src}`)
             return match
           }
 
@@ -33,6 +43,7 @@ export function inlineJsPlugin(): Plugin {
             const jsContent = 'code' in bundleItem ? bundleItem.code : 'source' in bundleItem ? bundleItem.source : null
 
             if (jsContent) {
+              dbg(`Inlining JS: ${bundleKey}`)
               inlinedAssets.add(bundleKey)
               return `<script>${jsContent}</script>`
             }
@@ -43,8 +54,11 @@ export function inlineJsPlugin(): Plugin {
 
         // Remove inlined assets from the bundle
         for (const assetKey of inlinedAssets) {
+          dbg(`Removing bundle JS: ${assetKey}`)
           delete ctx.bundle![assetKey]
         }
+
+        dbg(`after`, html)
 
         return html
       },

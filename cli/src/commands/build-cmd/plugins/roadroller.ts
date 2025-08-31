@@ -3,9 +3,10 @@ import { type OutputChunk } from 'rollup'
 import { type IndexHtmlTransformContext, type Plugin } from 'vite'
 import { addDefaultValues, escapeRegExp } from './utils'
 
-export type RoadrollerOptions = PackerOptions
-
-export const defaultRoadrollerOptions: RoadrollerOptions = {}
+export type RoadrollerOptions = {
+  packerOptions?: PackerOptions
+  debug?: boolean
+}
 
 /**
  * Creates the Roadroller plugin that crunches the JS.
@@ -15,13 +16,17 @@ export const defaultRoadrollerOptions: RoadrollerOptions = {}
  *
  * @returns The roadroller plugin.
  */
-export function roadrollerPlugin(roadrollerOptions?: RoadrollerOptions): Plugin {
-  const fullRoadrollerOptions = addDefaultValues(roadrollerOptions, defaultRoadrollerOptions)
+export function roadrollerPlugin(options?: RoadrollerOptions): Plugin {
+  const { debug = false, packerOptions = {} } = options || {}
+  const dbg = (...args: any[]) => (debug ? console.log(`[DEBUG] [roadroller]`, ...args) : undefined)
+  const fullRoadrollerOptions = addDefaultValues(packerOptions, {})
   return {
     name: 'vite:roadroller',
     transformIndexHtml: {
       order: 'post',
       handler: async (html: string, ctx?: IndexHtmlTransformContext): Promise<string> => {
+        dbg('Roadrolling index.html')
+
         // Only use this plugin during build
         if (!ctx || !ctx.bundle) {
           return html
@@ -33,6 +38,7 @@ export function roadrollerPlugin(roadrollerOptions?: RoadrollerOptions): Plugin 
 
         const jsKey = bundleKeys.find((key) => key.endsWith('.js'))
         if (jsKey) {
+          dbg(`Inlining JS: ${jsKey}`)
           result = await embedJs(result, ctx.bundle[jsKey] as OutputChunk, fullRoadrollerOptions)
           delete ctx.bundle[jsKey]
         }
@@ -49,7 +55,7 @@ export function roadrollerPlugin(roadrollerOptions?: RoadrollerOptions): Plugin 
  * @param chunk The JavaScript output chunk from Rollup/Vite.
  * @returns The transformed HTML with the JavaScript embedded.
  */
-async function embedJs(html: string, chunk: OutputChunk, options: RoadrollerOptions): Promise<string> {
+async function embedJs(html: string, chunk: OutputChunk, options: PackerOptions): Promise<string> {
   const scriptTagRemoved = html.replace(new RegExp(`<script[^>]*?${escapeRegExp(chunk.fileName)}[^>]*?></script>`), '')
   const htmlInJs = `document.write('${scriptTagRemoved}');${chunk.code.trim()}`
   const inputs: Input[] = [

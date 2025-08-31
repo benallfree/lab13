@@ -1,7 +1,13 @@
 import CleanCSS from 'clean-css'
 import type { Plugin } from 'vite'
 
-export function inlineCssPlugin(): Plugin {
+export type InlineCssPluginOptions = {
+  debug?: boolean
+}
+export function inlineCssPlugin(options: InlineCssPluginOptions = {}): Plugin {
+  const { debug = false } = options
+  const dbg = (...args: any[]) => (debug ? console.log(`[DEBUG] [inline-css]`, ...args) : undefined)
+
   return {
     name: 'inline-css',
     transformIndexHtml: {
@@ -9,6 +15,8 @@ export function inlineCssPlugin(): Plugin {
         if (!ctx.bundle) {
           return html
         }
+
+        dbg('Inlining CSS in index.html')
 
         const inlinedAssets = new Set<string>()
 
@@ -20,8 +28,11 @@ export function inlineCssPlugin(): Plugin {
 
           const href = hrefMatch[1]
 
+          dbg(`Found CSS link: ${href}`)
+
           // Skip external URLs
           if (href.startsWith('http://') || href.startsWith('https://') || href.startsWith('//')) {
+            dbg(`Skipping external CSS link: ${href}`)
             return match
           }
 
@@ -41,6 +52,7 @@ export function inlineCssPlugin(): Plugin {
               'code' in bundleItem ? bundleItem.code : 'source' in bundleItem ? bundleItem.source : null
 
             if (cssContent) {
+              dbg(`Inlining CSS: ${bundleKey}`)
               inlinedAssets.add(bundleKey)
               const minifiedCss = new CleanCSS({ level: 2 }).minify(cssContent as string).styles
               return `<style>${minifiedCss}</style>`
@@ -52,6 +64,7 @@ export function inlineCssPlugin(): Plugin {
 
         // Remove inlined assets from the bundle
         for (const assetKey of inlinedAssets) {
+          dbg(`Removing bundle CSS: ${assetKey}`)
           delete ctx.bundle![assetKey]
         }
 

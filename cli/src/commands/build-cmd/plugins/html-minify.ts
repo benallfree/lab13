@@ -2,6 +2,11 @@ import htmlMinify, { type Options as HtmlMinifyOptions } from 'html-minifier-ter
 import { type IndexHtmlTransformContext, type Plugin } from 'vite'
 import { addDefaultValues } from './utils'
 
+export type HtmlMinifyPluginOptions = {
+  htmlMinifyOptions?: HtmlMinifyOptions
+  debug?: boolean
+}
+
 export type { HtmlMinifyOptions }
 
 export const defaultHtmlMinifyOptions: HtmlMinifyOptions = {
@@ -26,8 +31,10 @@ export const defaultHtmlMinifyOptions: HtmlMinifyOptions = {
  * @param options - HTML minification options
  * @returns The HTML minify plugin
  */
-export function htmlMinifyPlugin(options?: HtmlMinifyOptions): Plugin {
-  const fullOptions = addDefaultValues(options, defaultHtmlMinifyOptions)
+export function htmlMinifyPlugin(options?: HtmlMinifyPluginOptions): Plugin {
+  const { debug = false, htmlMinifyOptions = defaultHtmlMinifyOptions } = options || {}
+  const dbg = (...args: any[]) => (debug ? console.log(`[DEBUG] [html-minify]`, ...args) : undefined)
+  const fullOptions = addDefaultValues(htmlMinifyOptions, defaultHtmlMinifyOptions)
 
   return {
     name: 'vite:html-minify',
@@ -38,7 +45,10 @@ export function htmlMinifyPlugin(options?: HtmlMinifyOptions): Plugin {
           return html
         }
 
-        return await htmlMinify.minify(html, fullOptions)
+        dbg(`before`, html)
+        const result = await htmlMinify.minify(html, fullOptions)
+        dbg(`after`, result)
+        return result
       },
     },
   }

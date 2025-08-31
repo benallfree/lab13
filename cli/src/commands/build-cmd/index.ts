@@ -72,11 +72,11 @@ export async function runBuild(options: BuildOptions): Promise<void> {
       },
     },
     plugins: [
-      terser !== false ? terserPlugin() : undefined,
-      htmlMinify !== false ? htmlMinifyPlugin() : undefined,
-      inlineCss !== false ? inlineCssPlugin() : undefined,
-      effectiveInlineJs !== false ? inlineJsPlugin() : undefined,
-      roadroller ? roadrollerPlugin() : undefined,
+      terser !== false ? terserPlugin({ debug }) : undefined,
+      htmlMinify !== false ? htmlMinifyPlugin({ debug }) : undefined,
+      inlineCss !== false ? inlineCssPlugin({ debug }) : undefined,
+      effectiveInlineJs !== false ? inlineJsPlugin({ debug }) : undefined,
+      roadroller ? roadrollerPlugin({ debug }) : undefined,
       archivePlugin({
         gameName,
         packageVersion,
