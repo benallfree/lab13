@@ -62,6 +62,14 @@ export async function runBuild(options: BuildOptions): Promise<void> {
       outDir: out,
       emptyOutDir: true,
       watch: watch ? {} : undefined,
+      assetsDir: '',
+      rollupOptions: {
+        output: {
+          // inlineDynamicImports: true,
+          manualChunks: undefined,
+          // assetFileNames: `[name].[ext]`,
+        },
+      },
     },
     plugins: [
       terser !== false ? terserPlugin() : undefined,
