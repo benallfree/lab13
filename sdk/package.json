@@ -13,63 +13,7 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "default": "./dist/index.js"
-    },
-    "./plugins/bot": {
-      "types": "./dist/plugins/bot.d.ts",
-      "import": "./dist/plugins/bot.js",
-      "default": "./dist/plugins/bot.js"
-    },
-    "./plugins/handshake": {
-      "types": "./dist/plugins/handshake.d.ts",
-      "import": "./dist/plugins/handshake.js",
-      "default": "./dist/plugins/handshake.js"
-    },
-    "./plugins/state": {
-      "types": "./dist/plugins/state.d.ts",
-      "import": "./dist/plugins/state.js",
-      "default": "./dist/plugins/state.js"
-    },
-    "./middlewares": {
-      "types": "./dist/middlewares/index.d.ts",
-      "import": "./dist/middlewares/index.js",
-      "default": "./dist/middlewares/index.js"
-    },
-    "./middlewares/changed": {
-      "types": "./dist/middlewares/changed.d.ts",
-      "import": "./dist/middlewares/changed.js",
-      "default": "./dist/middlewares/changed.js"
-    },
-    "./middlewares/position": {
-      "types": "./dist/middlewares/position.d.ts",
-      "import": "./dist/middlewares/position.js",
-      "default": "./dist/middlewares/position.js"
-    },
-    "./middlewares/rotation": {
-      "types": "./dist/middlewares/rotation.d.ts",
-      "import": "./dist/middlewares/rotation.js",
-      "default": "./dist/middlewares/rotation.js"
-    },
-    "./middlewares/tombstone": {
-      "types": "./dist/middlewares/tombstone.d.ts",
-      "import": "./dist/middlewares/tombstone.js",
-      "default": "./dist/middlewares/tombstone.js"
-    },
-    "./types": {
-      "types": "./dist/types.d.ts",
-      "import": "./dist/types.js",
-      "default": "./dist/types.js"
-    },
-    "./util/deepMerge": {
-      "types": "./dist/util/deepMerge.d.ts",
-      "import": "./dist/util/deepMerge.js",
-      "default": "./dist/util/deepMerge.js"
-    },
-    "./util/generateId": {
-      "types": "./dist/util/generateId.d.ts",
-      "import": "./dist/util/generateId.js",
-      "default": "./dist/util/generateId.js"
-    },
-    "./package.json": "./package.json"
+    }
   },
   "files": [
     "dist",
@@ -101,8 +45,7 @@
   "homepage": "https://github.com/benallfree/lab13#readme",
   "scripts": {
     "build": "tsc",
-    "postbuild": "node scripts/postbuild.js",
-    "dev": "chokidar 'src/**/*.ts' -c 'bun run build' --ignore 'src/**/*.test.ts' --ignore 'src/**/__tests__/**'",
+    "dev": "chokidar 'src/**/*.ts' --initial -c 'bun run build' --ignore 'src/**/*.test.ts' --ignore 'src/**/__tests__/**'",
     "test": "bun test"
   },
   "devDependencies": {
