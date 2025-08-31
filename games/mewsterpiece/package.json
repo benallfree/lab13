@@ -1,5 +1,6 @@
 {
   "name": "lab13-mewsterpiece",
+  "private": true,
   "devDependencies": {
     "@types/svg-path-bounds": "^1.0.2",
     "svg-path-bounds": "^1.0.2",

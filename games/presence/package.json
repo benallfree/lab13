@@ -1,5 +1,6 @@
 {
   "name": "lab13-presence",
+  "private": true,
   "devDependencies": {
     "partysocket": "^1.1.5",
     "vanjs-core": "^1.5.5"

@@ -1,5 +1,6 @@
 {
   "name": "lab13-cars",
+  "private": true,
   "devDependencies": {
     "partysocket": "^1.1.5",
     "type-fest": "^4.41.0"
