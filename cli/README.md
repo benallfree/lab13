@@ -14,6 +14,40 @@ Run a specific command:
 npx l13 <command>
 ```
 
+### Configuration
+
+#### Vite Configuration Support
+
+l13 automatically detects and uses your existing `vite.config.ts` (or `vite.config.js`) file. The CLI extends your Vite configuration with js13k-specific optimizations while preserving your custom settings.
+
+**How it works:**
+
+- **Automatic detection** - l13 looks for `vite.config.ts`, `vite.config.js`, or `vite.config.mjs` in your project root
+- **Configuration merging** - Your custom Vite config is merged with l13's optimizations
+- **Plugin compatibility** - Most Vite plugins work seamlessly with l13
+- **Fallback defaults** - If no config file exists, l13 uses sensible defaults
+
+**Example vite.config.ts:**
+
+```typescript
+import { defineConfig } from 'vite'
+
+export default defineConfig({
+  // Your custom configuration
+  plugins: [
+    /* your plugins */
+  ],
+  build: {
+    target: 'es2020',
+    rollupOptions: {
+      input: 'src/main.ts',
+    },
+  },
+})
+```
+
+**Note:** l13 will automatically add js13k-specific optimizations like aggressive minification and asset inlining to your existing configuration.
+
 ### Commands
 
 #### `dev` - Development Server
