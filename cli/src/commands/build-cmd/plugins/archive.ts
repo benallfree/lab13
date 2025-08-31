@@ -6,7 +6,6 @@ import { execFile } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
 import type { Plugin } from 'vite'
-
 interface ArchivePluginOptions {
   gameName?: string
   packageVersion?: string
@@ -113,6 +112,23 @@ export function archivePlugin(options: ArchivePluginOptions = {}): Plugin {
               const args = ['-strip', '-zip', '-10009', zipName, ...allFiles]
               dbg(`Calling ECT with args ${args.join(' ')}`)
 
+              const ectBin = () => {
+                const suffix =
+                  process.platform === 'darwin'
+                    ? 'macos/ect'
+                    : process.platform === 'linux'
+                      ? 'linux/ect'
+                      : process.platform === 'win32'
+                        ? 'win32/ect.exe'
+                        : null
+                if (!suffix) {
+                  return null
+                }
+                return path.resolve(ect, '..', suffix)
+              }
+              if (ectBin == null) {
+                throw new Error('ECT binary not found for this platform. Skipping ECT compression.')
+              }
               // Use ECT binary from ect-bin package
               await new Promise<void>((resolve, reject) => {
                 execFile(ect, args, (err) => {
