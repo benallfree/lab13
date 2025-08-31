@@ -9,6 +9,34 @@ type GameExample = {
   slug: string
 }
 
+// Function to strip workspace: prefixes from package.json files
+function stripWorkspacePrefixes(targetDir: string): void {
+  const packageJsonPath = path.join(targetDir, 'package.json')
+
+  if (fs.existsSync(packageJsonPath)) {
+    try {
+      const content = fs.readFileSync(packageJsonPath, 'utf-8')
+      const packageJson = JSON.parse(content)
+
+      // Strip workspace: prefix from dependencies and devDependencies
+      ;['dependencies', 'devDependencies'].forEach((section) => {
+        if (packageJson[section]) {
+          Object.keys(packageJson[section]).forEach((dep) => {
+            if (packageJson[section][dep].startsWith('workspace:')) {
+              packageJson[section][dep] = packageJson[section][dep].replace('workspace:', '')
+            }
+          })
+        }
+      })
+
+      // Write back the modified package.json
+      fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n')
+    } catch (error) {
+      console.warn('Warning: Could not process package.json:', error)
+    }
+  }
+}
+
 async function listRemoteExamples(): Promise<GameExample[]> {
   const url = 'https://raw.githubusercontent.com/benallfree/lab13/refs/heads/main/games/meta.json'
   try {
@@ -72,6 +100,9 @@ export async function runCreate(): Promise<void> {
 
   const absTarget = path.resolve(cwd, targetDir)
   await emitter.clone(absTarget)
+
+  // Strip workspace: prefixes from package.json after cloning
+  stripWorkspacePrefixes(absTarget)
 
   const lockfiles = ['bun.lockb', 'bun.lock', 'pnpm-lock.yaml', 'package-lock.json', 'yarn.lock']
   const found = lockfiles.find((f) => fs.existsSync(path.join(absTarget, f)))
