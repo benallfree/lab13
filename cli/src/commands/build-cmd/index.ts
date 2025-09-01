@@ -21,10 +21,24 @@ export type BuildOptions = {
   dev?: boolean
   inlineCss?: boolean
   inlineJs?: boolean
+  ect?: boolean
 }
 export async function runBuild(options: BuildOptions): Promise<void> {
-  const { watch, base, out, debug, roadroller, htmlMinify, terser, experimental, exclude, dev, inlineCss, inlineJs } =
-    options
+  const {
+    watch,
+    base,
+    out,
+    debug,
+    roadroller,
+    htmlMinify,
+    terser,
+    experimental,
+    exclude,
+    dev,
+    inlineCss,
+    inlineJs,
+    ect,
+  } = options
 
   // Roadroller and inline-js are incompatible - roadroller needs the JS file to be external
   const effectiveInlineJs = roadroller ? false : inlineJs
@@ -71,6 +85,7 @@ export async function runBuild(options: BuildOptions): Promise<void> {
         },
       },
     },
+
     plugins: [
       terser !== false ? terserPlugin({ debug }) : undefined,
       inlineCss !== false ? inlineCssPlugin({ debug }) : undefined,
@@ -83,6 +98,7 @@ export async function runBuild(options: BuildOptions): Promise<void> {
         debug,
         experimental,
         exclude: excludePatterns,
+        ect,
       }),
     ].filter(Boolean),
   })

@@ -12,10 +12,18 @@ interface ArchivePluginOptions {
   debug?: boolean
   exclude?: string[]
   experimental?: boolean
+  ect?: boolean
 }
 
 export function archivePlugin(options: ArchivePluginOptions = {}): Plugin {
-  const { gameName = 'game', packageVersion = '1.0.0', debug = false, exclude = [], experimental = false } = options
+  const {
+    gameName = 'game',
+    packageVersion = '1.0.0',
+    debug = false,
+    exclude = [],
+    experimental = false,
+    ect: useEct = true,
+  } = options
   const dbg = (...args: any[]) => (debug ? console.log(`[DEBUG] [archive]`, ...args) : undefined)
 
   // Function to check if a file should be excluded based on patterns
@@ -80,7 +88,7 @@ export function archivePlugin(options: ArchivePluginOptions = {}): Plugin {
 
         // Compression methods to test
         const compressionMethods: { name: string; flags: string[] }[] = [
-          { name: 'ect', flags: [] },
+          ...(useEct ? [{ name: 'ect', flags: [] }] : []),
           { name: 'deflate', flags: [] },
           ...(experimental
             ? [
