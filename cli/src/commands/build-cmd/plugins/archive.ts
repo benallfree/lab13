@@ -70,6 +70,10 @@ export function archivePlugin(options: ArchivePluginOptions = {}): Plugin {
       const allFiles = globSync('**/*', { cwd: outDir, absolute: true })
       dbg(`All files: ${allFiles.join('\n')}`)
 
+      // Filter out excluded files
+      const filesToArchive = allFiles.filter((file) => !shouldExclude(file))
+      dbg(`Files to archive: ${filesToArchive.join('\n')}`)
+
       try {
         // Initialize 7z-wasm
         const sevenZip = await SevenZip()
@@ -78,7 +82,7 @@ export function archivePlugin(options: ArchivePluginOptions = {}): Plugin {
         const tempDir = '/temp'
         sevenZip.FS.mkdir(tempDir)
 
-        for (const file of allFiles) {
+        for (const file of filesToArchive) {
           const destItemPath = path.join(tempDir, path.relative(outDir, file).replace(/\\/g, '/'))
           dbg(`Copying file ${file} to ${destItemPath}`)
           const content = fs.readFileSync(file)
@@ -122,7 +126,7 @@ export function archivePlugin(options: ArchivePluginOptions = {}): Plugin {
               const ectWorkDir = getLab13BuildDir(cwd)
 
               // Adjust file paths to be relative to the ECT work directory
-              const ectFilePaths = allFiles.map((file) => path.relative(ectWorkDir, file))
+              const ectFilePaths = filesToArchive.map((file) => path.relative(ectWorkDir, file))
 
               const args = ['-strip', '-zip', '-10009', zipName, ...ectFilePaths]
               dbg(`Calling ECT with args ${args.join(' ')}`)
