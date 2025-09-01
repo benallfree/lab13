@@ -4,6 +4,7 @@
   "devDependencies": {
     "@types/three": "^0.179.0",
     "partysocket": "^1.1.5",
-    "three": "^0.179.1"
+    "three": "^0.179.1",
+    "lab13-sdk": "workspace:^0.0.1"
   }
 }

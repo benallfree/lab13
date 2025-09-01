@@ -1,18 +1,20 @@
-import type * as THREEType from 'three'
 import {
   createMyStateCopier,
-  normalizePosition,
-  normalizeRotation,
+  createPositionNormalizer,
+  createRotationNormalizer,
   onClientJoined,
   onClientLeft,
   onClose,
   onMyIdUpdated,
   onOpen,
+  PLAYER_ENTITY_COLLECTION_KEY,
   round,
+  StateBase,
   useMyId,
   useOnline,
   useState,
-} from './online'
+} from 'lab13-sdk'
+import type * as THREEType from 'three'
 
 declare global {
   var THREE: typeof THREEType
@@ -24,19 +26,23 @@ statusIndicator.className = 'status-indicator status-connecting'
 statusIndicator.textContent = 'Connecting...'
 document.body.appendChild(statusIndicator)
 
-type GameState = {
-  _players: Record<string, { x: number; y: number; z: number; rz: number; s: number; rx: number; ry: number }>
-}
+type PlayerState = { x: number; y: number; z: number; rz: number; s: number; rx: number; ry: number }
+
+type GameState = StateBase<PlayerState>
+
+const normalizePosition = createPositionNormalizer()
+const normalizeRotation = createRotationNormalizer()
 
 useOnline(`mewsterpiece/flight`)
 const { getMyId } = useMyId()
 const myStateCopier = createMyStateCopier(getMyId)
-const { getState, getMyState, updateMyState } = useState<GameState>({
+const { getState, updateMyState, getMyState, getPlayerStates } = useState<GameState>({
   onBeforeSendDelta: (delta) => {
     console.log('Before sending delta:', JSON.stringify(delta, null, 2))
     const myId = getMyId()
-    if (myId && delta?._players?.[myId]?.s) {
-      delta._players[myId].s = round(delta._players[myId].s, 2)
+    const playerState = delta[PLAYER_ENTITY_COLLECTION_KEY]?.[myId]
+    if (playerState != null) {
+      playerState.s = round(playerState.s || 0, 2)
     }
     return normalizePosition(normalizeRotation(delta as any))
   },
@@ -324,11 +330,11 @@ function updateMyAircraft() {
 
 // Update other aircrafts
 function updateAircrafts() {
-  const state = getState()
-  if (!state._players) return
+  const players = getPlayerStates()
+  if (!players) return
 
-  for (const playerId in state._players) {
-    const playerState = state._players[playerId]
+  for (const playerId in players) {
+    const playerState = players[playerId]
     if (!playerState) continue
     if (!aircrafts[playerId]) {
       const color = aircraftColors[parseInt(playerId) % aircraftColors.length]
