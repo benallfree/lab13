@@ -2,6 +2,7 @@
   "name": "lab13-hello-mmo",
   "private": true,
   "devDependencies": {
-    "partysocket": "^1.1.5"
+    "partysocket": "^1.1.5",
+    "lab13-sdk": "workspace:^0.0.1"
   }
 }

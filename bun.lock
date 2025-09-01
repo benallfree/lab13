@@ -72,6 +72,7 @@
     "games/hello-mmo": {
       "name": "lab13-hello-mmo",
       "devDependencies": {
+        "lab13-sdk": "workspace:^0.0.1",
         "partysocket": "^1.1.5",
       },
     },

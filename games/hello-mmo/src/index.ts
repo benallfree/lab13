@@ -1,4 +1,4 @@
-import { onClose, onError, onMyIdUpdated, onOpen, useMyId, useOnline } from './online'
+import { onClose, onError, onMyIdUpdated, onOpen, useMyId, useOnline } from 'lab13-sdk'
 import './style.css'
 
 useOnline(`mewsterpiece/empty`)
