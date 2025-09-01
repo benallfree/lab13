@@ -32,6 +32,10 @@ jobs:
         working-directory: cli
         run: bun run build
 
+      - name: Build SDK
+        working-directory: sdk
+        run: bun run build
+
       - name: Test build command (debug mode)
         working-directory: games/mewsterpiece
         shell: pwsh

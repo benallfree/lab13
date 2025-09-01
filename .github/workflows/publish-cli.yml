@@ -22,7 +22,7 @@ jobs:
         run: |
           bun install --frozen-lockfile
 
-      - name: Build sdk
+      - name: Build CLI
         working-directory: cli
         run: bun run build
 
