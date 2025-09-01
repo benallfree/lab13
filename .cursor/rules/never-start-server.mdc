@@ -1,0 +1,6 @@
+---
+alwaysApply: true
+---
+
+- Never attempt to start a server like `bun dev`.
+- never attempt to build like `bun run build`
