@@ -71,7 +71,7 @@ Each demo showcases different multiplayer patterns and demonstrates how easy it 
 
 Everything you need to build your first multiplayer game:
 
-- 📖 **[Complete Documentation](/docs/intro)** - Everything you need to know
+- 📖 **[Complete Documentation](/docs)** - Everything you need to know
 - 🛠️ **[Getting Started Guide](/docs/getting-started)** - Your first multiplayer game
 - 🎮 **[Game State Management](/docs/tutorials/game-state)** - Advanced patterns
 - 🤖 **[Bot Support](/docs/bot-support)** - Add AI players to your games
@@ -101,7 +101,7 @@ This is just the beginning! Future releases will include:
 Ready to create your first JS13K multiplayer game? The infrastructure is ready - now it's your turn to make something amazing!
 
 - 🚀 **[Start Building](/docs/getting-started)** - Your first multiplayer game
-- 📖 **[Read the Docs](/docs/intro)** - Complete API reference
+- 📖 **[Read the Docs](/docs)** - Complete API reference
 - 🎮 **[Try the Demos](/lobby)** - See what's possible
 
 The JS13K game jam just got a whole lot more exciting with real-time multiplayer capabilities. Happy coding! 🎮
