@@ -6,7 +6,7 @@ import { themes as prismThemes } from 'prism-react-renderer'
 
 const config: Config = {
   title: 'Lab 13',
-  tagline: 'Unofficial JS13K experiments and tutorials',
+  tagline: `Supercharge your JS13K games`,
   favicon: 'img/13.svg',
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
@@ -94,12 +94,12 @@ const config: Config = {
         src: 'img/13.svg',
       },
       items: [
-        { to: '/lobby', label: 'Games', position: 'left' },
+        // { to: '/lobby', label: 'Games', position: 'left' },
         {
           type: 'docSidebar',
           sidebarId: 'tutorialSidebar',
           position: 'left',
-          label: 'Tutorials',
+          label: 'Docs',
         },
         { to: '/blog', label: 'Blog', position: 'right' },
         {

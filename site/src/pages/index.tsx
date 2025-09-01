@@ -18,11 +18,11 @@ function HomepageHeader() {
         </Heading>
         <p className="hero__subtitle">{siteConfig.tagline}</p>
         <div className={styles.buttons}>
-          <Link className="button button--secondary button--lg" to="/lobby">
-            Play Now
+          <Link className="button button--secondary button--lg" to="/docs">
+            Read the Docs
           </Link>
         </div>
-        <div style={{ marginTop: 24, display: 'flex', justifyContent: 'center' }}>
+        {/* <div style={{ marginTop: 24, display: 'flex', justifyContent: 'center' }}>
           <iframe
             width="560"
             height="315"
@@ -32,7 +32,7 @@ function HomepageHeader() {
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             allowFullScreen
           ></iframe>
-        </div>
+        </div> */}
       </div>
     </header>
   )
@@ -43,7 +43,7 @@ export default function Home(): ReactNode {
   return (
     <Layout
       title={`${siteConfig.title}`}
-      description="Lab 13 is an unofficial resource for the JS13K Online challengesponsored by Cloudflare"
+      description="Lab 13 is a resource for the JS13K Online challenge, sponsored by Cloudflare"
     >
       <HomepageHeader />
       <main>

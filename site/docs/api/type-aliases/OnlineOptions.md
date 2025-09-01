@@ -2,7 +2,7 @@
 
 > **OnlineOptions** = `object`
 
-Defined in: [index.ts:11](https://github.com/benallfree/lab13/blob/55b13e2c02a360fdce138b0495c78378f8c063b1/sdk/src/online/index.ts#L11)
+Defined in: [index.ts:12](https://github.com/benallfree/lab13/blob/c14b6cbe39823dfc265f5d26450ed040a344e64f/sdk/src/online/index.ts#L12)
 
 ## Properties
 
@@ -10,7 +10,7 @@ Defined in: [index.ts:11](https://github.com/benallfree/lab13/blob/55b13e2c02a36
 
 > `optional` **global**: `boolean`
 
-Defined in: [index.ts:13](https://github.com/benallfree/lab13/blob/55b13e2c02a360fdce138b0495c78378f8c063b1/sdk/src/online/index.ts#L13)
+Defined in: [index.ts:14](https://github.com/benallfree/lab13/blob/c14b6cbe39823dfc265f5d26450ed040a344e64f/sdk/src/online/index.ts#L14)
 
 ***
 
@@ -18,4 +18,4 @@ Defined in: [index.ts:13](https://github.com/benallfree/lab13/blob/55b13e2c02a36
 
 > `optional` **host**: `string`
 
-Defined in: [index.ts:12](https://github.com/benallfree/lab13/blob/55b13e2c02a360fdce138b0495c78378f8c063b1/sdk/src/online/index.ts#L12)
+Defined in: [index.ts:13](https://github.com/benallfree/lab13/blob/c14b6cbe39823dfc265f5d26450ed040a344e64f/sdk/src/online/index.ts#L13)

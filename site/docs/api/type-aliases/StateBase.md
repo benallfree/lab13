@@ -2,7 +2,7 @@
 
 > **StateBase**\<`TPlayerState`\> = `object`
 
-Defined in: [state/index.ts:40](https://github.com/benallfree/lab13/blob/55b13e2c02a360fdce138b0495c78378f8c063b1/sdk/src/online/state/index.ts#L40)
+Defined in: [state/index.ts:40](https://github.com/benallfree/lab13/blob/c14b6cbe39823dfc265f5d26450ed040a344e64f/sdk/src/online/state/index.ts#L40)
 
 ## Type Parameters
 
@@ -16,7 +16,7 @@ Defined in: [state/index.ts:40](https://github.com/benallfree/lab13/blob/55b13e2
 
 > **@players**: `object`
 
-Defined in: [state/index.ts:41](https://github.com/benallfree/lab13/blob/55b13e2c02a360fdce138b0495c78378f8c063b1/sdk/src/online/state/index.ts#L41)
+Defined in: [state/index.ts:41](https://github.com/benallfree/lab13/blob/c14b6cbe39823dfc265f5d26450ed040a344e64f/sdk/src/online/state/index.ts#L41)
 
 #### Index Signature
 

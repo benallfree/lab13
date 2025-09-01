@@ -1,6 +1,6 @@
-# Reference
+# Lab 13 Client SDK
 
-Unofficial client SDK for the [JS13K Online](https://online.js13kgames.com) challenge.
+SDK for the [JS13K Online](https://online.js13kgames.com) challenge.
 
 ## Why Use Lab13 SDK?
 
