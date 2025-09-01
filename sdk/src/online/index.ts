@@ -7,6 +7,7 @@ export * from './myId'
 export * from './presence'
 export * from './socket'
 export * from './state'
+import './head'
 
 export type OnlineOptions = {
   host?: string
