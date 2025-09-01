@@ -1,8 +1,10 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
+export const LAB13_BUILD_DIR = '.lab13'
+
 // Directory helper functions
-export const getLab13BuildDir = (cwd: string) => path.join(cwd, '.lab13-build')
+export const getLab13BuildDir = (cwd: string) => path.join(cwd, LAB13_BUILD_DIR)
 
 export const ensureLab13BuildDir = (cwd: string, debug = false) => {
   const dbg = (...args: any[]) => (debug ? console.log(`[DEBUG]`, ...args) : undefined)

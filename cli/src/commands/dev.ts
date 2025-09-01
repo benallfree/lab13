@@ -1,5 +1,6 @@
 import { createServer as createViteServer, type Plugin } from 'vite'
 import { runBuild, type BuildOptions } from './build-cmd'
+import { LAB13_BUILD_DIR } from './build-cmd/utils'
 
 const devPlugin = (options: BuildOptions): Plugin => {
   const { debug = false } = options || {}
@@ -10,7 +11,7 @@ const devPlugin = (options: BuildOptions): Plugin => {
     name: 'js13k-dev',
     async watchChange(id, change) {
       if (id.endsWith(`.zip`)) return
-      if (id.includes(`/.lab13-build/`)) return
+      if (id.includes(`/${LAB13_BUILD_DIR}/`)) return
       if (isBuilding) return
       isBuilding = true
       dbg(`${id}`, change)
