@@ -141,25 +141,23 @@ export function archivePlugin(options: ArchivePluginOptions = {}): Plugin {
                         ? 'win32/ect.exe'
                         : null
                 if (!suffix) {
-                  return null
+                  throw new Error('ECT binary not supported for this platform. Skipping ECT compression.')
                 }
-                return path.resolve(ect, '..', suffix)
-              })()
-              if (ectBin == null) {
-                throw new Error('ECT binary not found for this platform. Skipping ECT compression.')
-              }
-
-              // Use ECT binary from ect-bin package
-              await new Promise<void>((resolve, reject) => {
-                if (!fs.existsSync(ectBin)) {
-                  throw new Error(`ECT binary not found at ${ectBin}`)
-                }
+                const binary = path.resolve(ect, '..', suffix)
+                dbg(`ECT binary: ${binary}`)
                 try {
-                  fs.chmodSync(ectBin, 0o755)
+                  fs.chmodSync(binary, 0o755)
                 } catch (e) {
                   dbg(`Failed to chmod ECT binary: ${e}`)
                 }
+                if (!fs.existsSync(binary)) {
+                  throw new Error(`ECT binary not found at ${binary}`)
+                }
+                return binary
+              })()
 
+              // Use ECT binary from ect-bin package
+              await new Promise<void>((resolve, reject) => {
                 // Run ECT from the work directory
                 execFile(ectBin, args, { cwd: ectWorkDir }, (err) => {
                   if (err) {
