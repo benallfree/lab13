@@ -51,7 +51,7 @@ export async function runBuild(options: BuildOptions): Promise<void> {
 
   const cwd = process.cwd()
 
-  // Create .lab13-build directory at the start
+  // Create .lab13 directory at the start
   ensureLab13BuildDir(cwd, debug)
 
   const packageJsonPath = path.join(cwd, 'package.json')

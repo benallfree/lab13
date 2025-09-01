@@ -118,7 +118,7 @@ export function archivePlugin(options: ArchivePluginOptions = {}): Plugin {
           if (method.name === 'ect') {
             // Use ECT for compression
             try {
-              // Use the shared .lab13-build directory
+              // Use the shared .lab13 directory
               const ectWorkDir = getLab13BuildDir(cwd)
 
               // Adjust file paths to be relative to the ECT work directory

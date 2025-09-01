@@ -22,10 +22,10 @@ export const ensureLab13BuildDir = (cwd: string, debug = false) => {
         fs.unlinkSync(filePath)
       }
     }
-    dbg('Cleared .lab13-build directory contents')
+    dbg(`Cleared ${lab13BuildDir} directory contents`)
   } else {
     fs.mkdirSync(lab13BuildDir, { recursive: true })
-    dbg('Created .lab13-build directory')
+    dbg(`Created ${lab13BuildDir} directory`)
   }
   return lab13BuildDir
 }
