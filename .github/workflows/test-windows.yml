@@ -54,7 +54,7 @@ jobs:
           $exitCode = $LASTEXITCODE
           Write-Host "CLI exit code: $exitCode"
           Write-Host "CLI output:"
-          Write-Host ($result -replace '\n', "`n")
+          Write-Output $result
 
           # List files after build
           Write-Host "=== Files after build ==="
