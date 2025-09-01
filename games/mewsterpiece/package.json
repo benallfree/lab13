@@ -5,6 +5,6 @@
     "@types/svg-path-bounds": "^1.0.2",
     "svg-path-bounds": "^1.0.2",
     "partysocket": "^1.1.5",
-    "lab13-sdk": "workspace:^0.0.1"
+    "lab13-sdk": "workspace:^0.0.2"
   }
 }

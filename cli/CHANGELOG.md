@@ -1,5 +1,13 @@
 # js13k
 
+## 0.0.9
+
+### Patch Changes
+
+- ec5f59a: Fix: Windows archive regression
+- 3656e0f: Improve debugging messages
+- 7dc9f8d: Change build dir name to .lab13
+
 ## 0.0.8
 
 ### Patch Changes
