@@ -133,7 +133,7 @@ export default function Lobby() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'nowrap' }}>
                 <Link
                   className="button button--primary button--sm"
-                  to="/docs/tutorials/add-your-game"
+                  to="/docs"
                   style={{
                     background: 'linear-gradient(90deg, #22c55e 0%, #3b82f6 50%, #a855f7 100%)',
                     color: '#fff',

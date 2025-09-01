@@ -155,13 +155,4 @@ The SDK implements the official JS13K Online protocol:
 
 ## Getting Started
 
-See the [Getting Started](./getting-started.md) guide for a complete tutorial, or explore the [API Reference](./api/) for detailed function documentation.
-
-## Examples
-
-Check out the [example games](../../games/) to see the SDK in action:
-
-- **Cars**: Real-time racing with state synchronization
-- **Cats**: Multiplayer mouse-catching game
-- **Hello MMO**: Minimal connection example
-- **Presence**: Player tracking demo
+See the [Getting Started](/docs/sdk/getting-started) guide for a complete tutorial, or explore the [API Reference](/docs/api/) for detailed function documentation.

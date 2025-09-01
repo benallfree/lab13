@@ -391,7 +391,6 @@ onClientLeft((clientId) => {
 
 ## Next Steps
 
-- Explore the [API Reference](./api/) for detailed function documentation
-- Check out the [example games](../../games/) for more complex implementations
-- Learn about [state management patterns](./state-management.md)
-- See [optimization techniques](./optimization.md) for staying under 13KB
+- Explore the [API Reference](/docs/api/) for detailed function documentation
+- Learn about [state management patterns](/docs/sdk/state-management)
+- See [optimization techniques](/docs/sdk/optimization) for staying under 13KB

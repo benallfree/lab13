@@ -54,7 +54,3 @@ Head over to the [Lab13 Lobby](https://lab13.benallfree.com/lobby) to see the im
 Presence is up and running again with the new JS13K Online relay! The infrastructure is more robust and ready to handle the growing community of multiplayer games.
 
 Whether you're looking to jump into an active game or start something new with friends, the improved lobby makes game discovery a breeze.
-
----
-
-_Ready to build your own multiplayer game? Check out our [getting started guide](/docs/getting-started) and join the JS13K community! 🚀_
