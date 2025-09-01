@@ -1,5 +1,3 @@
-import type { PartySocket as PartySocketType } from 'partysocket'
-import van from 'vanjs-core'
 import {
   onClientIdUpdated,
   onClientJoined,
@@ -8,7 +6,9 @@ import {
   onIdentReceived,
   onOpen,
   sendIdentToClient,
-} from './online'
+} from 'lab13-sdk'
+import type { PartySocket as PartySocketType } from 'partysocket'
+import van from 'vanjs-core'
 
 declare global {
   interface Window {

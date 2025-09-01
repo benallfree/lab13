@@ -88,6 +88,7 @@
     "games/presence": {
       "name": "lab13-presence",
       "devDependencies": {
+        "lab13-sdk": "workspace:^0.0.1",
         "partysocket": "^1.1.5",
         "vanjs-core": "^1.5.5",
       },
