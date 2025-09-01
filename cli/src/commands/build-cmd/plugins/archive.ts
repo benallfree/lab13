@@ -70,6 +70,10 @@ export function archivePlugin(options: ArchivePluginOptions = {}): Plugin {
       const allFiles = globSync('**/*', { cwd: outDir, absolute: true })
       dbg(`All files: ${allFiles.join('\n')}`)
 
+      // Filter out excluded files
+      const filesToArchive = allFiles.filter((file) => !shouldExclude(file))
+      dbg(`Files to archive: ${filesToArchive.join('\n')}`)
+
       try {
         // Initialize 7z-wasm
         const sevenZip = await SevenZip()
@@ -78,8 +82,8 @@ export function archivePlugin(options: ArchivePluginOptions = {}): Plugin {
         const tempDir = '/temp'
         sevenZip.FS.mkdir(tempDir)
 
-        for (const file of allFiles) {
-          const destItemPath = path.join(tempDir, path.relative(outDir, file).replace(/\\/g, '/'))
+        for (const file of filesToArchive) {
+          const destItemPath = path.join(tempDir, path.relative(outDir, file)).replace(/\\/g, '/')
           dbg(`Copying file ${file} to ${destItemPath}`)
           const content = fs.readFileSync(file)
           const stream = sevenZip.FS.open(destItemPath, 'w+')
@@ -122,7 +126,7 @@ export function archivePlugin(options: ArchivePluginOptions = {}): Plugin {
               const ectWorkDir = getLab13BuildDir(cwd)
 
               // Adjust file paths to be relative to the ECT work directory
-              const ectFilePaths = allFiles.map((file) => path.relative(ectWorkDir, file))
+              const ectFilePaths = filesToArchive.map((file) => path.relative(ectWorkDir, file))
 
               const args = ['-strip', '-zip', '-10009', zipName, ...ectFilePaths]
               dbg(`Calling ECT with args ${args.join(' ')}`)
@@ -137,25 +141,23 @@ export function archivePlugin(options: ArchivePluginOptions = {}): Plugin {
                         ? 'win32/ect.exe'
                         : null
                 if (!suffix) {
-                  return null
+                  throw new Error('ECT binary not supported for this platform. Skipping ECT compression.')
                 }
-                return path.resolve(ect, '..', suffix)
-              })()
-              if (ectBin == null) {
-                throw new Error('ECT binary not found for this platform. Skipping ECT compression.')
-              }
-
-              // Use ECT binary from ect-bin package
-              await new Promise<void>((resolve, reject) => {
-                if (!fs.existsSync(ectBin)) {
-                  throw new Error(`ECT binary not found at ${ectBin}`)
-                }
+                const binary = path.resolve(ect, '..', suffix)
+                dbg(`ECT binary: ${binary}`)
                 try {
-                  fs.chmodSync(ectBin, 0o755)
+                  fs.chmodSync(binary, 0o755)
                 } catch (e) {
                   dbg(`Failed to chmod ECT binary: ${e}`)
                 }
+                if (!fs.existsSync(binary)) {
+                  throw new Error(`ECT binary not found at ${binary}`)
+                }
+                return binary
+              })()
 
+              // Use ECT binary from ect-bin package
+              await new Promise<void>((resolve, reject) => {
                 // Run ECT from the work directory
                 execFile(ectBin, args, { cwd: ectWorkDir }, (err) => {
                   if (err) {
