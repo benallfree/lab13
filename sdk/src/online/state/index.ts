@@ -120,6 +120,9 @@ export const useState = <TStateShape extends StateBase>(options?: Partial<StateO
   }, socket)
 
   const getState = (copy = false): PartialDeep<TStateShape> => (copy ? deepCopy(localState) : localState)
+  const getPlayerStates = (copy = false): PartialDeep<TStateShape[PlayerEntityCollectionKey]> => {
+    return copy ? deepCopy(localState[PLAYER_ENTITY_COLLECTION_KEY]!) : localState[PLAYER_ENTITY_COLLECTION_KEY]!
+  }
   const getPlayerState = (
     clientId: string,
     copy = false
@@ -162,6 +165,8 @@ export const useState = <TStateShape extends StateBase>(options?: Partial<StateO
   return {
     getState,
     getMyState,
+    getPlayerStates,
+    getPlayerState,
     updateMyState,
     updatePlayerState,
     updateState,
