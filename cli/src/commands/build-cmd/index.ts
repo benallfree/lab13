@@ -73,9 +73,9 @@ export async function runBuild(options: BuildOptions): Promise<void> {
     },
     plugins: [
       terser !== false ? terserPlugin({ debug }) : undefined,
-      htmlMinify !== false ? htmlMinifyPlugin({ debug }) : undefined,
       inlineCss !== false ? inlineCssPlugin({ debug }) : undefined,
       effectiveInlineJs !== false ? inlineJsPlugin({ debug }) : undefined,
+      htmlMinify !== false ? htmlMinifyPlugin({ debug }) : undefined,
       roadroller ? roadrollerPlugin({ debug }) : undefined,
       archivePlugin({
         gameName,
