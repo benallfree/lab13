@@ -4,10 +4,14 @@ on:
   push:
     paths:
       - 'cli/**'
+      - 'sdk/**'
+      - 'games/mewsterpiece/**'
       - '.github/workflows/test-windows.yml'
   pull_request:
     paths:
       - 'cli/**'
+      - 'sdk/**'
+      - 'games/mewsterpiece/**'
       - '.github/workflows/test-windows.yml'
 
 jobs:
@@ -28,6 +32,10 @@ jobs:
         working-directory: cli
         run: bun run build
 
+      - name: Build SDK
+        working-directory: sdk
+        run: bun run build
+
       - name: Test build command (debug mode)
         working-directory: games/mewsterpiece
         shell: pwsh
@@ -46,11 +54,23 @@ jobs:
           $exitCode = $LASTEXITCODE
           Write-Host "CLI exit code: $exitCode"
           Write-Host "CLI output:"
-          Write-Host $result
+          Write-Output $result
 
           # List files after build
           Write-Host "=== Files after build ==="
           Get-ChildItem | ForEach-Object { Write-Host "  $($_.Name)" }
+
+          # Show contents of dist directory if it exists
+          Write-Host "=== Contents of dist directory ==="
+          if (Test-Path "dist") {
+            Write-Host "dist directory contents:"
+            Get-ChildItem -Path "dist" -Recurse | ForEach-Object { 
+              $indent = "  " * ($_.FullName.Split('\').Count - $PWD.Path.Split('\').Count - 1)
+              Write-Host "$indent$($_.Name)"
+            }
+          } else {
+            Write-Host "dist directory not found"
+          }
 
           # Check if zip files were created and have content
           Write-Host "=== Checking zip files ==="
