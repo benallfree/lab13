@@ -1,5 +1,3 @@
-import type { PartySocket } from 'partysocket'
-import { cats } from './cats'
 import {
   onClientJoined,
   onClose,
@@ -9,7 +7,9 @@ import {
   sendCommandMessageToAll,
   sendCommandMessageToClient,
   usePresence,
-} from './online'
+} from 'lab13-sdk'
+import type { PartySocket } from 'partysocket'
+import { cats } from './cats'
 import {
   clearAllCompletedPictures,
   deleteCompletedPicture,

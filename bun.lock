@@ -80,6 +80,7 @@
       "name": "lab13-mewsterpiece",
       "devDependencies": {
         "@types/svg-path-bounds": "^1.0.2",
+        "lab13-sdk": "workspace:^0.0.1",
         "partysocket": "^1.1.5",
         "svg-path-bounds": "^1.0.2",
       },
