@@ -5,12 +5,14 @@ on:
     paths:
       - 'cli/**'
       - 'sdk/**'
+      - 'bun.lock'
       - 'games/mewsterpiece/**'
       - '.github/workflows/test-windows.yml'
   pull_request:
     paths:
       - 'cli/**'
       - 'sdk/**'
+      - 'bun.lock'
       - 'games/mewsterpiece/**'
       - '.github/workflows/test-windows.yml'
 
