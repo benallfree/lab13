@@ -1,4 +1,72 @@
 // @ts-check
 /** @type {import("@docusaurus/plugin-content-docs").SidebarsConfig} */
-const typedocSidebar = {items:[{type:"category",label:"Type Aliases",items:[{type:"doc",id:"api/type-aliases/EntityCollectionKey",label:"EntityCollectionKey"},{type:"doc",id:"api/type-aliases/EntityCollectionPrefix",label:"EntityCollectionPrefix"},{type:"doc",id:"api/type-aliases/OnlineOptions",label:"OnlineOptions"},{type:"doc",id:"api/type-aliases/PartialDeep",label:"PartialDeep"},{type:"doc",id:"api/type-aliases/PartialStructWithNullPropsDeep",label:"PartialStructWithNullPropsDeep"},{type:"doc",id:"api/type-aliases/PlayerEntityCollectionKey",label:"PlayerEntityCollectionKey"},{type:"doc",id:"api/type-aliases/PrivateKey",label:"PrivateKey"},{type:"doc",id:"api/type-aliases/PrivateKeyPrefix",label:"PrivateKeyPrefix"},{type:"doc",id:"api/type-aliases/StateBase",label:"StateBase"},{type:"doc",id:"api/type-aliases/StateDelta",label:"StateDelta"},{type:"doc",id:"api/type-aliases/StateOptions",label:"StateOptions"},{type:"doc",id:"api/type-aliases/UseMyIdOptions",label:"UseMyIdOptions"}]},{type:"category",label:"Variables",items:[{type:"doc",id:"api/variables/ENTITY_COLLECTION_PREFIX",label:"ENTITY_COLLECTION_PREFIX"},{type:"doc",id:"api/variables/onMyIdUpdated",label:"onMyIdUpdated"},{type:"doc",id:"api/variables/PLAYER_ENTITY_COLLECTION_KEY",label:"PLAYER_ENTITY_COLLECTION_KEY"},{type:"doc",id:"api/variables/PRIVATE_KEY_COLLECTION_KEY",label:"PRIVATE_KEY_COLLECTION_KEY"},{type:"doc",id:"api/variables/PRIVATE_KEY_PREFIX",label:"PRIVATE_KEY_PREFIX"}]},{type:"category",label:"Functions",items:[{type:"doc",id:"api/functions/createKeyNormalizer",label:"createKeyNormalizer"},{type:"doc",id:"api/functions/createMyStateCopier",label:"createMyStateCopier"},{type:"doc",id:"api/functions/createPositionNormalizer",label:"createPositionNormalizer"},{type:"doc",id:"api/functions/createRotationNormalizer",label:"createRotationNormalizer"},{type:"doc",id:"api/functions/createVelocityNormalizer",label:"createVelocityNormalizer"},{type:"doc",id:"api/functions/deepCopy",label:"deepCopy"},{type:"doc",id:"api/functions/generateUUID",label:"generateUUID"},{type:"doc",id:"api/functions/labCommand",label:"labCommand"},{type:"doc",id:"api/functions/mergeDeep",label:"mergeDeep"},{type:"doc",id:"api/functions/normalizeRad",label:"normalizeRad"},{type:"doc",id:"api/functions/onClientIdUpdated",label:"onClientIdUpdated"},{type:"doc",id:"api/functions/onClientJoined",label:"onClientJoined"},{type:"doc",id:"api/functions/onClientLeft",label:"onClientLeft"},{type:"doc",id:"api/functions/onClose",label:"onClose"},{type:"doc",id:"api/functions/onCommandMessage",label:"onCommandMessage"},{type:"doc",id:"api/functions/onError",label:"onError"},{type:"doc",id:"api/functions/onIdentReceived",label:"onIdentReceived"},{type:"doc",id:"api/functions/onOpen",label:"onOpen"},{type:"doc",id:"api/functions/onStateDeltaMessage",label:"onStateDeltaMessage"},{type:"doc",id:"api/functions/onStateMessage",label:"onStateMessage"},{type:"doc",id:"api/functions/round",label:"round"},{type:"doc",id:"api/functions/sendCommandMessageToAll",label:"sendCommandMessageToAll"},{type:"doc",id:"api/functions/sendCommandMessageToClient",label:"sendCommandMessageToClient"},{type:"doc",id:"api/functions/sendIdentToClient",label:"sendIdentToClient"},{type:"doc",id:"api/functions/sendMessage",label:"sendMessage"},{type:"doc",id:"api/functions/sendMessageToClient",label:"sendMessageToClient"},{type:"doc",id:"api/functions/useMyId",label:"useMyId"},{type:"doc",id:"api/functions/useOnline",label:"useOnline"},{type:"doc",id:"api/functions/usePresence",label:"usePresence"},{type:"doc",id:"api/functions/useState",label:"useState"}]}]};
-module.exports = typedocSidebar.items;
+const typedocSidebar = {
+  items: [
+    {
+      type: 'category',
+      label: 'Type Aliases',
+      items: [
+        { type: 'doc', id: 'api/type-aliases/EntityCollectionKey', label: 'EntityCollectionKey' },
+        { type: 'doc', id: 'api/type-aliases/EntityCollectionPrefix', label: 'EntityCollectionPrefix' },
+        { type: 'doc', id: 'api/type-aliases/OnlineOptions', label: 'OnlineOptions' },
+        { type: 'doc', id: 'api/type-aliases/PartialDeep', label: 'PartialDeep' },
+        { type: 'doc', id: 'api/type-aliases/PartialStructWithNullPropsDeep', label: 'PartialStructWithNullPropsDeep' },
+        { type: 'doc', id: 'api/type-aliases/PlayerEntityCollectionKey', label: 'PlayerEntityCollectionKey' },
+        { type: 'doc', id: 'api/type-aliases/PrivateKey', label: 'PrivateKey' },
+        { type: 'doc', id: 'api/type-aliases/PrivateKeyPrefix', label: 'PrivateKeyPrefix' },
+        { type: 'doc', id: 'api/type-aliases/StateBase', label: 'StateBase' },
+        { type: 'doc', id: 'api/type-aliases/StateDelta', label: 'StateDelta' },
+        { type: 'doc', id: 'api/type-aliases/StateOptions', label: 'StateOptions' },
+        { type: 'doc', id: 'api/type-aliases/UseMyIdOptions', label: 'UseMyIdOptions' },
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Variables',
+      items: [
+        { type: 'doc', id: 'api/variables/ENTITY_COLLECTION_PREFIX', label: 'ENTITY_COLLECTION_PREFIX' },
+        { type: 'doc', id: 'api/variables/onMyIdUpdated', label: 'onMyIdUpdated' },
+        { type: 'doc', id: 'api/variables/PLAYER_ENTITY_COLLECTION_KEY', label: 'PLAYER_ENTITY_COLLECTION_KEY' },
+        { type: 'doc', id: 'api/variables/PRIVATE_KEY_COLLECTION_KEY', label: 'PRIVATE_KEY_COLLECTION_KEY' },
+        { type: 'doc', id: 'api/variables/PRIVATE_KEY_PREFIX', label: 'PRIVATE_KEY_PREFIX' },
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Functions',
+      items: [
+        { type: 'doc', id: 'api/functions/createKeyNormalizer', label: 'createKeyNormalizer' },
+        { type: 'doc', id: 'api/functions/createMyStateCopier', label: 'createMyStateCopier' },
+        { type: 'doc', id: 'api/functions/createPositionNormalizer', label: 'createPositionNormalizer' },
+        { type: 'doc', id: 'api/functions/createRotationNormalizer', label: 'createRotationNormalizer' },
+        { type: 'doc', id: 'api/functions/createVelocityNormalizer', label: 'createVelocityNormalizer' },
+        { type: 'doc', id: 'api/functions/deepCopy', label: 'deepCopy' },
+        { type: 'doc', id: 'api/functions/generateUUID', label: 'generateUUID' },
+        { type: 'doc', id: 'api/functions/labCommand', label: 'labCommand' },
+        { type: 'doc', id: 'api/functions/mergeDeep', label: 'mergeDeep' },
+        { type: 'doc', id: 'api/functions/normalizeRad', label: 'normalizeRad' },
+        { type: 'doc', id: 'api/functions/onClientIdUpdated', label: 'onClientIdUpdated' },
+        { type: 'doc', id: 'api/functions/onClientJoined', label: 'onClientJoined' },
+        { type: 'doc', id: 'api/functions/onClientLeft', label: 'onClientLeft' },
+        { type: 'doc', id: 'api/functions/onClose', label: 'onClose' },
+        { type: 'doc', id: 'api/functions/onCommandMessage', label: 'onCommandMessage' },
+        { type: 'doc', id: 'api/functions/onError', label: 'onError' },
+        { type: 'doc', id: 'api/functions/onIdentReceived', label: 'onIdentReceived' },
+        { type: 'doc', id: 'api/functions/onOpen', label: 'onOpen' },
+        { type: 'doc', id: 'api/functions/onStateDeltaMessage', label: 'onStateDeltaMessage' },
+        { type: 'doc', id: 'api/functions/onStateMessage', label: 'onStateMessage' },
+        { type: 'doc', id: 'api/functions/round', label: 'round' },
+        { type: 'doc', id: 'api/functions/sendCommandMessageToAll', label: 'sendCommandMessageToAll' },
+        { type: 'doc', id: 'api/functions/sendCommandMessageToClient', label: 'sendCommandMessageToClient' },
+        { type: 'doc', id: 'api/functions/sendIdentToClient', label: 'sendIdentToClient' },
+        { type: 'doc', id: 'api/functions/sendMessage', label: 'sendMessage' },
+        { type: 'doc', id: 'api/functions/sendMessageToClient', label: 'sendMessageToClient' },
+        { type: 'doc', id: 'api/functions/useMyId', label: 'useMyId' },
+        { type: 'doc', id: 'api/functions/useOnline', label: 'useOnline' },
+        { type: 'doc', id: 'api/functions/usePresence', label: 'usePresence' },
+        { type: 'doc', id: 'api/functions/useState', label: 'useState' },
+      ],
+    },
+  ],
+}
+module.exports = typedocSidebar.items

@@ -1,4 +1,4 @@
-# Lab 13 Client SDK
+# Reference
 
 Unofficial client SDK for the [JS13K Online](https://online.js13kgames.com) challenge.
 
