@@ -1,14 +1,14 @@
-import type { PartySocket } from 'partysocket'
 import {
-  normalizePosition,
-  normalizeRotation,
+  createPositionNormalizer,
+  createRotationNormalizer,
   onClientLeft,
   onClose,
   onMyIdUpdated,
   onOpen,
   useMyId,
   useState,
-} from './online'
+} from 'lab13-sdk'
+import type { PartySocket } from 'partysocket'
 
 declare global {
   interface Window {
@@ -24,14 +24,16 @@ window.socket = new window.PartySocket({
   room: 'cars',
 })
 
-const { getState, getMyState, updateMyState, updatePlayerState } = useState({
-  onStateReceived: (currentState, newState) => {
-    const myId = getMyId()
-    if (myId) {
-      newState._players[myId] = currentState._players[myId]
-    }
-    return newState
-  },
+const normalizePosition = createPositionNormalizer()
+const normalizeRotation = createRotationNormalizer()
+const { getState, getMyState, updateMyState, updatePlayerState, getPlayerStates } = useState({
+  // onStateReceived: (currentState, newState) => {
+  //   const myId = getMyId()
+  //   if (myId) {
+  //     newState._players[myId] = currentState._players[myId]
+  //   }
+  //   return newState
+  // },
   onBeforeSendDelta: (delta) => {
     console.log('Before sending delta:', JSON.stringify(delta, null, 2))
     return normalizePosition(normalizeRotation(delta as any))
@@ -136,10 +138,10 @@ function renderState() {
   ctx.setLineDash([])
 
   // Render all cars from state
-  const state = getState()
-  if (state._players) {
-    for (const playerId in state._players) {
-      const car = state._players[playerId]
+  const players = getPlayerStates()
+  if (players) {
+    for (const playerId in players) {
+      const car = players[playerId]!
       const idx = Array.from(String(playerId)).reduce((a, c) => a + c.charCodeAt(0), 0) % carColors.length
       const color = carColors[idx]!
       const isMyCar = playerId === getMyId()
