@@ -131,6 +131,14 @@ export function archivePlugin(options: ArchivePluginOptions = {}): Plugin {
               }
               // Use ECT binary from ect-bin package
               await new Promise<void>((resolve, reject) => {
+                if (!fs.existsSync(ectBin)) {
+                  throw new Error(`ECT binary not found at ${ectBin}`)
+                }
+                try {
+                  fs.chmodSync(ectBin, 0o755)
+                } catch (e) {
+                  dbg(`Failed to chmod ECT binary: ${e}`)
+                }
                 execFile(ectBin, args, (err) => {
                   if (err) {
                     reject(err)
