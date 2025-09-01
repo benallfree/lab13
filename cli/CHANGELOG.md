@@ -1,5 +1,12 @@
 # js13k
 
+## 0.0.8
+
+### Patch Changes
+
+- 7cfd03a: Improve ECT build during file watching
+- a63a421: Add --ect flag
+
 ## 0.0.7
 
 ### Patch Changes
