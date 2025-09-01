@@ -12,7 +12,7 @@ import {
   useMyId,
   useOnline,
   useState,
-} from './online'
+} from 'lab13-sdk'
 
 type PlayerState = {
   x: number
