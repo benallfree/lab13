@@ -4,10 +4,14 @@ on:
   push:
     paths:
       - 'cli/**'
+      - 'sdk/**'
+      - 'games/mewsterpiece/**'
       - '.github/workflows/test-windows.yml'
   pull_request:
     paths:
       - 'cli/**'
+      - 'sdk/**'
+      - 'games/mewsterpiece/**'
       - '.github/workflows/test-windows.yml'
 
 jobs:
