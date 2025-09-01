@@ -83,7 +83,7 @@ export function archivePlugin(options: ArchivePluginOptions = {}): Plugin {
         sevenZip.FS.mkdir(tempDir)
 
         for (const file of filesToArchive) {
-          const destItemPath = path.join(tempDir, path.relative(outDir, file).replace(/\\/g, '/'))
+          const destItemPath = path.join(tempDir, path.relative(outDir, file)).replace(/\\/g, '/')
           dbg(`Copying file ${file} to ${destItemPath}`)
           const content = fs.readFileSync(file)
           const stream = sevenZip.FS.open(destItemPath, 'w+')
