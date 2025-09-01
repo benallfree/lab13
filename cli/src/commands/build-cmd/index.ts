@@ -7,6 +7,7 @@ import { inlineCssPlugin } from './plugins/inline-css'
 import { inlineJsPlugin } from './plugins/inline-js'
 import { roadrollerPlugin } from './plugins/roadroller'
 import { terserPlugin } from './plugins/terser'
+import { ensureLab13BuildDir } from './utils'
 
 export type BuildOptions = {
   watch?: boolean
@@ -49,6 +50,10 @@ export async function runBuild(options: BuildOptions): Promise<void> {
   const excludePatterns = Array.isArray(exclude) ? exclude : exclude ? [exclude] : []
 
   const cwd = process.cwd()
+
+  // Create .lab13-build directory at the start
+  ensureLab13BuildDir(cwd, debug)
+
   const packageJsonPath = path.join(cwd, 'package.json')
 
   // Read package.json to get name and version

@@ -6,6 +6,7 @@ import { execFile } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
 import type { Plugin } from 'vite'
+import { getLab13BuildDir } from '../utils'
 interface ArchivePluginOptions {
   gameName?: string
   packageVersion?: string
@@ -117,7 +118,13 @@ export function archivePlugin(options: ArchivePluginOptions = {}): Plugin {
           if (method.name === 'ect') {
             // Use ECT for compression
             try {
-              const args = ['-strip', '-zip', '-10009', zipName, ...allFiles]
+              // Use the shared .lab13-build directory
+              const ectWorkDir = getLab13BuildDir(cwd)
+
+              // Adjust file paths to be relative to the ECT work directory
+              const ectFilePaths = allFiles.map((file) => path.relative(ectWorkDir, file))
+
+              const args = ['-strip', '-zip', '-10009', zipName, ...ectFilePaths]
               dbg(`Calling ECT with args ${args.join(' ')}`)
 
               const ectBin = (() => {
@@ -137,6 +144,7 @@ export function archivePlugin(options: ArchivePluginOptions = {}): Plugin {
               if (ectBin == null) {
                 throw new Error('ECT binary not found for this platform. Skipping ECT compression.')
               }
+
               // Use ECT binary from ect-bin package
               await new Promise<void>((resolve, reject) => {
                 if (!fs.existsSync(ectBin)) {
@@ -147,11 +155,21 @@ export function archivePlugin(options: ArchivePluginOptions = {}): Plugin {
                 } catch (e) {
                   dbg(`Failed to chmod ECT binary: ${e}`)
                 }
-                execFile(ectBin, args, (err) => {
+
+                // Run ECT from the work directory
+                execFile(ectBin, args, { cwd: ectWorkDir }, (err) => {
                   if (err) {
                     reject(err)
                   } else {
                     dbg('ECT compression completed successfully')
+
+                    // Move the created zip file to the original location
+                    const ectZipPath = path.join(ectWorkDir, zipName)
+                    if (fs.existsSync(ectZipPath)) {
+                      fs.renameSync(ectZipPath, zipPath)
+                      dbg(`Moved ECT zip from ${ectZipPath} to ${zipPath}`)
+                    }
+
                     resolve()
                   }
                 })

@@ -10,6 +10,7 @@ const devPlugin = (options: BuildOptions): Plugin => {
     name: 'js13k-dev',
     async watchChange(id, change) {
       if (id.endsWith(`.zip`)) return
+      if (id.includes(`/.lab13-build/`)) return
       if (isBuilding) return
       isBuilding = true
       dbg(`${id}`, change)
