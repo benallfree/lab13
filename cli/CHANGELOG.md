@@ -1,5 +1,13 @@
 # js13k
 
+## 0.0.7
+
+### Patch Changes
+
+- 3b7d8eb: Make sure ECT is executable
+- 913d080: Move HTML minification after CSS and JS inlining
+- 1dcc8cb: Terser config simplification
+
 ## 0.0.6
 
 ### Patch Changes
