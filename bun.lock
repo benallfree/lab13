@@ -47,6 +47,7 @@
     "games/cars": {
       "name": "lab13-cars",
       "devDependencies": {
+        "lab13-sdk": "workspace:^0.0.1",
         "partysocket": "^1.1.5",
         "type-fest": "^4.41.0",
       },
@@ -63,6 +64,7 @@
       "name": "lab13-flight",
       "devDependencies": {
         "@types/three": "^0.179.0",
+        "lab13-sdk": "workspace:^0.0.1",
         "partysocket": "^1.1.5",
         "three": "^0.179.1",
       },
