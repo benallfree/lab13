@@ -1,3 +1,5 @@
+// @ts-ignore
+import * as THREE from 'https://esm.sh/three'
 import {
   createMyStateCopier,
   createPositionNormalizer,
@@ -15,6 +17,7 @@ import {
   useState,
 } from 'lab13-sdk'
 import type * as THREEType from 'three'
+window.THREE = THREE
 
 declare global {
   var THREE: typeof THREEType
@@ -342,7 +345,7 @@ function updateAircrafts() {
       scene.add(aircrafts[playerId])
     }
 
-    const aircraft = aircrafts[playerId]
+    const aircraft = aircrafts[playerId]!
     aircraft.position.set(playerState.x || 0, playerState.y || 0, playerState.z || 0)
     aircraft.rotation.set(playerState.rx || 0, playerState.ry || 0, playerState.rz || 0)
     aircraft.userData.speed = playerState.s || 0
