@@ -2,7 +2,7 @@
 
 > **StateOptions**\<`TStateShape`\> = `object`
 
-Defined in: [state/index.ts:46](https://github.com/benallfree/lab13/blob/9ac0af7da9640b4b5437ad34793eec1f82ae6b92/sdk/src/online/state/index.ts#L46)
+Defined in: [state/index.ts:46](https://github.com/benallfree/lab13/blob/bfb1abf3755bb0fffb55fa5a9e7413f31801f1d6/sdk/src/online/state/index.ts#L46)
 
 ## Type Parameters
 
@@ -16,7 +16,7 @@ Defined in: [state/index.ts:46](https://github.com/benallfree/lab13/blob/9ac0af7
 
 > `optional` **deltaThrottleMs**: `number`
 
-Defined in: [state/index.ts:55](https://github.com/benallfree/lab13/blob/9ac0af7da9640b4b5437ad34793eec1f82ae6b92/sdk/src/online/state/index.ts#L55)
+Defined in: [state/index.ts:55](https://github.com/benallfree/lab13/blob/bfb1abf3755bb0fffb55fa5a9e7413f31801f1d6/sdk/src/online/state/index.ts#L55)
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: [state/index.ts:55](https://github.com/benallfree/lab13/blob/9ac0af7
 
 > `optional` **onBeforeSendDelta**: (`delta`) => [`StateDelta`](StateDelta.md)\<`TStateShape`\>
 
-Defined in: [state/index.ts:52](https://github.com/benallfree/lab13/blob/9ac0af7da9640b4b5437ad34793eec1f82ae6b92/sdk/src/online/state/index.ts#L52)
+Defined in: [state/index.ts:52](https://github.com/benallfree/lab13/blob/bfb1abf3755bb0fffb55fa5a9e7413f31801f1d6/sdk/src/online/state/index.ts#L52)
 
 #### Parameters
 
@@ -42,7 +42,7 @@ Defined in: [state/index.ts:52](https://github.com/benallfree/lab13/blob/9ac0af7
 
 > `optional` **onBeforeSendState**: (`state`) => [`PartialDeep`](PartialDeep.md)\<`TStateShape`\>
 
-Defined in: [state/index.ts:47](https://github.com/benallfree/lab13/blob/9ac0af7da9640b4b5437ad34793eec1f82ae6b92/sdk/src/online/state/index.ts#L47)
+Defined in: [state/index.ts:47](https://github.com/benallfree/lab13/blob/bfb1abf3755bb0fffb55fa5a9e7413f31801f1d6/sdk/src/online/state/index.ts#L47)
 
 #### Parameters
 
@@ -60,7 +60,7 @@ Defined in: [state/index.ts:47](https://github.com/benallfree/lab13/blob/9ac0af7
 
 > `optional` **onDeltaReceived**: (`delta`) => [`StateDelta`](StateDelta.md)\<`TStateShape`\>
 
-Defined in: [state/index.ts:53](https://github.com/benallfree/lab13/blob/9ac0af7da9640b4b5437ad34793eec1f82ae6b92/sdk/src/online/state/index.ts#L53)
+Defined in: [state/index.ts:53](https://github.com/benallfree/lab13/blob/bfb1abf3755bb0fffb55fa5a9e7413f31801f1d6/sdk/src/online/state/index.ts#L53)
 
 #### Parameters
 
@@ -78,7 +78,7 @@ Defined in: [state/index.ts:53](https://github.com/benallfree/lab13/blob/9ac0af7
 
 > `optional` **onStateReceived**: (`currentState`, `newState`) => [`PartialDeep`](PartialDeep.md)\<`TStateShape`\>
 
-Defined in: [state/index.ts:48](https://github.com/benallfree/lab13/blob/9ac0af7da9640b4b5437ad34793eec1f82ae6b92/sdk/src/online/state/index.ts#L48)
+Defined in: [state/index.ts:48](https://github.com/benallfree/lab13/blob/bfb1abf3755bb0fffb55fa5a9e7413f31801f1d6/sdk/src/online/state/index.ts#L48)
 
 #### Parameters
 
@@ -100,4 +100,4 @@ Defined in: [state/index.ts:48](https://github.com/benallfree/lab13/blob/9ac0af7
 
 > `optional` **socket**: `PartySocket`
 
-Defined in: [state/index.ts:54](https://github.com/benallfree/lab13/blob/9ac0af7da9640b4b5437ad34793eec1f82ae6b92/sdk/src/online/state/index.ts#L54)
+Defined in: [state/index.ts:54](https://github.com/benallfree/lab13/blob/bfb1abf3755bb0fffb55fa5a9e7413f31801f1d6/sdk/src/online/state/index.ts#L54)
