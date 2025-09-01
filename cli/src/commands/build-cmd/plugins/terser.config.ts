@@ -356,3 +356,5 @@ export const defaultTerserOptions: Terser.MinifyOptions = {
     wrap_func_args: false,
   },
 }
+
+delete defaultTerserOptions.format // This seems to break some builds
