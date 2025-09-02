@@ -82,6 +82,10 @@ export async function runBuild(options: BuildOptions): Promise<void> {
       emptyOutDir: true,
       watch: watch ? {} : undefined,
       assetsDir: '',
+      minify: true,
+      target: 'es2022',
+      modulePreload: { polyfill: false },
+      assetsInlineLimit: 800,
       rollupOptions: {
         output: {
           // inlineDynamicImports: true,

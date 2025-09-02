@@ -17,10 +17,6 @@ export function terserPlugin(options: TerserPluginOptions = {}): Plugin {
         build: {
           ...config.build,
           minify: 'terser',
-          target: 'es2022',
-          modulePreload: { polyfill: false },
-          assetsInlineLimit: 800,
-
           terserOptions: {
             compress: {
               ecma: 2022 as ECMA,
