@@ -13,6 +13,9 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "default": "./dist/index.js"
+    },
+    "./W": {
+      "types": "./dist/w.d.ts"
     }
   },
   "files": [
@@ -45,7 +48,7 @@
   "homepage": "https://github.com/benallfree/lab13#readme",
   "scripts": {
     "clean": "rimraf dist",
-    "build": "tsc",
+    "build": "tsdown",
     "dev": "chokidar 'src/**/*.ts' --initial -c 'bun run build' --ignore 'src/**/*.test.ts' --ignore 'src/**/__tests__/**'",
     "test": "bun test"
   },
@@ -56,6 +59,7 @@
     "chokidar": "^4.0.3",
     "chokidar-cli": "^3.0.0",
     "rimraf": "^6.0.1",
+    "tsdown": "^0.14.2",
     "typescript": "^5.0.0"
   },
   "dependencies": {
