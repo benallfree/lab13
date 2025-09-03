@@ -1,3 +1,5 @@
+/// <reference types="lab13-sdk/W" />
+
 import {
   StateBase,
   useDemo,
