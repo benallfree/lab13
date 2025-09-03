@@ -33,6 +33,11 @@ export async function runDev(options: BuildOptions): Promise<void> {
   const { debug = false } = options || {}
   const server = await createViteServer({
     clearScreen: false,
+    mode: 'development',
+    build: {
+      sourcemap: true,
+      minify: false,
+    },
     plugins: [devPlugin(options)],
   })
   await server.listen()
