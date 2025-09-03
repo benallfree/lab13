@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES6",
-    "module": "commonjs",
+    "module": "esnext",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -10,6 +10,7 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": false,
     "resolveJsonModule": true,
+    "moduleResolution": "bundler",
     "forceConsistentCasingInFileNames": true
   },
   "include": ["src/**/*.ts"]

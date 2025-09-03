@@ -2,7 +2,9 @@
   "name": "lab13-gotron",
   "private": true,
   "devDependencies": {
-    "lab13-sdk": "workspace:^0.0.2",
+    "lab13-sdk": "workspace:^0.0.2"
+  },
+  "dependencies": {
     "partysocket": "^1.1.5"
   }
 }

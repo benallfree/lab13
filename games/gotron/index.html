@@ -4,18 +4,11 @@
   <head>
     <meta charset="UTF-8" />
     <title>Gotron</title>
-    <script type="module">
-      import { PartySocket } from 'https://js13kgames.com/2025/online/partysocket.js'
-      window.PartySocket = PartySocket
-    </script>
     <link rel="stylesheet" href="./src/style.css" />
-    <script></script>
+    <script src="./w.min.full.js"></script>
   </head>
   <body>
-    <div id="ui">
-      <div>WASD: Move | Click to lock mouse | Move mouse to look around | Click: Shoot | Space: Jump</div>
-      <div id="stats">Position: (0, 0) | Health: 100</div>
-    </div>
+    <canvas id="c"></canvas>
     <script type="module" src="./src/index.ts"></script>
   </body>
 </html>

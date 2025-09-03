@@ -8,6 +8,8 @@ body {
 canvas {
   display: block;
   cursor: crosshair;
+  width: 100vw;
+  height: 100vh;
 }
 #ui {
   position: absolute;
