@@ -7,7 +7,7 @@ export type UseMyIdOptions = {
 
 export const useMyId = (options?: Partial<UseMyIdOptions>) => {
   const { socket = window.socket } = options || {}
-  console.log('Socket ID:', socket.id)
+  // console.log('Socket ID:', socket.id)
   let myId: string = socket.id
   onClientIdUpdated((clientId) => {
     // console.log('My ID updated:', clientId)
