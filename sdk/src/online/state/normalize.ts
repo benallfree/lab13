@@ -7,6 +7,12 @@ export const normalizeRad = (n: number) => {
   if (n < 0) n += twoPi
   return n
 }
+
+export const normalizeDeg = (n: number) => {
+  n = n % 360
+  if (n < 0) n += 360
+  return n
+}
 type NormalizeFn = (obj: any, key: string, value: any, parentKeys: string[]) => any
 
 export const createKeyNormalizer = (normalizeFn: NormalizeFn) => {
@@ -32,12 +38,12 @@ export const createPositionNormalizer = <TState extends Record<string, any>>(pre
 export const createVelocityNormalizer = <TState extends Record<string, any>>(precision = 2) =>
   createKeyNormalizer((obj, key, value) => (['vx', 'vy', 'vz'].includes(key) ? round(value, precision) : value))
 
-export const createRotationNormalizer = <TState extends Record<string, any>>(precision = 2) =>
+export const createRotationNormalizer = <TState extends Record<string, any>>(precision = 2, useDegrees = false) =>
   createKeyNormalizer((obj, key, value) => {
     if (['rx', 'ry', 'rz'].includes(key)) {
       const round = (n: number) =>
         precision === 0 ? Math.round(n) : Math.round(n * Math.pow(10, precision)) / Math.pow(10, precision)
-      return round(normalizeRad(value))
+      return round(useDegrees ? normalizeDeg(value) : normalizeRad(value))
     }
     return value
   })
