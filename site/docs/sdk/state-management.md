@@ -5,7 +5,19 @@ sidebar_position: 3
 
 # State Management with Lab13 SDK
 
-The Lab13 SDK provides a powerful state synchronization system designed for multiplayer games. This guide covers the core concepts and patterns for managing shared game state.
+The Lab13 SDK provides powerful state synchronization systems designed for multiplayer games. This guide covers the core concepts and patterns for managing shared game state.
+
+## Recommended Approach: useEasyState
+
+**`useEasyState` is the recommended and preferred method for state management** in Lab13 games. It provides automatic optimizations and a simplified API that handles common multiplayer game patterns out of the box.
+
+### Why useEasyState?
+
+- **Automatic normalization** of position and rotation data
+- **Built-in precision control** for network optimization
+- **Automatic player lifecycle management** with callbacks
+- **Simplified API** that reduces boilerplate code
+- **Optimized for JS13K** with minimal code footprint
 
 ## Core Concepts
 
@@ -14,16 +26,19 @@ The Lab13 SDK provides a powerful state synchronization system designed for mult
 The SDK uses a specific state structure optimized for multiplayer games:
 
 ```typescript
-type GameState = {
-  '@players': {
-    [playerId: string]: PlayerState
-  }
-  // Additional game entities can be added
-  '@mice'?: {
-    [entityId: string]: MouseState
-  }
+import { StateBase } from 'lab13-sdk'
+
+type PlayerState = {
+  x: number
+  y: number
+  score: number
+  name: string
 }
+
+type GameState = StateBase<PlayerState>
 ```
+
+The `StateBase` type automatically includes the `@players` collection, so you only need to define your player state structure.
 
 ### Key Features
 
@@ -33,12 +48,12 @@ type GameState = {
 - **Type safety** with TypeScript
 - **Normalization** for network optimization
 
-## Basic State Management
+## Getting Started with useEasyState
 
-### Setting Up State
+### Basic Setup
 
 ```typescript
-import { useState } from 'lab13-sdk'
+import { useEasyState, StateBase } from 'lab13-sdk'
 
 type PlayerState = {
   x: number
@@ -47,13 +62,39 @@ type PlayerState = {
   name: string
 }
 
-type GameState = {
-  '@players': {
-    [playerId: string]: PlayerState
-  }
-}
+type GameState = StateBase<PlayerState>
 
-const { getState, updateMyState, getPlayerStates } = useState<GameState>()
+const { getState, updateMyState, getPlayerStates, getMyState } = useEasyState<GameState>({
+  positionPrecision: 2, // Round positions to 2 decimal places
+  rotationPrecision: 2, // Round rotations to 2 decimal places
+  rotationUnits: 'd', // Use degrees (or 'r' for radians)
+  onPlayerStateAvailable: (id, state) => {
+    // Called when a new player joins
+    console.log('New player joined:', id, state)
+    spawnPlayer(id, state)
+  },
+})
+```
+
+### Configuration Options
+
+```typescript
+const { updateMyState, getMyState, getPlayerStates } = useEasyState<GameState>({
+  // Position and rotation precision for network optimization
+  positionPrecision: 0, // Round to integers
+  rotationPrecision: 2, // Round to 2 decimal places
+  rotationUnits: 'd', // 'd' for degrees, 'r' for radians
+
+  // Player lifecycle callback
+  onPlayerStateAvailable: (id, state) => {
+    // Handle new player joining
+    spawnPlayer(id, state)
+  },
+
+  // Advanced options (inherited from useState)
+  deltaThrottleMs: 50, // Send updates every 50ms maximum
+  debug: false, // Enable debug logging
+})
 ```
 
 ### Updating Your State
@@ -85,7 +126,7 @@ updateMyState({
 const players = getPlayerStates()
 
 // Get your state
-const myState = getPlayerStates()[getMyId()]
+const myState = getMyState()
 
 // Get a specific player's state
 const otherPlayer = getPlayerStates()['player-123']
@@ -96,40 +137,28 @@ const fullState = getState()
 
 ## Advanced State Management
 
-### State Normalization
-
-Normalize data to reduce network traffic and improve performance:
-
-```typescript
-import { createPositionNormalizer, createRotationNormalizer } from 'lab13-sdk'
-
-const normalizePosition = createPositionNormalizer(0) // Round to integers
-const normalizeRotation = createRotationNormalizer(2) // Round to 2 decimal places
-
-const { getState, updateMyState } = useState<GameState>({
-  onBeforeSendDelta: (delta) => {
-    // Normalize position and rotation data before sending
-    return normalizePosition(normalizeRotation(delta))
-  },
-})
-```
-
 ### Custom State Processing
 
 ```typescript
-const { getState, updateMyState } = useState<GameState>({
+const { getState, updateMyState } = useEasyState<GameState>({
+  positionPrecision: 2,
+  rotationPrecision: 2,
+  rotationUnits: 'd',
+
+  // Custom processing before sending (inherited from useState)
   onBeforeSendDelta: (delta) => {
-    // Custom processing before sending
     console.log('Sending delta:', delta)
     return delta
   },
+
+  // Custom processing when receiving (inherited from useState)
   onDeltaReceived: (delta) => {
-    // Custom processing when receiving
     console.log('Received delta:', delta)
     return delta
   },
+
+  // Custom processing when receiving full state (inherited from useState)
   onStateReceived: (currentState, newState) => {
-    // Custom processing when receiving full state
     console.log('Received full state:', newState)
     return newState
   },
@@ -141,7 +170,10 @@ const { getState, updateMyState } = useState<GameState>({
 Control how often state updates are sent:
 
 ```typescript
-const { getState, updateMyState } = useState<GameState>({
+const { getState, updateMyState } = useEasyState<GameState>({
+  positionPrecision: 2,
+  rotationPrecision: 2,
+  rotationUnits: 'd',
   deltaThrottleMs: 50, // Send updates every 50ms maximum
 })
 ```
@@ -172,10 +204,7 @@ type MouseState = {
 // Define entity collection keys
 const MICE_ENTITY_COLLECTION_KEY = `${ENTITY_COLLECTION_PREFIX}mice`
 
-type GameState = {
-  '@players': {
-    [playerId: string]: PlayerState
-  }
+type GameState = StateBase<PlayerState> & {
   [MICE_ENTITY_COLLECTION_KEY]: {
     [entityId: string]: MouseState
   }
@@ -222,8 +251,7 @@ function removeMouse(mouseId: string) {
 ```typescript
 // Handle player input and update state
 function updatePlayerMovement() {
-  const myId = getMyId()
-  const myState = getPlayerStates()[myId]
+  const myState = getMyState()
 
   if (!myState) return
 
@@ -249,7 +277,7 @@ function updatePlayerMovement() {
 ```typescript
 // Update player score
 function addScore(points: number) {
-  const myState = getPlayerStates()[getMyId()]
+  const myState = getMyState()
   const currentScore = myState?.score || 0
 
   updateMyState({
@@ -310,15 +338,15 @@ updateMyState({
 })
 ```
 
-### 2. **Normalize Data**
+### 2. **Configure Precision Appropriately**
 
-Use normalizers to reduce network traffic:
+Use precision settings to reduce network traffic:
 
 ```typescript
-const normalizePosition = createPositionNormalizer(0)
-
-const { updateMyState } = useState({
-  onBeforeSendDelta: (delta) => normalizePosition(delta),
+const { updateMyState } = useEasyState<GameState>({
+  positionPrecision: 0, // Round positions to integers for simple games
+  rotationPrecision: 2, // Keep rotation precision for smooth movement
+  rotationUnits: 'd',
 })
 ```
 
@@ -327,8 +355,7 @@ const { updateMyState } = useState({
 Always check for undefined state:
 
 ```typescript
-const players = getPlayerStates()
-const myState = players[getMyId()]
+const myState = getMyState()
 
 if (myState) {
   // Use myState safely
@@ -348,6 +375,19 @@ type PlayerState = {
   _lastInputTime: number // Private, not synced
   _localAnimationFrame: number // Private, not synced
 }
+```
+
+### 5. **Throttle Frequent Updates**
+
+For high-frequency updates like movement:
+
+```typescript
+const { updateMyState } = useEasyState<GameState>({
+  positionPrecision: 2,
+  rotationPrecision: 2,
+  rotationUnits: 'd',
+  deltaThrottleMs: 50, // Limit to 20 updates per second
+})
 ```
 
 ## Private Fields
@@ -449,10 +489,7 @@ import { ENTITY_COLLECTION_PREFIX } from 'lab13-sdk'
 const MICE_ENTITY_COLLECTION_KEY = `${ENTITY_COLLECTION_PREFIX}mice`
 const PROJECTILES_ENTITY_COLLECTION_KEY = `${ENTITY_COLLECTION_PREFIX}projectiles`
 
-type GameState = {
-  '@players': {
-    [playerId: string]: PlayerState
-  }
+type GameState = StateBase<PlayerState> & {
   [MICE_ENTITY_COLLECTION_KEY]: {
     [entityId: string]: MouseState
   }
@@ -596,30 +633,16 @@ function removeMouse(mouseId: string) {
    }
    ```
 
-### 5. **Throttle Frequent Updates**
-
-For high-frequency updates like movement:
-
-```typescript
-const { updateMyState } = useState({
-  deltaThrottleMs: 50, // Limit to 20 updates per second
-})
-```
-
 ## Debugging State
 
 ### Enable Debug Logging
 
 ```typescript
-const { updateMyState } = useState({
-  onBeforeSendDelta: (delta) => {
-    console.log('Sending delta:', delta)
-    return delta
-  },
-  onDeltaReceived: (delta) => {
-    console.log('Received delta:', delta)
-    return delta
-  },
+const { updateMyState } = useEasyState<GameState>({
+  positionPrecision: 2,
+  rotationPrecision: 2,
+  rotationUnits: 'd',
+  debug: true, // Enable debug logging
 })
 ```
 
@@ -635,19 +658,19 @@ setInterval(() => {
 
 ## Performance Tips
 
-1. **Use throttling** for high-frequency updates
-2. **Normalize data** to reduce payload size
+1. **Use appropriate precision settings** for your game type
+2. **Use throttling** for high-frequency updates
 3. **Only send changed data** in deltas
 4. **Use private keys** for local-only data
 5. **Avoid deep nesting** in state structure
 6. **Batch updates** when possible
 
-## Example: Complete Game State
+## Example: Complete Game with useEasyState
 
-Here's a complete example showing a multiplayer game with multiple entity types:
+Here's a complete example showing a multiplayer game using `useEasyState`:
 
 ```typescript
-import { useState, createPositionNormalizer, generateUUID, ENTITY_COLLECTION_PREFIX } from 'lab13-sdk'
+import { useEasyState, StateBase, generateUUID, ENTITY_COLLECTION_PREFIX } from 'lab13-sdk'
 
 type PlayerState = {
   x: number
@@ -666,20 +689,21 @@ type MouseState = {
 
 const MICE_ENTITY_COLLECTION_KEY = `${ENTITY_COLLECTION_PREFIX}mice`
 
-type GameState = {
-  '@players': {
-    [playerId: string]: PlayerState
-  }
+type GameState = StateBase<PlayerState> & {
   [MICE_ENTITY_COLLECTION_KEY]: {
     [entityId: string]: MouseState
   }
 }
 
-const normalizePosition = createPositionNormalizer<GameState>(0)
-
-const { getState, updateMyState, updateState, getPlayerStates } = useState<GameState>({
-  onBeforeSendDelta: (delta) => normalizePosition(delta),
+const { getState, updateMyState, updateState, getPlayerStates, getMyState } = useEasyState<GameState>({
+  positionPrecision: 2,
+  rotationPrecision: 2,
+  rotationUnits: 'd',
   deltaThrottleMs: 50,
+  onPlayerStateAvailable: (id, state) => {
+    console.log('New player joined:', id, state)
+    spawnPlayer(id, state)
+  },
 })
 
 // Game functions
@@ -713,10 +737,36 @@ function updatePlayerPosition(x: number, y: number) {
 }
 
 function addScore(points: number) {
-  const myState = getPlayerStates()[getMyId()]
+  const myState = getMyState()
   const currentScore = myState?.score || 0
   updateMyState({ score: currentScore + points })
 }
+```
+
+## Advanced: useState (Legacy)
+
+For advanced use cases or when you need complete control over the state management process, you can use the lower-level `useState` function. However, `useEasyState` is recommended for most games.
+
+### useState API
+
+```typescript
+import { useState } from 'lab13-sdk'
+
+const { getState, updateMyState, getPlayerStates } = useState<GameState>({
+  onBeforeSendDelta: (delta) => {
+    // Custom processing before sending
+    return delta
+  },
+  onDeltaReceived: (delta) => {
+    // Custom processing when receiving
+    return delta
+  },
+  onStateReceived: (currentState, newState) => {
+    // Custom processing when receiving full state
+    return newState
+  },
+  deltaThrottleMs: 50,
+})
 ```
 
 This pattern provides a solid foundation for building complex multiplayer games while maintaining the size constraints required for JS13K.
