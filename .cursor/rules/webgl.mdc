@@ -1,0 +1,6 @@
+---
+description: For any 3D related stuff using the W library
+alwaysApply: false
+---
+
+The full W library source is in games/gotron/src/w.js
