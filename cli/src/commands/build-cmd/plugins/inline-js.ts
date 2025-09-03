@@ -45,7 +45,7 @@ export function inlineJsPlugin(options: InlineJsPluginOptions = {}): Plugin {
             if (jsContent) {
               dbg(`Inlining JS: ${bundleKey}`)
               inlinedAssets.add(bundleKey)
-              return `<script>${jsContent}</script>`
+              return `<script type="module">${jsContent}</script>`
             }
           }
 
