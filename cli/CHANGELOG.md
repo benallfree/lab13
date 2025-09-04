@@ -1,5 +1,14 @@
 # js13k
 
+## 0.0.11
+
+### Patch Changes
+
+- 9d5034d: Add yolo mode for last mile (1kib)
+- ed1f7cc: Always show at least one block in progress bar
+- 28687a5: Expand progress bar size to 20 blocks
+- d5443c0: Fix: CSS inlining tag detection
+
 ## 0.0.10
 
 ### Patch Changes
