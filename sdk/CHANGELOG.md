@@ -1,5 +1,15 @@
 # lab13-sdk
 
+## 0.0.3
+
+### Patch Changes
+
+- 8b5f1c4: useEasyState
+- b6c6346: W helpers
+- cb65983: useOnline now injects PartySocket lib
+- c2f5768: Normalize both degrees and rads in rotation normalizer
+- 0237f0b: useDemo
+
 ## 0.0.2
 
 ### Patch Changes

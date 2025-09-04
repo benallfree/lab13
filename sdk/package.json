@@ -1,6 +1,6 @@
 {
   "name": "lab13-sdk",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "JS13K tools and game infrastructure SDK.",
   "type": "module",
   "main": "dist/index.js",

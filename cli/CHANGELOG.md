@@ -1,5 +1,15 @@
 # js13k
 
+## 0.0.10
+
+### Patch Changes
+
+- 20990d1: Add ESM support to RoadRoller
+- 940d645: Disable Terser prop mangling by default
+- 635b88a: 'dev' command now runs vite in development mode with source maps
+- d527f40: Inline scripts are now type module
+- e1870e8: Default to minify even when --no-terser is specified
+
 ## 0.0.9
 
 ### Patch Changes

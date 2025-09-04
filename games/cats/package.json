@@ -3,7 +3,7 @@
   "private": true,
   "devDependencies": {
     "@types/three": "^0.179.0",
-    "lab13-sdk": "workspace:^0.0.2",
+    "lab13-sdk": "workspace:^0.0.3",
     "partysocket": "^1.1.5"
   }
 }
