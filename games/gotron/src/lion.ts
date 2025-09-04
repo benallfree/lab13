@@ -1,7 +1,21 @@
+import { PartialDeep } from 'lab13-sdk'
 import { PlayerState } from '.'
+const lions = new Set<string>()
 
-export const lion = (id: string, props: PlayerState) => {
+export const removeLion = (id: string) => {
+  if (!lions.has(id)) return
+  W.delete(id)
+  lions.delete(id)
+}
+
+export const gcLions = (playerIds: string[]) => {
+  for (const id of lions) if (!playerIds.includes(id)) removeLion(id)
+}
+
+export const ensureLionModel = (id: string, props: PartialDeep<PlayerState>) => {
+  if (lions.has(id)) return
   console.log(`lion`, id, props)
+  lions.add(id)
   W.group({
     n: id,
     w: 1,
@@ -56,30 +70,53 @@ export const lion = (id: string, props: PlayerState) => {
     w: 0.1,
     h: 0.1,
     d: 0.1,
-    b: '#000',
+    b: props.b == '000' ? 'fff' : '000',
   })
   // Eyes
   W.cube({
     g: `${id}-container`,
     n: `${id}-eye-l`,
-    y: 0.9,
-    x: -0.9,
+    y: 1,
+    x: -1.2,
     z: 0.2,
     w: 0.1,
     h: 0.1,
     d: 0.1,
-    b: '#000',
+    b: 'fff',
   })
   W.cube({
     g: `${id}-container`,
     n: `${id}-eye-r`,
-    y: 0.9,
-    x: -0.9,
+    y: 1,
+    x: -1.2,
     z: -0.2,
     w: 0.1,
     h: 0.1,
     d: 0.1,
-    b: '#000',
+    b: 'fff',
+  })
+  // Irises
+  W.cube({
+    g: `${id}-container`,
+    n: `${id}-iris-l`,
+    y: 1,
+    x: -1.25,
+    z: 0.2,
+    w: 0.05,
+    h: 0.05,
+    d: 0.02,
+    b: props.b,
+  })
+  W.cube({
+    g: `${id}-container`,
+    n: `${id}-iris-r`,
+    y: 1,
+    x: -1.25,
+    z: -0.2,
+    w: 0.05,
+    h: 0.05,
+    d: 0.02,
+    b: props.b,
   })
   // Ears
   W.cube({
@@ -160,4 +197,5 @@ export const lion = (id: string, props: PlayerState) => {
     d: 0.2,
     b: props.b,
   })
+  W.move({ n: id, ...props })
 }

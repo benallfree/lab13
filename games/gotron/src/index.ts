@@ -10,15 +10,17 @@ import {
   usePointerLock,
   useResizer,
   useSpeedThrottledRaf,
+  useW,
 } from 'lab13-sdk'
 import { createWorld } from './createWorld'
-import { lion } from './lion'
+import { ensureLionModel } from './lion'
 
 export type PlayerState = { x: number; z: number; ry: number; b: string; v: boolean }
 
 export type GameState = StateBase<PlayerState>
 
 function main() {
+  useW()
   useOnline(`mewsterpiece/gotron`)
   const { getMyId } = useMyId()
   const { updateMyState, getMyState, getPlayerStates, getPlayerState } = useEasyState<GameState>({
@@ -26,13 +28,17 @@ function main() {
     rotationPrecision: 2,
     rotationUnits: 'd',
     onPlayerStateAvailable: (id, state) => spawnPlayer(id, state),
+    onAfterStateUpdated: (state) => {
+      const playerIds = Object.keys(getPlayerStates())
+      // gcLions(playerIds)
+    },
     debug: true,
   })
   useResizer()
 
   const ME = getMyId()
 
-  const PLAYER_COLORS = ['#f00', '#00f', '#ff0', '#0f0', '#000'] // red, blue, yellow, green,  black
+  const PLAYER_COLORS = ['f00', '00f', 'ff0', '0f0', '000'] // red, blue, yellow, green,  black
 
   const spawnMe = () => {
     const r = 10 * Math.sqrt(Math.random()),
@@ -45,7 +51,7 @@ function main() {
       b: PLAYER_COLORS[Math.floor(Math.random() * PLAYER_COLORS.length)],
       v: false,
     }
-    lion(ME, props)
+    ensureLionModel(ME, props)
 
     W.camera({ g: ME, x: 0, y: 1.5, z: 2.5 })
     updateMyState(props)
@@ -53,7 +59,7 @@ function main() {
 
   const spawnPlayer = (id: string, state: PlayerState) => {
     console.log('spawnPlayer', id)
-    lion(id, state)
+    ensureLionModel(id, state)
   }
 
   createWorld()
@@ -81,8 +87,6 @@ function main() {
     W.move({ n: 'refCube', ...refCubeProps, b: ((r << 16) | (g << 8) | b).toString(16).padStart(6, '0') })
   }
 
-  // W.camera({ x: 0, y: 0.5, z: 2.5 })
-
   // Movement speed in units per second
   const MOVE_SPEED = 20
 
@@ -99,11 +103,12 @@ function main() {
 
   const updatePlayers = (speed: number) => {
     // Handle all players including local player
-    const allPlayers = { ...getPlayerStates(), [ME]: me() }
+    const allPlayers = { ...getPlayerStates() }
 
     for (const playerId in allPlayers) {
       const player = allPlayers[playerId]
       if (!player) continue
+      ensureLionModel(playerId, player)
 
       // Move player position
       W.move({ n: playerId, ...player, a: 50 })
@@ -128,7 +133,6 @@ function main() {
         W.move({ n: `${playerId}-leg-fr`, y: 0.3 })
         W.move({ n: `${playerId}-leg-bl`, y: 0.3 })
         W.move({ n: `${playerId}-leg-br`, y: 0.3 })
-
         // Reset body to ground level
         W.move({ n: `${playerId}-container`, y: 0 })
       }
