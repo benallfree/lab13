@@ -1,5 +1,11 @@
 # js13k
 
+## 0.0.12
+
+### Patch Changes
+
+- 95cf088: Fix progress bar block count math
+
 ## 0.0.11
 
 ### Patch Changes
