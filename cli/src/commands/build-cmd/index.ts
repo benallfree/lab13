@@ -17,6 +17,7 @@ export type BuildOptions = {
   roadroller?: boolean
   htmlMinify?: boolean
   terser?: boolean
+  terserMangleProps?: boolean
   experimental?: boolean
   exclude?: string[]
   dev?: boolean
@@ -33,6 +34,7 @@ export async function runBuild(options: BuildOptions): Promise<void> {
     roadroller,
     htmlMinify,
     terser,
+    terserMangleProps,
     experimental,
     exclude,
     dev,
@@ -87,6 +89,7 @@ export async function runBuild(options: BuildOptions): Promise<void> {
       modulePreload: { polyfill: false },
       assetsInlineLimit: 800,
       rollupOptions: {
+        external: ['three'],
         output: {
           // inlineDynamicImports: true,
           manualChunks: undefined,
@@ -96,7 +99,7 @@ export async function runBuild(options: BuildOptions): Promise<void> {
     },
 
     plugins: [
-      terser !== false ? terserPlugin({ debug }) : undefined,
+      terser !== false ? terserPlugin({ debug, mangleProps: terserMangleProps }) : undefined,
       inlineCss !== false ? inlineCssPlugin({ debug }) : undefined,
       effectiveInlineJs !== false ? inlineJsPlugin({ debug }) : undefined,
       htmlMinify !== false ? htmlMinifyPlugin({ debug }) : undefined,
