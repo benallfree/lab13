@@ -13,9 +13,9 @@ import {
   useW,
 } from 'lab13-sdk'
 import { createWorld } from './createWorld'
-import { ensureLionModel, gcLions } from './lion'
+import { ensureLionModel, gcLions, transformLionModel, walk } from './lion'
 
-export type PlayerState = { x: number; z: number; ry: number; b: string; v: boolean }
+export type PlayerState = { x: number; z: number; ry: number; b: string; v: boolean; _m: { m: 'c' | 'b' } }
 
 export type GameState = StateBase<PlayerState>
 
@@ -52,6 +52,7 @@ function main() {
       ry: (Math.atan2(Math.cos(a) * r, Math.sin(a) * r) * 180) / Math.PI,
       b: PLAYER_COLORS[Math.floor(Math.random() * PLAYER_COLORS.length)],
       v: false,
+      _m: { m: 'c' },
     }
     ensureLionModel(ME, props)
 
@@ -108,36 +109,20 @@ function main() {
     const allPlayers = { ...getPlayerStates() }
 
     for (const playerId in allPlayers) {
-      const player = allPlayers[playerId]
-      if (!player) continue
+      const player = allPlayers[playerId]!
       ensureLionModel(playerId, player)
+
+      // DEV mode toggle
+      if (import.meta.env.DEV) {
+        updateMyState({ _m: { m: isKeyPressed('.') ? 'b' : 'c' } })
+        transformLionModel(playerId, player)
+      }
 
       // Move player position
       W.move({ n: playerId, ...player, a: 50 })
 
       // Animate lion running when moving
-      if (player.v) {
-        const t = performance.now() * 0.01
-        const legOffset = Math.sin(t) * 0.2
-        const bounceOffset = Math.abs(Math.sin(t * 2)) * 0.1 // Gallop bounce
-
-        // Animate legs
-        W.move({ n: `${playerId}-leg-fl`, y: 0.3 + legOffset })
-        W.move({ n: `${playerId}-leg-br`, y: 0.3 + legOffset })
-        W.move({ n: `${playerId}-leg-fr`, y: 0.3 - legOffset })
-        W.move({ n: `${playerId}-leg-bl`, y: 0.3 - legOffset })
-
-        // Animate whole lion body bouncing
-        W.move({ n: `${playerId}-container`, y: bounceOffset })
-      } else {
-        // Reset legs to standing position
-        W.move({ n: `${playerId}-leg-fl`, y: 0.3 })
-        W.move({ n: `${playerId}-leg-fr`, y: 0.3 })
-        W.move({ n: `${playerId}-leg-bl`, y: 0.3 })
-        W.move({ n: `${playerId}-leg-br`, y: 0.3 })
-        // Reset body to ground level
-        W.move({ n: `${playerId}-container`, y: 0 })
-      }
+      walk(playerId, player.v ? performance.now() * 0.01 : 0)
     }
   }
 

@@ -16,220 +16,233 @@ export const gcLions = (playerIds: string[]) => {
   })
 }
 
+const LION_MODES = {
+  c: {},
+}
+
+const pick = <T extends Record<string, any>>(
+  obj: T,
+  keys = ['x', 'y', 'z', 'rx', 'ry', 'rz', 'w', 'h', 'd', 'b']
+): Partial<T> => {
+  return keys.reduce((acc, key) => {
+    if (key in obj) acc[key as keyof T] = obj[key as keyof T]
+    return acc
+  }, {} as Partial<T>)
+}
+
+const createModelTree = (node: Record<string, any>, rootKey: string, key?: string, parent?: string) => {
+  console.log('createModelTree', { rootKey, key, parent })
+  const g = parent ?? undefined
+  const n = [rootKey, key].filter(Boolean).join('-')
+  const ids: string[] = [n]
+  const finalProps = { g, n, ...pick(node) }
+  const type = node.cube ? 'cube' : 'group'
+  console.log('finalProps', type, JSON.stringify(finalProps, null, 2))
+  W.setState(finalProps, type)
+
+  for (const childKey in node) {
+    const child = node[childKey]!
+    if (typeof child !== 'object') continue
+    ids.push(...createModelTree(child, rootKey, childKey, n))
+  }
+  return ids
+}
+
 export const ensureLionModel = (id: string, props: PartialDeep<PlayerState>) => {
   if (lionModels.has(id)) return
   console.log(`lion`, id, props)
-  const ids: string[] = []
 
-  ids.push(id)
-  W.group({
-    n: id,
+  const cube = true
+  const model = {
     w: 1,
     h: 1,
     d: 1,
     y: 0.5,
-    ...props,
-  })
+    ...pick(props),
+    container: {
+      ry: -90,
+      body: {
+        cube,
+        y: 0.6,
+        w: 1.2,
+        h: 0.8,
+        d: 0.8,
+        b: props.b,
+      },
+      head: {
+        skull: {
+          cube,
+          y: 0.8,
+          x: -0.8,
+          w: 0.8,
+          h: 0.6,
+          d: 0.8,
+          b: props.b,
+        },
+        snout: {
+          cube,
+          y: 0.7,
+          x: -1.3,
+          w: 0.4,
+          h: 0.4,
+          d: 0.6,
+          b: props.b,
+        },
+        nose: {
+          cube,
+          y: 0.7,
+          x: -1.5,
+          w: 0.1,
+          h: 0.1,
+          d: 0.1,
+          b: props.b == '000' ? 'fff' : '000',
+        },
+        eyeL: {
+          eyeballL: {
+            cube,
+            y: 1,
+            x: -1.2,
+            z: 0.2,
+            w: 0.1,
+            h: 0.1,
+            d: 0.1,
+            b: 'fff',
+          },
+          irisL: {
+            cube,
+            y: 1,
+            x: -1.25,
+            z: -0.2,
+            w: 0.05,
+            h: 0.05,
+            d: 0.02,
+            b: props.b,
+          },
+        },
+        eyeR: {
+          eyeballR: {
+            cube,
+            y: 1,
+            x: -1.2,
+            z: -0.2,
+            w: 0.1,
+            h: 0.1,
+            d: 0.1,
+            b: 'fff',
+          },
+          irisR: {
+            cube,
+            y: 1,
+            x: -1.25,
+            z: 0.2,
+            w: 0.05,
+            h: 0.05,
+            d: 0.02,
+            b: props.b,
+          },
+        },
+        earL: {
+          cube,
+          y: 1.1,
+          x: -0.7,
+          z: 0.3,
+          w: 0.2,
+          h: 0.2,
+          d: 0.2,
+          b: props.b,
+        },
+        earR: {
+          cube,
+          y: 1.1,
+          x: -0.7,
+          z: -0.3,
+          w: 0.2,
+          h: 0.2,
+          d: 0.2,
+          b: props.b,
+        },
+      },
+      tail: {
+        cube,
+        y: 0.8,
+        x: 0.9,
+        w: 0.8,
+        h: 0.1,
+        d: 0.1,
+        b: props.b,
+      },
+      legFL: {
+        cube,
+        y: 0.3,
+        x: -0.3,
+        z: 0.4,
+        w: 0.2,
+        h: 0.6,
+        d: 0.2,
+        b: props.b,
+      },
+      legFR: {
+        cube,
+        y: 0.3,
+        x: -0.3,
+        z: -0.4,
+        w: 0.2,
+        h: 0.6,
+        d: 0.2,
+        b: props.b,
+      },
+      legBL: {
+        cube,
+        y: 0.3,
+        x: 0.3,
+        z: 0.4,
+        w: 0.2,
+        h: 0.6,
+        d: 0.2,
+        b: props.b,
+      },
+      legBR: {
+        cube,
+        y: 0.3,
+        x: 0.3,
+        z: -0.4,
+        w: 0.2,
+        h: 0.6,
+        d: 0.2,
+        b: props.b,
+      },
+    },
+  }
 
-  ids.push(`${id}-container`)
-  W.group({
-    g: id,
-    n: `${id}-container`,
-    ry: -90,
-  })
-
-  // Body
-  ids.push(`${id}-body`)
-  W.cube({
-    g: `${id}-container`,
-    n: `${id}-body`,
-    y: 0.6,
-    w: 1.2,
-    h: 0.8,
-    d: 0.8,
-    b: props.b,
-  })
-
-  // Head
-  ids.push(`${id}-head`)
-  W.cube({
-    g: `${id}-container`,
-    n: `${id}-head`,
-    y: 0.8,
-    x: -0.8,
-    w: 0.8,
-    h: 0.6,
-    d: 0.8,
-    b: props.b,
-  })
-
-  // Snout
-  ids.push(`${id}-snout`)
-  W.cube({
-    g: `${id}-container`,
-    n: `${id}-snout`,
-    y: 0.7,
-    x: -1.3,
-    w: 0.4,
-    h: 0.4,
-    d: 0.6,
-    b: props.b,
-  })
-
-  // Nose
-  ids.push(`${id}-nose`)
-  W.cube({
-    g: `${id}-container`,
-    n: `${id}-nose`,
-    y: 0.7,
-    x: -1.5,
-    w: 0.1,
-    h: 0.1,
-    d: 0.1,
-    b: props.b == '000' ? 'fff' : '000',
-  })
-
-  // Eyes
-  ids.push(`${id}-eye-l`)
-  W.cube({
-    g: `${id}-container`,
-    n: `${id}-eye-l`,
-    y: 1,
-    x: -1.2,
-    z: 0.2,
-    w: 0.1,
-    h: 0.1,
-    d: 0.1,
-    b: 'fff',
-  })
-  ids.push(`${id}-eye-r`)
-  W.cube({
-    g: `${id}-container`,
-    n: `${id}-eye-r`,
-    y: 1,
-    x: -1.2,
-    z: -0.2,
-    w: 0.1,
-    h: 0.1,
-    d: 0.1,
-    b: 'fff',
-  })
-
-  // Irises
-  ids.push(`${id}-iris-l`)
-  W.cube({
-    g: `${id}-container`,
-    n: `${id}-iris-l`,
-    y: 1,
-    x: -1.25,
-    z: 0.2,
-    w: 0.05,
-    h: 0.05,
-    d: 0.02,
-    b: props.b,
-  })
-  ids.push(`${id}-iris-r`)
-  W.cube({
-    g: `${id}-container`,
-    n: `${id}-iris-r`,
-    y: 1,
-    x: -1.25,
-    z: -0.2,
-    w: 0.05,
-    h: 0.05,
-    d: 0.02,
-    b: props.b,
-  })
-
-  // Ears
-  ids.push(`${id}-ear-l`)
-  W.cube({
-    g: `${id}-container`,
-    n: `${id}-ear-l`,
-    y: 1.1,
-    x: -0.7,
-    z: 0.3,
-    w: 0.2,
-    h: 0.2,
-    d: 0.2,
-    b: props.b,
-  })
-  ids.push(`${id}-ear-r`)
-  W.cube({
-    g: `${id}-container`,
-    n: `${id}-ear-r`,
-    y: 1.1,
-    x: -0.7,
-    z: -0.3,
-    w: 0.2,
-    h: 0.2,
-    d: 0.2,
-    b: props.b,
-  })
-
-  // Tail
-  ids.push(`${id}-tail`)
-  W.cube({
-    g: `${id}-container`,
-    n: `${id}-tail`,
-    y: 0.8,
-    x: 0.9,
-    w: 0.8,
-    h: 0.1,
-    d: 0.1,
-    b: props.b,
-  })
-
-  // Legs
-  ids.push(`${id}-leg-fl`)
-  W.cube({
-    g: `${id}-container`,
-    n: `${id}-leg-fl`,
-    y: 0.3,
-    x: -0.3,
-    z: 0.4,
-    w: 0.2,
-    h: 0.6,
-    d: 0.2,
-    b: props.b,
-  })
-  ids.push(`${id}-leg-fr`)
-  W.cube({
-    g: `${id}-container`,
-    n: `${id}-leg-fr`,
-    y: 0.3,
-    x: -0.3,
-    z: -0.4,
-    w: 0.2,
-    h: 0.6,
-    d: 0.2,
-    b: props.b,
-  })
-  ids.push(`${id}-leg-bl`)
-  W.cube({
-    g: `${id}-container`,
-    n: `${id}-leg-bl`,
-    y: 0.3,
-    x: 0.3,
-    z: 0.4,
-    w: 0.2,
-    h: 0.6,
-    d: 0.2,
-    b: props.b,
-  })
-  ids.push(`${id}-leg-br`)
-  W.cube({
-    g: `${id}-container`,
-    n: `${id}-leg-br`,
-    y: 0.3,
-    x: 0.3,
-    z: -0.4,
-    w: 0.2,
-    h: 0.6,
-    d: 0.2,
-    b: props.b,
-  })
+  // console.log('model', JSON.stringify(model, null, 2))
+  const ids = createModelTree(model, id)
+  console.log('ids', ids)
 
   lionModels.set(id, ids)
   W.move({ n: id, ...props })
+}
+
+export const walk = (playerId: string, t: number) => {
+  const legOffset = Math.sin(t) * 0.2
+  const bounceOffset = Math.abs(Math.sin(t * 2)) * 0.1 // Gallop bounce
+
+  // Animate legs
+  W.move({ n: `${playerId}-legFL`, y: 0.3 + legOffset })
+  W.move({ n: `${playerId}-legBR`, y: 0.3 + legOffset })
+  W.move({ n: `${playerId}-legFR`, y: 0.3 - legOffset })
+  W.move({ n: `${playerId}-legBL`, y: 0.3 - legOffset })
+
+  // Animate whole lion body bouncing
+  W.move({ n: `${playerId}-container`, y: bounceOffset })
+}
+
+export const transformLionModel = (playerId: string, player: PartialDeep<PlayerState>) => {
+  const lionColor = player.b
+  const mode = player._m?.m
+  switch (mode) {
+    case 'c':
+      break
+    case 'b':
+      break
+  }
 }
