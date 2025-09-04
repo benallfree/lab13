@@ -21,7 +21,7 @@ export function inlineCssPlugin(options: InlineCssPluginOptions = {}): Plugin {
         const inlinedAssets = new Set<string>()
 
         // Inline CSS files - look for Vite's processed CSS links
-        html = html.replace(/<link[^>]*rel=stylesheet[^>]*>/g, (match) => {
+        html = html.replace(/<link[^>]*rel="?stylesheet[^>]*>/g, (match) => {
           // Extract href from the link tag
           const hrefMatch = match.match(/href=([^>\s]+)/)
           if (!hrefMatch || !hrefMatch[1]) return match
