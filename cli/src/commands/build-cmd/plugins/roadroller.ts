@@ -57,7 +57,7 @@ export function roadrollerPlugin(options?: RoadrollerOptions): Plugin {
  */
 async function embedJs(html: string, chunk: OutputChunk, options: PackerOptions): Promise<string> {
   const scriptTagRemoved = html.replace(new RegExp(`<script[^>]*?${escapeRegExp(chunk.fileName)}[^>]*?></script>`), '')
-  const htmlInJs = `document.write('${scriptTagRemoved}');${chunk.code.trim()}`
+  const htmlInJs = `var rr = { h: ${JSON.stringify(scriptTagRemoved)}, m: ${JSON.stringify(chunk.code.trim())} }`
   const inputs: Input[] = [
     {
       data: htmlInJs,
@@ -68,5 +68,19 @@ async function embedJs(html: string, chunk: OutputChunk, options: PackerOptions)
   const packer = new Packer(inputs, options)
   await packer.optimize(2)
   const { firstLine, secondLine } = packer.makeDecoder()
-  return `<script>\n${firstLine}\n${secondLine}\n</script>`
+  // console.log(`first line`, firstLine)
+  // console.log(`\n\n\nsecond line`, secondLine)
+  // console.log(`\n\n\nhtml in js`, htmlInJs)
+  const final = `
+<script>
+  ${firstLine}
+  ${secondLine}
+  document.write(rr.h) // index.html
+  const script = document.createElement('script')
+  script.type = 'module'
+  script.innerHTML = rr.m // ESM code
+  document.head.appendChild(script)
+</script>`
+  // console.log(`\n\n\nfinal`, final)
+  return final
 }
