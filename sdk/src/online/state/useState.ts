@@ -143,8 +143,8 @@ export const useState = <TStateShape extends StateBase>(options?: Partial<StateO
     const changes = mergeDeep(localState as TStateShape, delta, true)
     if (Object.keys(changes).length > 0) {
       dbg('Updating state', JSON.stringify({ localState, delta, changes }, null, 2))
+      onAfterStateUpdated(localState, changes)
     }
-    onAfterStateUpdated(localState, changes)
     if (!send) return
     mergeDeep(pendingDelta, changes)
     if (Object.keys(pendingDelta).length > 0) {
