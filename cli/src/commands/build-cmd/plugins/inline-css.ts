@@ -20,6 +20,7 @@ export function inlineCssPlugin(options: InlineCssPluginOptions = {}): Plugin {
 
         const inlinedAssets = new Set<string>()
 
+        dbg(`before`, html)
         // Inline CSS files - look for Vite's processed CSS links
         html = html.replace(/<link[^>]*rel="?stylesheet[^>]*>/g, (match) => {
           // Extract href from the link tag
@@ -61,6 +62,8 @@ export function inlineCssPlugin(options: InlineCssPluginOptions = {}): Plugin {
 
           return match
         })
+
+        dbg(`after`, html)
 
         // Remove inlined assets from the bundle
         for (const assetKey of inlinedAssets) {
