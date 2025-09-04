@@ -257,11 +257,11 @@ export function archivePlugin(options: ArchivePluginOptions = {}): Plugin {
         const sizeInBytes = bestResult.size
         const maxSize = 13 * 1024 // 13312 bytes limit
         const remainingBytes = maxSize - sizeInBytes
-        const percentage = (sizeInBytes / maxSize) * 100
+        const percentage = sizeInBytes / maxSize
 
         // Create visual progress bar
         const blocks = 20 // 10 blocks = 10% each
-        const filledBlocks = Math.max(1, Math.min(Math.floor(percentage / 10), blocks))
+        const filledBlocks = Math.max(1, Math.min(Math.floor(percentage * blocks), blocks))
         const emptyBlocks = blocks - filledBlocks
 
         let progressBar: string
@@ -289,7 +289,7 @@ export function archivePlugin(options: ArchivePluginOptions = {}): Plugin {
           // Normal mode: full range progress bar
           progressBar = `[${'█'.repeat(filledBlocks)}${'░'.repeat(emptyBlocks)}]`
         }
-        progressInfo = `${percentage.toFixed(1)}% of 13312 bytes | ${remainingBytes > 0 ? `+${remainingBytes} bytes remaining` : `⚠️ ${Math.abs(remainingBytes)} bytes over limit`}`
+        progressInfo = `${(percentage * 100).toFixed(1)}% of 13312 bytes | ${remainingBytes > 0 ? `+${remainingBytes} bytes remaining` : `⚠️ ${Math.abs(remainingBytes)} bytes over limit`}`
 
         const sizeInfo = `${sizeInBytes} bytes`
         console.log(`\n🏆 ${bestResult.method.toUpperCase()}: ${sizeInfo} | ${progressBar} | ${progressInfo}`)
