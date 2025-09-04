@@ -225,7 +225,7 @@ export function archivePlugin(options: ArchivePluginOptions = {}): Plugin {
 
         // Create visual progress bar
         const blocks = 20 // 10 blocks = 10% each
-        const filledBlocks = Math.min(Math.floor(percentage / 10), blocks)
+        const filledBlocks = Math.max(1, Math.min(Math.floor(percentage / 10), blocks))
         const emptyBlocks = blocks - filledBlocks
         const progressBar = '█'.repeat(filledBlocks) + '░'.repeat(emptyBlocks)
 
