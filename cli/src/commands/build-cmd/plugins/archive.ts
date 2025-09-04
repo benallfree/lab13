@@ -210,6 +210,14 @@ export function archivePlugin(options: ArchivePluginOptions = {}): Plugin {
         // Find the best compression (smallest size)
         const bestResult = results.reduce((best, current) => (current.size < best.size ? current : best))
 
+        // Create a symlink or copy of the best result as the main zip
+        const mainZipPath = path.join(cwd, `${gameName}-${packageVersion}.zip`)
+        if (fs.existsSync(mainZipPath)) {
+          fs.unlinkSync(mainZipPath)
+        }
+        fs.copyFileSync(bestResult.path, mainZipPath)
+        console.log(`Created ${gameName}-${packageVersion}.zip (using ${bestResult.method.toUpperCase()})`)
+
         console.log('\n=== Compression Results ===')
         results.forEach((result) => {
           const isBest = result.method === bestResult.method
@@ -242,16 +250,6 @@ export function archivePlugin(options: ArchivePluginOptions = {}): Plugin {
         if (sizeInBytes > maxSize) {
           console.log(`\n💡 Consider using --roadroller for better compression!`)
         }
-
-        // Create a symlink or copy of the best result as the main zip
-        const mainZipPath = path.join(cwd, `${gameName}-${packageVersion}.zip`)
-        if (fs.existsSync(mainZipPath)) {
-          fs.unlinkSync(mainZipPath)
-        }
-        fs.copyFileSync(bestResult.path, mainZipPath)
-        console.log(
-          `\n📦 Main zip file created: ${gameName}-${packageVersion}.zip (using ${bestResult.method.toUpperCase()})`
-        )
       } catch (error) {
         console.error('Error creating zip files:', error)
       }
