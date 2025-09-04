@@ -7,6 +7,34 @@ import fs from 'node:fs'
 import path from 'node:path'
 import type { Plugin } from 'vite'
 import { getLab13BuildDir } from '../utils'
+
+// ANSI color codes for green to red gradient
+const resetColor = '\x1b[0m'
+
+// Function to create text fading from green to red
+function createGradient(text: string, totalSize?: number): string {
+  let result = ''
+  const length = text.length
+  const total = totalSize ?? length
+
+  for (let i = 0; i < length; i++) {
+    // Calculate position in the gradient (0 = green, 1 = red)
+    const gradientPos = i / Math.max(total - 1, 1)
+
+    // Interpolate from green to red
+    if (gradientPos <= 0.5) {
+      // Green to yellow (bright green to bright yellow)
+      const redIntensity = Math.floor(gradientPos * 2 * 255)
+      result += `\x1b[38;2;${redIntensity};255;0m${text[i]}${resetColor}`
+    } else {
+      // Yellow to red (bright yellow to bright red)
+      const greenIntensity = Math.floor(255 - (gradientPos - 0.5) * 2 * 255)
+      result += `\x1b[38;2;255;${greenIntensity};0m${text[i]}${resetColor}`
+    }
+  }
+  return result
+}
+
 interface ArchivePluginOptions {
   gameName?: string
   packageVersion?: string
@@ -235,16 +263,36 @@ export function archivePlugin(options: ArchivePluginOptions = {}): Plugin {
         const blocks = 20 // 10 blocks = 10% each
         const filledBlocks = Math.max(1, Math.min(Math.floor(percentage / 10), blocks))
         const emptyBlocks = blocks - filledBlocks
-        const progressBar = '█'.repeat(filledBlocks) + '░'.repeat(emptyBlocks)
+
+        let progressBar: string
+        let progressInfo: string
+
+        if (sizeInBytes >= 12 * 1024) {
+          // Last mile mode: zoom in on final 1KB with rainbow blocks
+          const finalKB = 1024 // 1KB to zoom in on
+          const startSize = 12 * 1024 // 12KB starting point
+          const zoomedPercentage = Math.min(((sizeInBytes - startSize) / finalKB) * 100, 100)
+
+          const zoomedBlocks = 20 // 20 blocks for finer granularity in final 1KB
+          const zoomedFilledBlocks = Math.max(
+            1,
+            Math.min(Math.floor((zoomedPercentage / 100) * zoomedBlocks), zoomedBlocks)
+          )
+          const zoomedEmptyBlocks = zoomedBlocks - zoomedFilledBlocks
+
+          // Create static rainbow blocks for filled portion
+          const rainbowBlocks = createGradient('█'.repeat(zoomedFilledBlocks), 20)
+          const emptyBlocksStr = '░'.repeat(zoomedEmptyBlocks)
+
+          progressBar = `${createGradient('yolo')} [${rainbowBlocks}${emptyBlocksStr}]`
+        } else {
+          // Normal mode: full range progress bar
+          progressBar = `[${'█'.repeat(filledBlocks)}${'░'.repeat(emptyBlocks)}]`
+        }
+        progressInfo = `${percentage.toFixed(1)}% of 13312 bytes | ${remainingBytes > 0 ? `+${remainingBytes} bytes remaining` : `⚠️ ${Math.abs(remainingBytes)} bytes over limit`}`
 
         const sizeInfo = `${sizeInBytes} bytes`
-        const usageInfo = `${percentage.toFixed(1)}% of 13312 bytes`
-        const remainingInfo =
-          remainingBytes > 0 ? `+${remainingBytes} bytes remaining` : `⚠️ ${Math.abs(remainingBytes)} bytes over limit`
-
-        console.log(
-          `\n🏆 ${bestResult.method.toUpperCase()}: ${sizeInfo} | [${progressBar}] ${usageInfo} | ${remainingInfo}`
-        )
+        console.log(`\n🏆 ${bestResult.method.toUpperCase()}: ${sizeInfo} | ${progressBar} | ${progressInfo}`)
 
         // Suggest roadroller if over 13KB
         if (sizeInBytes > maxSize) {
