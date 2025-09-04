@@ -13,7 +13,7 @@ import {
   useW,
 } from 'lab13-sdk'
 import { createWorld } from './createWorld'
-import { ensureLionModel } from './lion'
+import { ensureLionModel, gcLions } from './lion'
 
 export type PlayerState = { x: number; z: number; ry: number; b: string; v: boolean }
 
@@ -29,8 +29,10 @@ function main() {
     rotationUnits: 'd',
     onPlayerStateAvailable: (id, state) => spawnPlayer(id, state),
     onAfterStateUpdated: (state) => {
-      const playerIds = Object.keys(getPlayerStates())
-      // gcLions(playerIds)
+      const playerStates = getPlayerStates()
+      console.log('playerStates', JSON.stringify(playerStates, null, 2))
+      const playerIds = Object.keys(playerStates)
+      gcLions(playerIds)
     },
     debug: true,
   })
