@@ -1,8 +1,7 @@
-import { PartialDeep } from 'lab13-sdk'
-import { PlayerState } from '.'
+import { BotState, PlayerState } from '.'
 const lionModels = new Map<string, string[]>()
 
-export const removeLion = (id: string) => {
+export const removeLionModel = (id: string) => {
   if (!lionModels.has(id)) return
   lionModels.get(id)?.forEach((id) => {
     W.delete(id)
@@ -10,9 +9,9 @@ export const removeLion = (id: string) => {
   lionModels.delete(id)
 }
 
-export const gcLions = (playerIds: string[]) => {
+export const gcLionModels = (playerIds: string[]) => {
   lionModels.forEach((ids, id) => {
-    if (!playerIds.includes(id)) removeLion(id)
+    if (!playerIds.includes(id)) removeLionModel(id)
   })
 }
 
@@ -31,13 +30,13 @@ const pick = <T extends Record<string, any>>(
 }
 
 const createModelTree = (node: Record<string, any>, rootKey: string, key?: string, parent?: string) => {
-  console.log('createModelTree', { rootKey, key, parent })
+  // console.log('createModelTree', { rootKey, key, parent })
   const g = parent ?? undefined
   const n = [rootKey, key].filter(Boolean).join('-')
   const ids: string[] = [n]
   const finalProps = { g, n, ...pick(node) }
   const type = node.cube ? 'cube' : 'group'
-  console.log('finalProps', type, JSON.stringify(finalProps, null, 2))
+  // console.log('finalProps', type, JSON.stringify(finalProps, null, 2))
   W.setState(finalProps, type)
 
   for (const childKey in node) {
@@ -48,17 +47,18 @@ const createModelTree = (node: Record<string, any>, rootKey: string, key?: strin
   return ids
 }
 
-export const ensureLionModel = (id: string, props: PartialDeep<PlayerState>) => {
+export const ensureLionModel = (id: string, props: PlayerState | BotState) => {
   if (lionModels.has(id)) return
-  console.log(`lion`, id, props)
+  // console.log(`lion`, id, props)
 
   const cube = true
+  const b = props.w.b
   const model = {
     w: 1,
     h: 1,
     d: 1,
     y: 0.5,
-    ...pick(props),
+    ...pick(props.w),
     container: {
       ry: -90,
       body: {
@@ -67,7 +67,7 @@ export const ensureLionModel = (id: string, props: PartialDeep<PlayerState>) => 
         w: 1.2,
         h: 0.8,
         d: 0.8,
-        b: props.b,
+        b,
       },
       head: {
         skull: {
@@ -77,7 +77,7 @@ export const ensureLionModel = (id: string, props: PartialDeep<PlayerState>) => 
           w: 0.8,
           h: 0.6,
           d: 0.8,
-          b: props.b,
+          b,
         },
         snout: {
           cube,
@@ -86,7 +86,7 @@ export const ensureLionModel = (id: string, props: PartialDeep<PlayerState>) => 
           w: 0.4,
           h: 0.4,
           d: 0.6,
-          b: props.b,
+          b,
         },
         nose: {
           cube,
@@ -95,7 +95,7 @@ export const ensureLionModel = (id: string, props: PartialDeep<PlayerState>) => 
           w: 0.1,
           h: 0.1,
           d: 0.1,
-          b: props.b == '000' ? 'fff' : '000',
+          b: b == '000' ? 'fff' : '000',
         },
         eyeL: {
           eyeballL: {
@@ -116,7 +116,7 @@ export const ensureLionModel = (id: string, props: PartialDeep<PlayerState>) => 
             w: 0.05,
             h: 0.05,
             d: 0.02,
-            b: props.b,
+            b,
           },
         },
         eyeR: {
@@ -138,7 +138,7 @@ export const ensureLionModel = (id: string, props: PartialDeep<PlayerState>) => 
             w: 0.05,
             h: 0.05,
             d: 0.02,
-            b: props.b,
+            b,
           },
         },
         earL: {
@@ -149,7 +149,7 @@ export const ensureLionModel = (id: string, props: PartialDeep<PlayerState>) => 
           w: 0.2,
           h: 0.2,
           d: 0.2,
-          b: props.b,
+          b,
         },
         earR: {
           cube,
@@ -159,7 +159,7 @@ export const ensureLionModel = (id: string, props: PartialDeep<PlayerState>) => 
           w: 0.2,
           h: 0.2,
           d: 0.2,
-          b: props.b,
+          b,
         },
       },
       tail: {
@@ -169,7 +169,7 @@ export const ensureLionModel = (id: string, props: PartialDeep<PlayerState>) => 
         w: 0.8,
         h: 0.1,
         d: 0.1,
-        b: props.b,
+        b,
       },
       legFL: {
         cube,
@@ -179,7 +179,7 @@ export const ensureLionModel = (id: string, props: PartialDeep<PlayerState>) => 
         w: 0.2,
         h: 0.6,
         d: 0.2,
-        b: props.b,
+        b,
       },
       legFR: {
         cube,
@@ -189,7 +189,7 @@ export const ensureLionModel = (id: string, props: PartialDeep<PlayerState>) => 
         w: 0.2,
         h: 0.6,
         d: 0.2,
-        b: props.b,
+        b,
       },
       legBL: {
         cube,
@@ -199,7 +199,7 @@ export const ensureLionModel = (id: string, props: PartialDeep<PlayerState>) => 
         w: 0.2,
         h: 0.6,
         d: 0.2,
-        b: props.b,
+        b,
       },
       legBR: {
         cube,
@@ -209,17 +209,17 @@ export const ensureLionModel = (id: string, props: PartialDeep<PlayerState>) => 
         w: 0.2,
         h: 0.6,
         d: 0.2,
-        b: props.b,
+        b,
       },
     },
   }
 
   // console.log('model', JSON.stringify(model, null, 2))
   const ids = createModelTree(model, id)
-  console.log('ids', ids)
+  // console.log('ids', ids)
 
   lionModels.set(id, ids)
-  W.move({ n: id, ...props })
+  W.move({ n: id, ...props.w })
 }
 
 export const walk = (playerId: string, t: number) => {
@@ -236,9 +236,9 @@ export const walk = (playerId: string, t: number) => {
   W.move({ n: `${playerId}-container`, y: bounceOffset })
 }
 
-export const transformLionModel = (playerId: string, player: PartialDeep<PlayerState>) => {
-  const lionColor = player.b
-  const mode = player._m?.m
+export const transformLionModel = (playerId: string, player: PlayerState | BotState) => {
+  const lionColor = player.w.b
+  const mode = player.m
   switch (mode) {
     case 'c':
       break

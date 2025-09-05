@@ -1,6 +1,8 @@
 /// <reference types="lab13-sdk/W" />
 
 import {
+  generateUUID,
+  PartialDeep,
   StateBase,
   useDemo,
   useEasyState,
@@ -13,29 +15,54 @@ import {
   useW,
 } from 'lab13-sdk'
 import { createWorld } from './createWorld'
-import { ensureLionModel, gcLions, transformLionModel, walk } from './lion'
+import { ensureLionModel, gcLionModels, transformLionModel, walk } from './lion'
 
-export type PlayerState = { x: number; z: number; ry: number; b: string; v: boolean; _m: { m: 'c' | 'b' } }
+export type PlayerAltMode = 'c' | 'b' // 'c' for cat or 'b' for bot
+export type MovementMode = 'w' | 's' | 'r' // walking or standing or roaming
 
-export type GameState = StateBase<PlayerState>
+export type PlayerState = {
+  w: {
+    x: number
+    z: number
+    ry: number
+    b: string
+  }
+  v: MovementMode
+  m: PlayerAltMode
+}
+
+const BOT_INTERMEDIATE_TARGET_DISTANCE = 5 // Choose an intermediate target if the distance to the final target is greater than this
+const BOT_TARGET_DISTANCE = 0.2 // Stop moving if within this distance of the next target
+export type PlayerId = string
+export type BotState = PlayerState & {
+  // Owning player ID
+  o: PlayerId
+
+  // target metadata (private, not relayed)
+  _t: {
+    f: { x: number; z: number } // final destination
+    n: { x: number; z: number } // next target
+    s: number // sleep time until next target
+  }
+}
+export type GameState = StateBase<PlayerState | BotState>
+
+function isBotState(state: PartialDeep<PlayerState | BotState>): state is BotState {
+  return 'o' in state
+}
 
 function main() {
   useW()
   useOnline(`mewsterpiece/gotron`)
   const { getMyId } = useMyId()
-  const { updateMyState, getMyState, getPlayerStates, getPlayerState } = useEasyState<GameState>({
-    positionPrecision: 2,
-    rotationPrecision: 2,
-    rotationUnits: 'd',
-    onPlayerStateAvailable: (id, state) => spawnPlayer(id, state),
-    onAfterStateUpdated: (state) => {
-      const playerStates = getPlayerStates()
-      console.log('playerStates', JSON.stringify(playerStates, null, 2))
-      const playerIds = Object.keys(playerStates)
-      gcLions(playerIds)
-    },
-    debug: true,
-  })
+  const { updateMyState, getMyState, getPlayerStates, updatePlayerState, getPlayerState, updateState, getState } =
+    useEasyState<GameState>({
+      positionPrecision: 2,
+      rotationPrecision: 2,
+      rotationUnits: 'd',
+      onPlayerStateAvailable: (id, state) => spawnPlayer(id, state),
+      debug: true,
+    })
   useResizer()
 
   const ME = getMyId()
@@ -47,12 +74,14 @@ function main() {
       a = Math.random() * Math.PI * 2
     // Create a cube sitting in the middle of the plane
     const props: PlayerState = {
-      x: Math.cos(a) * r,
-      z: Math.sin(a) * r,
-      ry: (Math.atan2(Math.cos(a) * r, Math.sin(a) * r) * 180) / Math.PI,
-      b: PLAYER_COLORS[Math.floor(Math.random() * PLAYER_COLORS.length)],
-      v: false,
-      _m: { m: 'c' },
+      w: {
+        x: Math.cos(a) * r,
+        z: Math.sin(a) * r,
+        ry: (Math.atan2(Math.cos(a) * r, Math.sin(a) * r) * 180) / Math.PI,
+        b: PLAYER_COLORS[Math.floor(Math.random() * PLAYER_COLORS.length)],
+      },
+      v: 's',
+      m: 'c',
     }
     ensureLionModel(ME, props)
 
@@ -60,7 +89,7 @@ function main() {
     updateMyState(props)
   }
 
-  const spawnPlayer = (id: string, state: PlayerState) => {
+  const spawnPlayer = (id: string, state: PlayerState | BotState) => {
     console.log('spawnPlayer', id)
     ensureLionModel(id, state)
   }
@@ -99,7 +128,7 @@ function main() {
 
   usePointerLock({
     onMove: (e) => {
-      updateMyState({ ry: me().ry - e.movementX * 0.1 })
+      updateMyState({ w: { ry: me().w.ry - e.movementX * 0.1 } })
     },
     element: c,
   })
@@ -109,55 +138,106 @@ function main() {
     const allPlayers = { ...getPlayerStates() }
 
     for (const playerId in allPlayers) {
-      const player = allPlayers[playerId]!
+      const player = allPlayers[playerId] as PlayerState | BotState
       ensureLionModel(playerId, player)
 
       // DEV mode toggle
       if (import.meta.env.DEV) {
-        updateMyState({ _m: { m: isKeyPressed('.') ? 'b' : 'c' } })
+        updateMyState({ m: isKeyPressed('.') ? 'b' : 'c' })
         transformLionModel(playerId, player)
       }
 
       // Move player position
-      W.move({ n: playerId, ...player, a: 50 })
+      W.move({ n: playerId, ...player.w, a: 50 })
 
       // Animate lion running when moving
-      walk(playerId, player.v ? performance.now() * 0.01 : 0)
+      walk(playerId, player.v === 'w' ? performance.now() * 0.01 : 0)
     }
   }
 
   const updateMe = (speed: number) => {
-    const angle = (me().ry * Math.PI) / 180
+    const angle = (me().w.ry * Math.PI) / 180
     const forwardX = Math.sin(angle) * speed
     const forwardZ = Math.cos(angle) * speed
     let isMoving = false
 
     if (isKeyPressed('w')) {
-      updateMyState({ x: me().x - forwardX, z: me().z - forwardZ, v: true })
+      updateMyState({ w: { x: me().w.x - forwardX, z: me().w.z - forwardZ }, v: 'w' })
       isMoving = true
     }
     if (isKeyPressed('s')) {
-      updateMyState({ x: me().x + forwardX, z: me().z + forwardZ, v: true })
+      updateMyState({ w: { x: me().w.x + forwardX, z: me().w.z + forwardZ }, v: 'w' })
       isMoving = true
     }
     if (isKeyPressed('a')) {
-      updateMyState({ x: me().x - forwardZ, z: me().z + forwardX, v: true })
+      updateMyState({ w: { x: me().w.x - forwardZ, z: me().w.z + forwardX }, v: 'w' })
       isMoving = true
     }
     if (isKeyPressed('d')) {
-      updateMyState({ x: me().x + forwardZ, z: me().z - forwardX, v: true })
+      updateMyState({ w: { x: me().w.x + forwardZ, z: me().w.z - forwardX }, v: 'w' })
       isMoving = true
     }
 
     // Update movement state if not moving
     if (!isMoving && me().v) {
-      updateMyState({ v: false })
+      updateMyState({ v: 's' })
     }
   }
 
   spawnMe()
 
+  // Check for missing lion colors every 1 second
+  const checkForMissingColors = () => {
+    const playerStates = getPlayerStates()
+    const existingColors = new Set<string>()
+
+    // Collect existing colors from all players
+    for (const playerId in playerStates) {
+      const state = playerStates[playerId] as PlayerState
+      existingColors.add(state.w.b)
+    }
+
+    const firstMissingColor = PLAYER_COLORS.find((color) => !existingColors.has(color))
+    if (firstMissingColor) {
+      const r = 10 * Math.sqrt(Math.random())
+      const a = Math.random() * Math.PI * 2
+      const botId = `bot-${generateUUID()}`
+      const botState: BotState = {
+        w: {
+          x: Math.cos(a) * r,
+          z: Math.sin(a) * r,
+          ry: (Math.atan2(Math.cos(a) * r, Math.sin(a) * r) * 180) / Math.PI,
+          b: firstMissingColor,
+        },
+        v: 's',
+        o: ME,
+        tx: 0,
+        ty: 0,
+        m: 'b',
+      }
+      updatePlayerState(botId, botState)
+    }
+    setTimeout(checkForMissingColors, 5000 + Math.random() * 25000)
+  }
+  setTimeout(checkForMissingColors, 5000 + Math.random() * 25000)
+
+  const gc = () => {
+    const playerStates = getPlayerStates()
+    for (const playerId in playerStates) {
+      const playerState = playerStates[playerId]!
+      if (!isBotState(playerState)) continue
+      // It's a bot, check if it's orphaned
+      const isOrphaned = !playerStates[playerState.o]
+      if (isOrphaned) {
+        updatePlayerState(playerId, null)
+      }
+    }
+    const playerIds = Object.keys(playerStates)
+    gcLionModels(playerIds)
+  }
+
   useSpeedThrottledRaf(MOVE_SPEED, (speed) => {
+    gc()
     updateMe(speed)
     updatePlayers(speed)
     updateRefCube(speed)
