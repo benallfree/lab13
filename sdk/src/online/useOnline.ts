@@ -1,3 +1,4 @@
+import PartySocket from 'partysocket'
 import { generateUUID } from './generateUUID'
 import { useHead } from './head'
 
@@ -5,7 +6,7 @@ export type OnlineOptions = {
   host?: string
   global?: boolean
 }
-export const useOnline = (room: string, options?: Partial<OnlineOptions>) => {
+export const useOnline = (room: string, options?: Partial<OnlineOptions>): PartySocket => {
   useHead()
   const roomParts = room.split('/')
   const { host = 'relay.js13kgames.com', global = true } = options || {}
