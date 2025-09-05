@@ -1,6 +1,9 @@
-import { type Input, type InputAction, type InputType, Packer, type PackerOptions } from 'roadroller'
+import htmlMinify from 'html-minifier-terser'
+import { Packer, type Input, type InputAction, type InputType, type PackerOptions } from 'roadroller'
 import { type OutputChunk } from 'rollup'
+import { minify, type ECMA } from 'terser'
 import { type IndexHtmlTransformContext, type Plugin } from 'vite'
+import { defaultHtmlMinifyOptions } from './html-minify'
 import { addDefaultValues, escapeRegExp } from './utils'
 
 export type RoadrollerOptions = {
@@ -71,8 +74,7 @@ async function embedJs(html: string, chunk: OutputChunk, options: PackerOptions)
   // console.log(`first line`, firstLine)
   // console.log(`\n\n\nsecond line`, secondLine)
   // console.log(`\n\n\nhtml in js`, htmlInJs)
-  const final = `
-<script>
+  const js = `
   ${firstLine}
   ${secondLine}
   document.write(rr.h) // index.html
@@ -80,7 +82,75 @@ async function embedJs(html: string, chunk: OutputChunk, options: PackerOptions)
   script.type = 'module'
   script.innerHTML = rr.m // ESM code
   document.head.appendChild(script)
-</script>`
+  `
+
+  const minifiedJs = await minify(js, {
+    compress: {
+      ecma: 2022 as ECMA,
+      drop_console: true,
+      drop_debugger: true,
+      defaults: true,
+      ie8: false,
+      reduce_funcs: true,
+      arrows: true,
+      arguments: true,
+      booleans: true,
+      booleans_as_integers: false,
+      collapse_vars: true,
+      comparisons: true,
+      conditionals: true,
+      dead_code: true,
+      directives: true,
+      evaluate: true,
+      expression: false,
+      hoist_funs: true,
+      hoist_props: true,
+      hoist_vars: false,
+      if_return: true,
+      inline: true,
+      join_vars: true,
+      keep_classnames: false,
+      keep_fargs: false,
+      keep_fnames: false,
+      keep_infinity: false,
+      loops: true,
+      module: true,
+      negate_iife: true,
+      passes: 5,
+      properties: true,
+      computed_props: true,
+      pure_getters: true,
+      reduce_vars: true,
+      sequences: 1000000,
+      side_effects: true,
+      switches: true,
+      toplevel: true,
+      top_retain: null,
+      typeofs: true,
+      unsafe: true,
+      unsafe_arrows: true,
+      unsafe_comps: true,
+      unsafe_Function: true,
+      unsafe_math: true,
+      unsafe_symbols: true,
+      unsafe_methods: true,
+      unsafe_proto: true,
+      unsafe_regexp: true,
+      unsafe_undefined: true,
+      unused: true,
+    },
+    mangle: {
+      safari10: false,
+      eval: true,
+      keep_classnames: false,
+      keep_fnames: false,
+      module: true,
+      toplevel: true,
+    },
+  })
+
+  const final = `<script>${minifiedJs.code}</script>`
   // console.log(`\n\n\nfinal`, final)
-  return final
+  const minifiedFinal = await htmlMinify.minify(final, defaultHtmlMinifyOptions)
+  return minifiedFinal
 }
