@@ -1,5 +1,11 @@
 # js13k
 
+## 0.0.13
+
+### Patch Changes
+
+- aef3a83: Terse and HTML minify RR output
+
 ## 0.0.12
 
 ### Patch Changes
