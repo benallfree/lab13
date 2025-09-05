@@ -26,6 +26,10 @@ jobs:
         working-directory: cli
         run: bun run build
 
+      - name: Smoke test the CLI
+        working-directory: cli/dist
+        run: ./index.js --help
+
       - name: Publish to npm
         uses: JS-DevTools/npm-publish@v3
         with:
