@@ -1,3 +1,4 @@
+export const GROUND_SIZE = 100
 export const createWorld = () => {
   W.reset(c)
   W.light({ x: 0, y: -1, z: 0 })
@@ -5,5 +6,5 @@ export const createWorld = () => {
   W.clearColor('#ADD8E6')
 
   // Create a plane
-  W.cube({ n: 'plane', y: -0.5, w: 100, h: 1, d: 100, rx: 0, b: '2a5' })
+  W.cube({ n: 'plane', y: -0.5, w: GROUND_SIZE, h: 1, d: GROUND_SIZE, rx: 0, b: '2a5' })
 }
