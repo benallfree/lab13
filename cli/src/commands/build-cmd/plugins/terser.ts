@@ -1,6 +1,6 @@
 import { minify } from 'terser'
 import type { Plugin } from 'vite'
-import { terserOptions } from './html-minify-terser'
+import { terserOptions } from './terserOptions'
 
 export type TerserPluginOptions = {
   debug?: boolean

@@ -121,6 +121,8 @@ npx l13 build
 5. **Compression** - Multiple ZIP compression methods with automatic selection
 6. **Size Analysis** - Visual progress bar and size reporting
 
+**Note:** Terser property mangling only works with `$` or `_` prefixed "private" variables. Use these prefixes for properties you want to be mangled for maximum compression.
+
 #### `preview` - Local Preview
 
 Serve the built `dist/` directory with Express.
