@@ -1,5 +1,11 @@
 # js13k
 
+## 0.0.15
+
+### Patch Changes
+
+- Build fix
+
 ## 0.0.14
 
 ### Patch Changes
