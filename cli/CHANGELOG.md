@@ -1,5 +1,12 @@
 # js13k
 
+## 0.0.16
+
+### Patch Changes
+
+- 2b78654: Refine terser and html minification settings
+- 7b0ea39: `preview` now searches for a free port
+
 ## 0.0.15
 
 ### Patch Changes
