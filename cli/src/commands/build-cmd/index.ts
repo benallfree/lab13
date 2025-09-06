@@ -1,6 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { build as viteBuild } from 'vite'
+import { ViteImageOptimizer } from 'vite-plugin-image-optimizer'
 import { archivePlugin } from './plugins/archive'
 import { htmlMinifyPlugin } from './plugins/html-minify-terser'
 import { inlineCssPlugin } from './plugins/inline-css'
@@ -99,6 +100,7 @@ export async function runBuild(options: BuildOptions): Promise<void> {
     },
 
     plugins: [
+      ViteImageOptimizer(),
       terser !== false ? terserPlugin({ debug, mangleProps: terserMangleProps }) : undefined,
       inlineCss !== false ? inlineCssPlugin({ debug }) : undefined,
       effectiveInlineJs !== false ? inlineJsPlugin({ debug }) : undefined,
