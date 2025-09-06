@@ -3,7 +3,7 @@ import { Packer, type Input, type InputAction, type InputType, type PackerOption
 import { type OutputChunk } from 'rollup'
 import { minify, type ECMA } from 'terser'
 import { type IndexHtmlTransformContext, type Plugin } from 'vite'
-import { defaultHtmlMinifyOptions } from './html-minify'
+import { defaultHtmlMinifyOptions } from './html-minify-terser'
 import { addDefaultValues, escapeRegExp } from './utils'
 
 export type RoadrollerOptions = {
@@ -151,6 +151,9 @@ async function embedJs(html: string, chunk: OutputChunk, options: PackerOptions)
 
   const final = `<script>${minifiedJs.code}</script>`
   // console.log(`\n\n\nfinal`, final)
-  const minifiedFinal = await htmlMinify.minify(final, defaultHtmlMinifyOptions)
+  const minifiedFinal = await htmlMinify.minify(
+    final,
+    defaultHtmlMinifyOptions({ debug: false, mangleProps: false, terser: false })
+  )
   return minifiedFinal
 }

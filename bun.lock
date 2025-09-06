@@ -10,7 +10,7 @@
     },
     "cli": {
       "name": "l13",
-      "version": "0.0.13",
+      "version": "0.0.15",
       "bin": {
         "js13k": "dist/index.js",
         "lab13": "dist/index.js",
