@@ -1,5 +1,11 @@
 # js13k
 
+## 0.0.14
+
+### Patch Changes
+
+- Fix missing terser dep
+
 ## 0.0.13
 
 ### Patch Changes
