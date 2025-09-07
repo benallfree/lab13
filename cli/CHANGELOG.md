@@ -1,5 +1,14 @@
 # js13k
 
+## 0.0.17
+
+### Patch Changes
+
+- 0b723f9: Improve JS inlining
+- cfb7101: Add image optimization
+- 9b3f7fd: Add default mangling for private /^[$_]/ vars
+- f7bb7e1: GLSL imports and minification
+
 ## 0.0.16
 
 ### Patch Changes
