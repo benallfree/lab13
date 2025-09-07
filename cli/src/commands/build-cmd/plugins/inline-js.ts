@@ -21,7 +21,8 @@ export function inlineJsPlugin(options: InlineJsPluginOptions = {}): Plugin {
 
         dbg(`before`, html)
         // Inline JS files - look for Vite's processed script tags
-        html = html.replace(/<script[^>]*src=([^>\s]+)[^>]*><\/script>/g, (match, src) => {
+        html = html.replace(/<script[^>]*src="?([^>\s"]+)[^>]*><\/script>/g, (match, src) => {
+          dbg(`Found JS link: ${src}`)
           // Skip external URLs
           if (src.startsWith('http://') || src.startsWith('https://') || src.startsWith('//')) {
             dbg(`Skipping external JS: ${src}`)
@@ -30,13 +31,17 @@ export function inlineJsPlugin(options: InlineJsPluginOptions = {}): Plugin {
 
           // Remove quotes if present
           const cleanSrc = src.replace(/^["']|["']$/g, '')
+          const normalizedSrc = cleanSrc.replace(/^\.?\//, '')
+          dbg(`Normalized src: ${normalizedSrc}`)
 
           // Find the corresponding bundle file by matching the src
           const bundleKey = Object.keys(ctx.bundle!).find((key) => {
-            const normalizedSrc = cleanSrc.replace(/^\//, '')
-            const normalizedKey = key.replace(/^\//, '')
+            const normalizedKey = key.replace(/^\.?\//, '')
+            dbg(`Normalized key: ${normalizedKey}`)
             return normalizedKey === normalizedSrc || key.includes(normalizedSrc)
           })
+
+          dbg(`Bundle key: ${bundleKey || 'not found'}`)
 
           if (bundleKey && ctx.bundle![bundleKey]) {
             const bundleItem = ctx.bundle![bundleKey]
