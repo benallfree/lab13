@@ -239,6 +239,50 @@ npx l13 build --roadroller
 
 **Note:** Roadroller automatically disables `--inline-js` since it needs external JavaScript files to pack them.
 
+#### GLSL Shader Support
+
+l13 includes built-in support for GLSL (OpenGL Shading Language) shaders with automatic minification and optimization:
+
+**Features:**
+
+- **Automatic GLSL Processing** - `.glsl`, `.vert`, `.frag`, `.vs`, `.fs` files are automatically processed
+- **Shader Minification** - GLSL code is minified to reduce file size (enabled by default)
+- **Import Support** - Import shaders directly in your JavaScript/TypeScript code
+- **Hot Reload** - Shader changes trigger automatic rebuilds in development mode
+
+**Usage:**
+
+```javascript
+// Import shaders directly in your code
+import vertexShader from './shaders/vertex.glsl'
+import fragmentShader from './shaders/fragment.glsl'
+
+// Use with WebGL
+const shader = gl.createShader(gl.VERTEX_SHADER)
+gl.shaderSource(shader, vertexShader)
+gl.compileShader(shader)
+```
+
+**Supported File Extensions:**
+
+- `.glsl` - Generic GLSL shader files
+- `.vert` - Vertex shaders
+- `.frag` - Fragment shaders
+- `.vs` - Vertex shaders (alternative)
+- `.fs` - Fragment shaders (alternative)
+
+**Example Project Structure:**
+
+```
+src/
+├── main.ts
+└── shaders/
+    ├── vertex.glsl
+    └── fragment.glsl
+```
+
+**Note:** GLSL shaders are automatically minified during the build process to optimize for the 13KB size limit. The minification removes comments, unnecessary whitespace, and optimizes the shader code for maximum compression.
+
 ### File Exclusion
 
 Exclude files from the build using glob patterns:
