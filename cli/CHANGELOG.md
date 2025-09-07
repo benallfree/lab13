@@ -1,5 +1,11 @@
 # js13k
 
+## 0.0.18
+
+### Patch Changes
+
+- Zopfli fix
+
 ## 0.0.17
 
 ### Patch Changes
