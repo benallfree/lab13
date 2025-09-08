@@ -1,5 +1,11 @@
 # js13k
 
+## 0.0.21
+
+### Patch Changes
+
+- 96046be: Add Zopfli compression strategy
+
 ## 0.0.19
 
 ### Patch Changes
