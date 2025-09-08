@@ -1,6 +1,6 @@
 {
   "name": "l13",
-  "version": "0.0.18",
+  "version": "0.0.19",
   "description": "A CLI for the js13kGames competition",
   "author": {
     "name": "benallfree",
@@ -50,6 +50,8 @@
     "inquirer": "^12.9.3",
     "minimatch": "^10.0.3",
     "roadroller": "^2.1.0",
+    "sharp": "^0.34.3",
+    "svgo": "^4.0.0",
     "terser": "^5.44.0",
     "tiged": "^2.12.7",
     "vite": "^7.1.2",

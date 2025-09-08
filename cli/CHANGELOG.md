@@ -1,5 +1,11 @@
 # js13k
 
+## 0.0.19
+
+### Patch Changes
+
+- Sharp & svgo dep fix
+
 ## 0.0.18
 
 ### Patch Changes
