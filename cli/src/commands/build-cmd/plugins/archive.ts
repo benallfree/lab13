@@ -1,6 +1,7 @@
 import SevenZip from '7z-wasm'
 import ect from 'ect-bin'
 import { globSync } from 'glob'
+import JSZip from 'jszip-zopfli'
 import { minimatch } from 'minimatch'
 import { execFile } from 'node:child_process'
 import fs from 'node:fs'
@@ -42,6 +43,7 @@ interface ArchivePluginOptions {
   exclude?: string[]
   experimental?: boolean
   ect?: boolean
+  zopfli?: boolean
 }
 
 export function archivePlugin(options: ArchivePluginOptions = {}): Plugin {
@@ -52,6 +54,7 @@ export function archivePlugin(options: ArchivePluginOptions = {}): Plugin {
     exclude = [],
     experimental = false,
     ect: useEct = true,
+    zopfli: useZopfli = true,
   } = options
   const dbg = (...args: any[]) => (debug ? console.log(`[DEBUG] [archive]`, ...args) : undefined)
 
@@ -123,6 +126,7 @@ export function archivePlugin(options: ArchivePluginOptions = {}): Plugin {
         const compressionMethods: { name: string; flags: string[] }[] = [
           ...(useEct ? [{ name: 'ect', flags: [] }] : []),
           { name: 'deflate', flags: [] },
+          ...(useZopfli ? [{ name: 'zopfli', flags: [] }] : []),
           ...(experimental
             ? [
                 { name: 'lzma', flags: ['-m0=lzma'] },
@@ -210,6 +214,23 @@ export function archivePlugin(options: ArchivePluginOptions = {}): Plugin {
               method.name = 'deflate'
               method.flags = []
             }
+          } else if (method.name === 'zopfli') {
+            // Use Zopfli for compression
+            const zip = new JSZip()
+
+            // Add all files to archive
+            for (const file of filesToArchive) {
+              const relativePath = path.relative(outDir, file)
+              const content = fs.readFileSync(file)
+              zip.file(relativePath, content)
+            }
+
+            const content = await zip.generateAsync({
+              type: 'nodebuffer',
+              compression: 'ZOPFLI' as any,
+              compressionOptions: { numiterations: 100 } as any,
+            })
+            fs.writeFileSync(zipPath, content)
           } else {
             // Use 7z for compression
             // Create zip archive silently

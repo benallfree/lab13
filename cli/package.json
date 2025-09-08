@@ -42,6 +42,7 @@
   },
   "dependencies": {
     "7z-wasm": "^1.2.0",
+    "@gfx/zopfli": "^1.0.15",
     "clean-css": "^5.3.3",
     "commander": "^14.0.0",
     "ect-bin": "^1.4.1",
@@ -49,6 +50,7 @@
     "glob": "^11.0.3",
     "html-minifier-terser": "^7.2.0",
     "inquirer": "^12.9.3",
+    "jszip-zopfli": "^3.11.0-rc.0",
     "minimatch": "^10.0.3",
     "roadroller": "^2.1.0",
     "sharp": "^0.34.3",

@@ -26,6 +26,7 @@ export type BuildOptions = {
   inlineCss?: boolean
   inlineJs?: boolean
   ect?: boolean
+  zopfli?: boolean
 }
 export async function runBuild(options: BuildOptions): Promise<void> {
   const {
@@ -43,6 +44,7 @@ export async function runBuild(options: BuildOptions): Promise<void> {
     inlineCss,
     inlineJs,
     ect,
+    zopfli,
   } = options
 
   // Roadroller and inline-js are incompatible - roadroller needs the JS file to be external
@@ -117,6 +119,7 @@ export async function runBuild(options: BuildOptions): Promise<void> {
         experimental,
         exclude: excludePatterns,
         ect,
+        zopfli,
       }),
     ].filter(Boolean),
   })
