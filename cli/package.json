@@ -1,6 +1,6 @@
 {
   "name": "l13",
-  "version": "0.0.19",
+  "version": "0.0.20",
   "description": "A CLI for the js13kGames competition",
   "author": {
     "name": "benallfree",
@@ -15,7 +15,8 @@
   "scripts": {
     "build": "tsdown",
     "watch": "tsdown --watch",
-    "js13k": "tsx --watch src/index.ts "
+    "js13k": "tsx --watch src/index.ts ",
+    "prepublishOnly": "bun run build"
   },
   "module": "dist/index.js",
   "bin": {
