@@ -145,6 +145,7 @@ class MusicComposer {
     this.setupEventListeners()
     this.renderGrid()
     this.updateOutput()
+    this.updatePlayStopButton()
   }
 
   private initializeGrid() {
@@ -161,20 +162,22 @@ class MusicComposer {
   }
 
   private setupEventListeners() {
-    const playBtn = document.getElementById('playBtn')!
-    const stopBtn = document.getElementById('stopBtn')!
+    const playStopBtn = document.getElementById('playStopBtn')!
     const clearBtn = document.getElementById('clearBtn')!
     const shareBtn = document.getElementById('shareBtn')
     const importBtn = document.getElementById('importBtn')
+    const demoBtn = document.getElementById('demoBtn')
 
-    playBtn.addEventListener('click', () => this.play())
-    stopBtn.addEventListener('click', () => this.stop())
-    clearBtn.addEventListener('click', () => this.clear())
+    playStopBtn.addEventListener('click', () => this.togglePlayStop())
+    clearBtn.addEventListener('click', () => this.confirmClear())
     if (shareBtn) {
       shareBtn.addEventListener('click', () => this.shareSong())
     }
     if (importBtn) {
-      importBtn.addEventListener('click', () => this.showImportModal())
+      importBtn.addEventListener('click', () => this.confirmImport())
+    }
+    if (demoBtn) {
+      demoBtn.addEventListener('click', () => this.confirmDemo())
     }
 
     // Keyboard event listeners
@@ -384,6 +387,7 @@ class MusicComposer {
 
     this.isPlaying = true
     this.updateStatus('Playing...')
+    this.updatePlayStopButton()
 
     // Create shifted grid based on playhead position
     const shiftedGrid = this.createShiftedGrid()
@@ -401,6 +405,7 @@ class MusicComposer {
     this.isPlaying = false
     this.throbbingCells.clear()
     this.updateStatus('Stopped')
+    this.updatePlayStopButton()
 
     if (this.player) {
       this.player.stop()
@@ -416,6 +421,40 @@ class MusicComposer {
       this.stop()
     } else {
       this.play()
+    }
+  }
+
+  private updatePlayStopButton() {
+    const playIcon = document.getElementById('playIcon')!
+    const stopIcon = document.getElementById('stopIcon')!
+    const playStopText = document.getElementById('playStopText')!
+
+    if (this.isPlaying) {
+      playIcon.style.display = 'none'
+      stopIcon.style.display = 'inline'
+      playStopText.textContent = 'Stop'
+    } else {
+      playIcon.style.display = 'inline'
+      stopIcon.style.display = 'none'
+      playStopText.textContent = 'Play'
+    }
+  }
+
+  private confirmClear() {
+    if (confirm('Are you sure you want to clear all notes? This action cannot be undone.')) {
+      this.clear()
+    }
+  }
+
+  private confirmImport() {
+    if (confirm('This will replace your current song with the imported one. Continue?')) {
+      this.showImportModal()
+    }
+  }
+
+  private confirmDemo() {
+    if (confirm('This will replace your current song with the demo song. Continue?')) {
+      this.loadDemoSong()
     }
   }
 
@@ -828,6 +867,16 @@ class MusicComposer {
       '0Y0^000000Y000000000000``000000[0^0]0000000000000000`0`',
     ]
     this.importSong(defaultSong)
+  }
+
+  private loadDemoSong() {
+    const demoSong: Song = [
+      'll0n0j0jYll00uYvusqs[p0pp00qpnlj0n0q00l0^p00s000v0u0s0pq',
+      'ii0j0e0e00i00q000Y^0T00dd000000g0j0n00]00`0000000000d0d',
+      '0Y0^000000Y000000000000``000000[0^0]0000000000000000`0`',
+    ]
+    this.importSong(demoSong)
+    this.updateStatus('Demo song loaded')
   }
 
   private loadGridFromData(gridData: any[][]) {
