@@ -10,7 +10,7 @@
     },
     "cli": {
       "name": "l13",
-      "version": "0.0.21",
+      "version": "0.0.22",
       "bin": {
         "js13k": "dist/index.js",
         "lab13": "dist/index.js",
@@ -64,6 +64,12 @@
         "@types/three": "^0.179.0",
         "lab13-sdk": "workspace:^0.0.3",
         "partysocket": "^1.1.5",
+      },
+    },
+    "games/composer": {
+      "name": "lab13-composer",
+      "devDependencies": {
+        "lab13-sdk": "workspace:^0.0.3",
       },
     },
     "games/flight": {
@@ -1914,6 +1920,8 @@
     "lab13-cars": ["lab13-cars@workspace:games/cars"],
 
     "lab13-cats": ["lab13-cats@workspace:games/cats"],
+
+    "lab13-composer": ["lab13-composer@workspace:games/composer"],
 
     "lab13-flight": ["lab13-flight@workspace:games/flight"],
 

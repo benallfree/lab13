@@ -9,9 +9,9 @@ import {
   useOnline,
   usePresence,
 } from 'lab13-sdk'
-import type { PartySocket } from 'partysocket'
 import { cats } from './cats'
 import { playDrawSound, playPlopSound, playWhiteNoiseSound } from './fx'
+import { level1Song } from './songs'
 import {
   clearAllCompletedPictures,
   deleteCompletedPicture,
@@ -23,6 +23,8 @@ import './style.css'
 
 useOnline('mewsterpiece')
 usePresence()
+
+level1Song.start()
 
 const sendStateToClient = (clientId: string) => {
   const canvasDataUrl = canvas.toDataURL('image/webp')
