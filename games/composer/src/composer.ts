@@ -174,7 +174,7 @@ class MusicComposer {
       shareBtn.addEventListener('click', () => this.shareSong())
     }
     if (importBtn) {
-      importBtn.addEventListener('click', () => this.confirmImport())
+      importBtn.addEventListener('click', () => this.showImportModal())
     }
     if (demoBtn) {
       demoBtn.addEventListener('click', () => this.confirmDemo())
@@ -443,12 +443,6 @@ class MusicComposer {
   private confirmClear() {
     if (confirm('Are you sure you want to clear all notes? This action cannot be undone.')) {
       this.clear()
-    }
-  }
-
-  private confirmImport() {
-    if (confirm('This will replace your current song with the imported one. Continue?')) {
-      this.showImportModal()
     }
   }
 
@@ -721,8 +715,10 @@ class MusicComposer {
       try {
         const song = JSON.parse(input)
         if (Array.isArray(song) && song.every((part) => typeof part === 'string')) {
-          this.importSong(song)
-          this.closeModal(modal, style)
+          if (confirm('This will replace your current song with the imported one. Continue?')) {
+            this.importSong(song)
+            this.closeModal(modal, style)
+          }
         } else {
           this.updateStatus('Invalid song format. Expected array of strings.')
         }
