@@ -810,10 +810,24 @@ class MusicComposer {
 
       if (gridData) {
         this.loadGridFromData(gridData)
+      } else {
+        // Load default song if no data in storage
+        this.loadDefaultSong()
       }
     } catch (error) {
       console.warn('Could not load from storage:', error)
+      // Load default song on error
+      this.loadDefaultSong()
     }
+  }
+
+  private loadDefaultSong() {
+    const defaultSong: Song = [
+      'll0n0j0jYll00uYvusqs[p0pp00qpnlj0n0q00l0^p00s000v0u0s0pq',
+      'ii0j0e0e00i00q000Y^0T00dd000000g0j0n00]00`0000000000d0d',
+      '0Y0^000000Y000000000000``000000[0^0]0000000000000000`0`',
+    ]
+    this.importSong(defaultSong)
   }
 
   private loadGridFromData(gridData: any[][]) {
