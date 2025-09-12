@@ -156,23 +156,23 @@ export function getCurrentGameState(): GameState {
     breakTimeRemaining = cycleTime - cycleOffset
   }
 
-  console.log(
-    'newState',
-    JSON.stringify(
-      {
-        startOffset,
-        cycleOffset,
-        cyclesCompleted,
-        currentLevel,
-        timeRemaining,
-        isInLevel,
-        isInBreak,
-        breakTimeRemaining,
-      },
-      null,
-      2
-    )
-  )
+  // console.log(
+  //   'newState',
+  //   JSON.stringify(
+  //     {
+  //       startOffset,
+  //       cycleOffset,
+  //       cyclesCompleted,
+  //       currentLevel,
+  //       timeRemaining,
+  //       isInLevel,
+  //       isInBreak,
+  //       breakTimeRemaining,
+  //     },
+  //     null,
+  //     2
+  //   )
+  // )
 
   const newState = {
     ...state,
