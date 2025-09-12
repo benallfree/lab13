@@ -1,5 +1,11 @@
 # js13k
 
+## 0.0.22
+
+### Patch Changes
+
+- 96c4bb4: Support relative paths for final uplaod
+
 ## 0.0.21
 
 ### Patch Changes
