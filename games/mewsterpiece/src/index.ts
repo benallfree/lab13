@@ -11,6 +11,7 @@ import {
 } from 'lab13-sdk'
 import type { PartySocket } from 'partysocket'
 import { cats } from './cats'
+import { playDrawSound, playPlopSound, playWhiteNoiseSound } from './fx'
 import {
   clearAllCompletedPictures,
   deleteCompletedPicture,
@@ -142,6 +143,7 @@ radiusSlider?.addEventListener('input', () => {
 })
 
 colorPicker?.addEventListener('input', () => {
+  playPlopSound()
   updateCursor()
 })
 
@@ -545,6 +547,7 @@ canvas.addEventListener('mousedown', (e) => {
   const pos = getMousePos(e)
   const color = colorPicker.value
   drawPixel(pos.x, pos.y, color, markRadius)
+  playDrawSound(0.2)
   sendPixelMessage(pos.x, pos.y, color, markRadius)
 })
 
@@ -554,12 +557,14 @@ canvas.addEventListener('mousemove', (e) => {
   if (state.isDrawing) {
     const color = colorPicker.value
     drawPixel(pos.x, pos.y, color, markRadius)
+    playWhiteNoiseSound.start(0.005, 5)
     sendPixelMessage(pos.x, pos.y, color, markRadius)
   }
 })
 
 canvas.addEventListener('mouseup', () => {
   state.isDrawing = false
+  playWhiteNoiseSound.stop()
 })
 
 canvas.addEventListener('mouseleave', () => {
