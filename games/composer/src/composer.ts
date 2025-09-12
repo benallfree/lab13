@@ -25,12 +25,17 @@ class MusicComposer {
 
   // Compress the current grid to a Song
   private compress(baseNote: string = 'i'): Song {
+    return this.compressFromGrid(this.grid, baseNote)
+  }
+
+  // Compress any grid to a Song
+  private compressFromGrid(grid: ComposerGridState, baseNote: string = 'i'): Song {
     const song: string[] = []
-    const maxCols = this.gridSize.cols
+    const maxCols = grid[0]?.length || this.gridSize.cols
     const baseNoteCode = baseNote.charCodeAt(0)
 
     // Step 1: Copy the grid
-    const gridCopy: ComposerGridState = this.grid.map((row) => row.map((cell) => ({ ...cell })))
+    const gridCopy: ComposerGridState = grid.map((row) => row.map((cell) => ({ ...cell })))
 
     // Step 2-4: Create parts until no notes left
     while (this.hasNotesInGridInternal(gridCopy)) {
@@ -380,7 +385,9 @@ class MusicComposer {
     this.isPlaying = true
     this.updateStatus('Playing...')
 
-    const song = this.compress()
+    // Create shifted grid based on playhead position
+    const shiftedGrid = this.createShiftedGrid()
+    const song = this.compressFromGrid(shiftedGrid)
     console.log('song', song)
     this.player = createSongPlayer(song)
     this.player.play({
@@ -712,10 +719,13 @@ class MusicComposer {
   }
 
   private onNotesPlayed(col: number) {
+    // Map the shifted grid column back to the original grid column
+    const originalCol = this.mapShiftedColumnToOriginal(col)
+
     // Highlight all notes in this column
     for (let row = 0; row < this.gridSize.rows; row++) {
-      if (this.grid[row][col].occupied) {
-        const cellKey = `${row},${col}`
+      if (this.grid[row][originalCol].occupied) {
+        const cellKey = `${row},${originalCol}`
         this.throbbingCells.add(cellKey)
       }
     }
@@ -724,13 +734,39 @@ class MusicComposer {
     // Remove the throb after animation
     setTimeout(() => {
       for (let row = 0; row < this.gridSize.rows; row++) {
-        if (this.grid[row][col].occupied) {
-          const cellKey = `${row},${col}`
+        if (this.grid[row][originalCol].occupied) {
+          const cellKey = `${row},${originalCol}`
           this.throbbingCells.delete(cellKey)
         }
       }
       this.renderGrid()
     }, 200)
+  }
+
+  private mapShiftedColumnToOriginal(shiftedCol: number): number {
+    // Find the highest grid column containing a note
+    let highestCol = -1
+    for (let col = this.gridSize.cols - 1; col >= 0; col--) {
+      for (let row = 0; row < this.gridSize.rows; row++) {
+        if (this.grid[row][col].occupied) {
+          highestCol = col
+          break
+        }
+      }
+      if (highestCol !== -1) break
+    }
+
+    if (highestCol === -1) return shiftedCol
+
+    // Map shifted column back to original column
+    if (shiftedCol < highestCol - this.playheadPosition + 1) {
+      // This is from the playhead to highest column section
+      return this.playheadPosition + shiftedCol
+    } else {
+      // This is from the wrapped section (1st column to playhead)
+      const wrappedCol = shiftedCol - (highestCol - this.playheadPosition + 1)
+      return wrappedCol
+    }
   }
 
   private saveToStorage() {
