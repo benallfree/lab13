@@ -159,13 +159,17 @@ class MusicComposer {
     const playBtn = document.getElementById('playBtn')!
     const stopBtn = document.getElementById('stopBtn')!
     const clearBtn = document.getElementById('clearBtn')!
+    const shareBtn = document.getElementById('shareBtn')
     const importBtn = document.getElementById('importBtn')
 
     playBtn.addEventListener('click', () => this.play())
     stopBtn.addEventListener('click', () => this.stop())
     clearBtn.addEventListener('click', () => this.clear())
+    if (shareBtn) {
+      shareBtn.addEventListener('click', () => this.shareSong())
+    }
     if (importBtn) {
-      importBtn.addEventListener('click', () => this.showImportDialog())
+      importBtn.addEventListener('click', () => this.showImportModal())
     }
 
     // Keyboard event listeners
@@ -242,16 +246,7 @@ class MusicComposer {
     this.dragState.isDragging = true
     this.dragState.startCell = { row, col }
 
-    const cell = this.grid[row][col]
-    if (!cell.occupied) {
-      // Empty cell: add note and play it
-      cell.occupied = true
-      this.renderGrid()
-      this.updateOutput()
-      this.saveToStorage()
-    }
-
-    // Play preview sound
+    // Play the cell note
     this.playNote(row, col)
   }
 
@@ -272,27 +267,19 @@ class MusicComposer {
     const startRow = startCell.row
     const startCol = startCell.col
 
-    // Check if mouseup is in the same cell as mousedown
+    // Check if it's the same cell
     if (startRow === row && startCol === col) {
-      // Same cell: remove note if it was occupied
-      if (this.grid[startRow][startCol].occupied) {
-        this.grid[startRow][startCol].occupied = false
-        this.renderGrid()
-        this.updateOutput()
-        this.saveToStorage()
-      }
+      // Same cell: toggle the note (remove if occupied, add if empty)
+      this.grid[row][col].occupied = !this.grid[row][col].occupied
     } else {
-      // Different cell: move note from start to current cell
-      if (this.grid[startRow][startCol].occupied) {
-        // Remove note from start cell
-        this.grid[startRow][startCol].occupied = false
-        // Add note to current cell
-        this.grid[row][col].occupied = true
-        this.renderGrid()
-        this.updateOutput()
-        this.saveToStorage()
-      }
+      // Different cell: commit to the current cell and remove from start cell
+      this.grid[row][col].occupied = true
+      this.grid[startRow][startCol].occupied = false
     }
+
+    this.renderGrid()
+    this.updateOutput()
+    this.saveToStorage()
 
     this.dragState.isDragging = false
     this.dragState.startCell = null
@@ -455,20 +442,273 @@ class MusicComposer {
     this.updateStatus(`Imported song with ${song.length} parts`)
   }
 
-  private showImportDialog() {
-    const input = prompt('Paste song array (e.g., ["ace", "bd"]):')
-    if (!input) return
+  private shareSong() {
+    const song = this.compress()
+    const songJson = JSON.stringify(song)
 
-    try {
-      const song = JSON.parse(input)
-      if (Array.isArray(song) && song.every((part) => typeof part === 'string')) {
-        this.importSong(song)
-      } else {
-        this.updateStatus('Invalid song format. Expected array of strings.')
+    // Copy to clipboard
+    navigator.clipboard
+      .writeText(songJson)
+      .then(() => {
+        this.updateStatus('Song copied to clipboard!')
+      })
+      .catch(() => {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea')
+        textArea.value = songJson
+        document.body.appendChild(textArea)
+        textArea.select()
+        document.execCommand('copy')
+        document.body.removeChild(textArea)
+        this.updateStatus('Song copied to clipboard!')
+      })
+
+    // Show modal with the data
+    this.showShareModal(songJson)
+  }
+
+  private showShareModal(songJson: string) {
+    // Create modal
+    const modal = document.createElement('div')
+    modal.className = 'modal'
+    modal.innerHTML = `
+      <div class="modal-content">
+        <h3>Share Song</h3>
+        <p>Your song has been copied to the clipboard! You can also copy it from below:</p>
+        <textarea id="shareTextarea" readonly rows="6" cols="50">${songJson}</textarea>
+        <div class="modal-buttons">
+          <button id="shareCopy">Copy Again</button>
+          <button id="shareClose">Close</button>
+        </div>
+      </div>
+    `
+
+    // Add modal styles (reuse existing styles)
+    const style = document.createElement('style')
+    style.textContent = `
+      .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
       }
-    } catch (error) {
-      this.updateStatus('Invalid JSON format.')
+      .modal-content {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        max-width: 500px;
+        width: 90%;
+      }
+      .modal-content h3 {
+        margin-top: 0;
+        color: #333;
+      }
+      .modal-content p {
+        color: #666;
+        margin-bottom: 15px;
+      }
+      .modal-content textarea {
+        width: 100%;
+        margin: 10px 0;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-family: monospace;
+        background: #f8f8f8;
+      }
+      .modal-buttons {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        margin-top: 15px;
+      }
+      .modal-buttons button {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .modal-buttons button:first-child {
+        background: #007bff;
+        color: white;
+      }
+      .modal-buttons button:last-child {
+        background: #6c757d;
+        color: white;
+      }
+    `
+    document.head.appendChild(style)
+    document.body.appendChild(modal)
+
+    // Focus and select the textarea
+    const textarea = modal.querySelector('#shareTextarea') as HTMLTextAreaElement
+    textarea.focus()
+    textarea.select()
+
+    // Event listeners
+    modal.querySelector('#shareCopy')!.addEventListener('click', () => {
+      textarea.select()
+      navigator.clipboard
+        .writeText(songJson)
+        .then(() => {
+          this.updateStatus('Song copied to clipboard again!')
+        })
+        .catch(() => {
+          document.execCommand('copy')
+          this.updateStatus('Song copied to clipboard again!')
+        })
+    })
+
+    modal.querySelector('#shareClose')!.addEventListener('click', () => {
+      this.closeModal(modal, style)
+    })
+
+    // Close on backdrop click
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        this.closeModal(modal, style)
+      }
+    })
+
+    // Handle keyboard shortcuts
+    const handleKeydown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        this.closeModal(modal, style)
+        document.removeEventListener('keydown', handleKeydown)
+      } else if ((e.metaKey || e.ctrlKey) && e.key === 'a') {
+        // Cmd-A or Ctrl-A: select all text in the textarea
+        e.preventDefault()
+        textarea.select()
+      }
     }
+    document.addEventListener('keydown', handleKeydown)
+  }
+
+  private showImportModal() {
+    // Create modal
+    const modal = document.createElement('div')
+    modal.className = 'modal'
+    modal.innerHTML = `
+      <div class="modal-content">
+        <h3>Import Song</h3>
+        <p>Paste the shared song content below:</p>
+        <textarea id="importTextarea" placeholder='Paste song array (e.g., ["ace", "bd"])' rows="4" cols="50"></textarea>
+        <div class="modal-buttons">
+          <button id="importConfirm">Import</button>
+          <button id="importCancel">Cancel</button>
+        </div>
+      </div>
+    `
+
+    // Add modal styles
+    const style = document.createElement('style')
+    style.textContent = `
+      .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+      }
+      .modal-content {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        max-width: 500px;
+        width: 90%;
+      }
+      .modal-content h3 {
+        margin-top: 0;
+      }
+      .modal-content textarea {
+        width: 100%;
+        margin: 10px 0;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-family: monospace;
+      }
+      .modal-buttons {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        margin-top: 15px;
+      }
+      .modal-buttons button {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .modal-buttons button:first-child {
+        background: #007bff;
+        color: white;
+      }
+      .modal-buttons button:last-child {
+        background: #6c757d;
+        color: white;
+      }
+    `
+    document.head.appendChild(style)
+    document.body.appendChild(modal)
+
+    // Focus textarea
+    const textarea = modal.querySelector('#importTextarea') as HTMLTextAreaElement
+    textarea.focus()
+
+    // Event listeners
+    modal.querySelector('#importConfirm')!.addEventListener('click', () => {
+      const input = textarea.value.trim()
+      if (!input) return
+
+      try {
+        const song = JSON.parse(input)
+        if (Array.isArray(song) && song.every((part) => typeof part === 'string')) {
+          this.importSong(song)
+          this.closeModal(modal, style)
+        } else {
+          this.updateStatus('Invalid song format. Expected array of strings.')
+        }
+      } catch (error) {
+        this.updateStatus('Invalid JSON format.')
+      }
+    })
+
+    modal.querySelector('#importCancel')!.addEventListener('click', () => {
+      this.closeModal(modal, style)
+    })
+
+    // Close on backdrop click
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        this.closeModal(modal, style)
+      }
+    })
+
+    // Close on Escape key
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        this.closeModal(modal, style)
+        document.removeEventListener('keydown', handleEscape)
+      }
+    }
+    document.addEventListener('keydown', handleEscape)
+  }
+
+  private closeModal(modal: HTMLElement, style: HTMLElement) {
+    document.body.removeChild(modal)
+    document.head.removeChild(style)
   }
 
   private onNotesPlayed(col: number) {
