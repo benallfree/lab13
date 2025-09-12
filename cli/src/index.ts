@@ -24,7 +24,7 @@ program
 program
   .command('dev')
   .description('Run the Vite dev server with js13k defaults')
-  .option('--base <path>', 'Public base path when served in production')
+  .option('--base <path>', 'Public base path when served in production', './')
   .option('--out <dir>', 'Output directory', 'dist')
   .option('--debug', 'Enable debug mode', toBoolean(process.env.DEBUG))
   .option('--roadroller', 'Enable roadroller', toBoolean(process.env.ROADROLLER))
@@ -50,7 +50,7 @@ program
   .command('build')
   .description('Build the project with js13k Vite defaults')
   .option('--watch', 'Watch for file changes and rebuild')
-  .option('--base <path>', 'Public base path when served in production')
+  .option('--base <path>', 'Public base path when served in production', './')
   .option('--out <dir>', 'Output directory', 'dist')
   .option('--debug', 'Enable debug mode', toBoolean(process.env.DEBUG))
   .option('--roadroller', 'Enable roadroller', toBoolean(process.env.ROADROLLER))

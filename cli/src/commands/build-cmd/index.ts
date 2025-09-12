@@ -52,6 +52,8 @@ export async function runBuild(options: BuildOptions): Promise<void> {
 
   const dbg = (...args: any[]) => (debug ? console.log(`[DEBUG]`, ...args) : undefined)
 
+  console.log({ base })
+
   // Handle exclude option - it might be a string or array
   const excludePatterns = Array.isArray(exclude) ? exclude : exclude ? [exclude] : []
 

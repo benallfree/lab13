@@ -57,7 +57,7 @@
     "svgo": "^4.0.0",
     "terser": "^5.44.0",
     "tiged": "^2.12.7",
-    "vite": "^7.1.2",
+    "vite": "^7.1.5",
     "vite-plugin-glsl": "^1.5.1",
     "vite-plugin-image-optimizer": "^2.0.2"
   }
