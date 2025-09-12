@@ -17,6 +17,7 @@ class MusicComposer {
   private gridSize = { rows: MusicComposer.NOTE_RANGE, cols: 64 }
   private isPlaying = false
   private player: ReturnType<typeof createGridPlayer> | null = null
+  private playheadPosition = 0
   private dragState: { isDragging: boolean; startCell: { row: number; col: number } | null } = {
     isDragging: false,
     startCell: null,
@@ -82,6 +83,10 @@ class MusicComposer {
       const colLabel = document.createElement('div')
       colLabel.className = 'col-label'
       colLabel.textContent = (col + 1).toString()
+      if (col === this.playheadPosition) {
+        colLabel.classList.add('playhead')
+      }
+      colLabel.addEventListener('click', () => this.setPlayheadPosition(col))
       gridElement.appendChild(colLabel)
     }
 
@@ -127,7 +132,18 @@ class MusicComposer {
     e.preventDefault()
     this.dragState.isDragging = true
     this.dragState.startCell = { row, col }
-    // Just play preview sound, don't commit yet
+
+    const cell = this.grid[row][col]
+    if (cell.note) {
+      // Remove existing note
+      cell.note = null
+      cell.frequency = null
+      this.renderGrid()
+      this.updateOutput()
+      this.saveToStorage()
+    }
+
+    // Play preview sound
     this.playNote(row, col)
   }
 
@@ -188,6 +204,77 @@ class MusicComposer {
     })
   }
 
+  private setPlayheadPosition(col: number) {
+    this.playheadPosition = col
+    this.renderGrid()
+    this.updateStatus(`Playhead set to column ${col + 1}`)
+  }
+
+  private createShiftedGrid(): ComposerGridState {
+    // Step 1: Find the highest grid column containing a note
+    let highestCol = -1
+    for (let col = this.gridSize.cols - 1; col >= 0; col--) {
+      for (let row = 0; row < this.gridSize.rows; row++) {
+        if (this.grid[row][col].note) {
+          highestCol = col
+          break
+        }
+      }
+      if (highestCol !== -1) break
+    }
+
+    // If no notes found, return empty grid
+    if (highestCol === -1) {
+      return Array(this.gridSize.rows)
+        .fill(null)
+        .map(() => [])
+    }
+
+    // Step 2: Create a new empty grid
+    const shiftedGrid: ComposerGridState = Array(this.gridSize.rows)
+      .fill(null)
+      .map(() =>
+        Array(this.gridSize.cols)
+          .fill(null)
+          .map(() => ({
+            note: null,
+            frequency: null,
+            isActive: false,
+          }))
+      )
+
+    // Step 3: Copy notes from playhead to highest column
+    for (let row = 0; row < this.gridSize.rows; row++) {
+      for (let col = this.playheadPosition; col <= highestCol; col++) {
+        const sourceCell = this.grid[row][col]
+        if (sourceCell.note) {
+          shiftedGrid[row][col - this.playheadPosition] = {
+            note: sourceCell.note,
+            frequency: sourceCell.frequency,
+            isActive: false,
+          }
+        }
+      }
+    }
+
+    // Step 4: Copy notes from 1st column up to playhead
+    for (let row = 0; row < this.gridSize.rows; row++) {
+      for (let col = 0; col < this.playheadPosition; col++) {
+        const sourceCell = this.grid[row][col]
+        if (sourceCell.note) {
+          const targetCol = highestCol - this.playheadPosition + 1 + col
+          shiftedGrid[row][targetCol] = {
+            note: sourceCell.note,
+            frequency: sourceCell.frequency,
+            isActive: false,
+          }
+        }
+      }
+    }
+
+    return shiftedGrid
+  }
+
   private play() {
     if (this.isPlaying) return
 
@@ -200,12 +287,13 @@ class MusicComposer {
     this.updateStatus('Playing...')
 
     this.player = createGridPlayer()
-    const playerGrid = compressForPlayer(this.grid)
+    const shiftedGrid = this.createShiftedGrid()
+    const playerGrid = compressForPlayer(shiftedGrid)
     this.player.play(playerGrid, {
       noteLengthMs: 200,
       loop: true,
       volume: 0.1,
-      onNotePlayed: (row: number, col: number) => this.onNotePlayed(row, col),
+      onNotePlayed: (row: number, col: number) => this.onNotePlayedShifted(row, col),
     })
   }
 
@@ -251,6 +339,36 @@ class MusicComposer {
       this.throbbingCells.delete(cellKey)
       this.renderGrid()
     }, 200)
+  }
+
+  private onNotePlayedShifted(row: number, col: number) {
+    // Convert shifted column back to original grid column
+    // The shifted grid has two sections:
+    // 1. Columns 0 to (highestCol - playheadPosition): original columns playheadPosition to highestCol
+    // 2. Columns (highestCol - playheadPosition + 1) to end: original columns 0 to (playheadPosition - 1)
+
+    // Find the highest column with notes
+    let highestCol = -1
+    for (let c = this.gridSize.cols - 1; c >= 0; c--) {
+      for (let r = 0; r < this.gridSize.rows; r++) {
+        if (this.grid[r][c].note) {
+          highestCol = c
+          break
+        }
+      }
+      if (highestCol !== -1) break
+    }
+
+    let originalCol: number
+    if (col <= highestCol - this.playheadPosition) {
+      // First section: map to original columns playheadPosition to highestCol
+      originalCol = col + this.playheadPosition
+    } else {
+      // Second section: map to original columns 0 to (playheadPosition - 1)
+      originalCol = col - (highestCol - this.playheadPosition + 1)
+    }
+
+    this.onNotePlayed(row, originalCol)
   }
 
   private hasNotesInGrid(): boolean {
