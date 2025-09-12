@@ -1,13 +1,12 @@
-import {
-  compress,
-  compressForPlayer,
-  createGridPlayer,
-  noteToFrequency,
-  playSingleNote,
-  type ComposerGridState,
-} from 'lab13-sdk'
+import { createSongPlayer, MusicPlayer, noteToFrequency, playSingleNote, type Song } from 'lab13-sdk'
 import { PortIndependentStorage } from './storage.js'
 
+export type ComposerGridCell = {
+  occupied: boolean
+  isActive: boolean
+}
+
+export type ComposerGridState = ComposerGridCell[][]
 class MusicComposer {
   private static readonly LOWEST_NOTE = 'H'.charCodeAt(0) // ASCII 72
   private static readonly HIGHEST_NOTE = 'z'.charCodeAt(0) // ASCII 122
@@ -16,13 +15,121 @@ class MusicComposer {
   private grid: ComposerGridState = []
   private gridSize = { rows: MusicComposer.NOTE_RANGE, cols: 64 }
   private isPlaying = false
-  private player: ReturnType<typeof createGridPlayer> | null = null
+  private player: MusicPlayer | null = null
   private playheadPosition = 0
   private dragState: { isDragging: boolean; startCell: { row: number; col: number } | null } = {
     isDragging: false,
     startCell: null,
   }
   private lastPlayedCell: { row: number; col: number } | null = null
+
+  // Compress the current grid to a Song
+  private compress(baseNote: string = 'i'): Song {
+    const song: string[] = []
+    const maxCols = this.gridSize.cols
+    const baseNoteCode = baseNote.charCodeAt(0)
+
+    // Step 1: Copy the grid
+    const gridCopy: ComposerGridState = this.grid.map((row) => row.map((cell) => ({ ...cell })))
+
+    // Step 2-4: Create parts until no notes left
+    while (this.hasNotesInGridInternal(gridCopy)) {
+      // Create a new part string filled with 0's
+      const partString = Array(maxCols).fill('0')
+
+      // For each row, scan through columns
+      for (let row = 0; row < this.gridSize.rows; row++) {
+        for (let col = 0; col < maxCols; col++) {
+          const cell = gridCopy[row]?.[col]
+          if (cell?.occupied) {
+            if (partString[col] === '0') {
+              // Column is empty, place the note
+              // Convert row index to note character (row 0 = highest note)
+              const noteCode = MusicComposer.HIGHEST_NOTE - row
+              const note = String.fromCharCode(noteCode)
+              partString[col] = note
+              cell.occupied = false // Remove from grid copy
+            }
+            // If column is occupied, note stays in grid for next part
+          }
+        }
+      }
+
+      song.push(partString.join(''))
+    }
+
+    // Step 5: Remove trailing zeros from each part
+    return song.map((part) => part.replace(/0+$/, ''))
+  }
+
+  private hasNotesInGridInternal(grid: ComposerGridState): boolean {
+    for (let row = 0; row < this.gridSize.rows; row++) {
+      const rowData = grid[row]
+      if (!rowData) continue
+
+      for (let col = 0; col < this.gridSize.cols; col++) {
+        const cell = rowData[col]
+        if (cell?.occupied) {
+          return true
+        }
+      }
+    }
+    return false
+  }
+
+  private hasNotesInGrid(): boolean {
+    return this.hasNotesInGridInternal(this.grid)
+  }
+
+  // Uncompress a song back to a grid for import functionality
+  private uncompress(song: Song, baseNote: string = 'i'): ComposerGridState {
+    if (song.length === 0) {
+      return Array(this.gridSize.rows)
+        .fill(null)
+        .map(() =>
+          Array(this.gridSize.cols)
+            .fill(null)
+            .map(() => ({ occupied: false, isActive: false }))
+        )
+    }
+
+    // Infer grid dimensions from song data
+    const gridCols = Math.max(...song.map((part) => part.length))
+    const baseNoteCode = baseNote.charCodeAt(0)
+
+    // Initialize empty grid
+    const grid: ComposerGridState = Array(this.gridSize.rows)
+      .fill(null)
+      .map(() =>
+        Array(gridCols)
+          .fill(null)
+          .map(() => ({
+            occupied: false,
+            isActive: false,
+          }))
+      )
+
+    // Load each part into the grid
+    for (let partIndex = 0; partIndex < song.length; partIndex++) {
+      const part = song[partIndex]
+      if (!part) continue
+
+      for (let charIndex = 0; charIndex < part.length; charIndex++) {
+        const note = part[charIndex]
+        if (!note || note === '0') continue
+
+        // Convert note to row index (row 0 = highest note)
+        const noteCode = note.charCodeAt(0)
+        const row = MusicComposer.HIGHEST_NOTE - noteCode
+
+        if (row >= 0 && row < this.gridSize.rows) {
+          grid[row][charIndex].occupied = true
+        }
+      }
+    }
+
+    return grid
+  }
   private throbbingCells: Set<string> = new Set()
   private audioContext: AudioContext
 
@@ -42,8 +149,7 @@ class MusicComposer {
         Array(this.gridSize.cols)
           .fill(null)
           .map(() => ({
-            note: null,
-            frequency: null,
+            occupied: false,
             isActive: false,
           }))
       )
@@ -53,10 +159,14 @@ class MusicComposer {
     const playBtn = document.getElementById('playBtn')!
     const stopBtn = document.getElementById('stopBtn')!
     const clearBtn = document.getElementById('clearBtn')!
+    const importBtn = document.getElementById('importBtn')
 
     playBtn.addEventListener('click', () => this.play())
     stopBtn.addEventListener('click', () => this.stop())
     clearBtn.addEventListener('click', () => this.clear())
+    if (importBtn) {
+      importBtn.addEventListener('click', () => this.showImportDialog())
+    }
 
     // Keyboard event listeners
     document.addEventListener('keydown', (e) => {
@@ -105,9 +215,8 @@ class MusicComposer {
         cell.dataset.row = row.toString()
         cell.dataset.col = col.toString()
 
-        if (this.grid[row][col].note) {
+        if (this.grid[row][col].occupied) {
           cell.classList.add('note')
-          cell.textContent = this.grid[row][col].note!
         }
 
         if (this.grid[row][col].isActive) {
@@ -134,10 +243,9 @@ class MusicComposer {
     this.dragState.startCell = { row, col }
 
     const cell = this.grid[row][col]
-    if (cell.note) {
-      // Remove existing note
-      cell.note = null
-      cell.frequency = null
+    if (!cell.occupied) {
+      // Empty cell: add note and play it
+      cell.occupied = true
       this.renderGrid()
       this.updateOutput()
       this.saveToStorage()
@@ -158,45 +266,43 @@ class MusicComposer {
   }
 
   private handleMouseUp(e: MouseEvent, row: number, col: number) {
-    if (!this.dragState.isDragging) return
+    if (!this.dragState.isDragging || !this.dragState.startCell) return
 
-    // Commit the note change at the current cell
-    this.toggleCell(row, col)
+    const startCell = this.dragState.startCell
+    const startRow = startCell.row
+    const startCol = startCell.col
+
+    // Check if mouseup is in the same cell as mousedown
+    if (startRow === row && startCol === col) {
+      // Same cell: remove note if it was occupied
+      if (this.grid[startRow][startCol].occupied) {
+        this.grid[startRow][startCol].occupied = false
+        this.renderGrid()
+        this.updateOutput()
+        this.saveToStorage()
+      }
+    } else {
+      // Different cell: move note from start to current cell
+      if (this.grid[startRow][startCol].occupied) {
+        // Remove note from start cell
+        this.grid[startRow][startCol].occupied = false
+        // Add note to current cell
+        this.grid[row][col].occupied = true
+        this.renderGrid()
+        this.updateOutput()
+        this.saveToStorage()
+      }
+    }
 
     this.dragState.isDragging = false
     this.dragState.startCell = null
     this.lastPlayedCell = null
   }
 
-  private toggleCell(row: number, col: number) {
-    const cell = this.grid[row][col]
-    if (cell.note) {
-      // Remove note
-      cell.note = null
-      cell.frequency = null
-    } else {
-      // Add note
-      const note = String.fromCharCode(MusicComposer.HIGHEST_NOTE - row)
-      cell.note = note
-      cell.frequency = noteToFrequency(note)
-    }
-    this.renderGrid()
-    this.updateOutput()
-    this.saveToStorage()
-  }
-
   private playNote(row: number, col: number) {
-    const cell = this.grid[row][col]
-    let frequency: number
-
-    if (cell.frequency) {
-      // Use existing frequency if note is already in cell
-      frequency = cell.frequency
-    } else {
-      // Calculate frequency for preview when no note exists yet
-      const note = String.fromCharCode(MusicComposer.HIGHEST_NOTE - row)
-      frequency = noteToFrequency(note)
-    }
+    // Calculate frequency for preview
+    const note = String.fromCharCode(MusicComposer.HIGHEST_NOTE - row)
+    const frequency = noteToFrequency(note)
 
     playSingleNote(this.audioContext, frequency, this.audioContext.currentTime, {
       noteLengthMs: 200,
@@ -215,13 +321,15 @@ class MusicComposer {
     let highestCol = -1
     for (let col = this.gridSize.cols - 1; col >= 0; col--) {
       for (let row = 0; row < this.gridSize.rows; row++) {
-        if (this.grid[row][col].note) {
+        if (this.grid[row][col].occupied) {
           highestCol = col
           break
         }
       }
       if (highestCol !== -1) break
     }
+
+    console.log('highestCol', highestCol)
 
     // If no notes found, return empty grid
     if (highestCol === -1) {
@@ -237,8 +345,7 @@ class MusicComposer {
         Array(this.gridSize.cols)
           .fill(null)
           .map(() => ({
-            note: null,
-            frequency: null,
+            occupied: false,
             isActive: false,
           }))
       )
@@ -247,30 +354,30 @@ class MusicComposer {
     for (let row = 0; row < this.gridSize.rows; row++) {
       for (let col = this.playheadPosition; col <= highestCol; col++) {
         const sourceCell = this.grid[row][col]
-        if (sourceCell.note) {
+        if (sourceCell.occupied) {
           shiftedGrid[row][col - this.playheadPosition] = {
-            note: sourceCell.note,
-            frequency: sourceCell.frequency,
+            occupied: true,
             isActive: false,
           }
         }
       }
     }
+    console.log('shiftedGrid step 3', JSON.stringify(shiftedGrid))
 
     // Step 4: Copy notes from 1st column up to playhead
     for (let row = 0; row < this.gridSize.rows; row++) {
       for (let col = 0; col < this.playheadPosition; col++) {
         const sourceCell = this.grid[row][col]
-        if (sourceCell.note) {
+        if (sourceCell.occupied) {
           const targetCol = highestCol - this.playheadPosition + 1 + col
           shiftedGrid[row][targetCol] = {
-            note: sourceCell.note,
-            frequency: sourceCell.frequency,
+            occupied: true,
             isActive: false,
           }
         }
       }
     }
+    console.log('shiftedGrid step 4', JSON.stringify(shiftedGrid))
 
     return shiftedGrid
   }
@@ -286,14 +393,11 @@ class MusicComposer {
     this.isPlaying = true
     this.updateStatus('Playing...')
 
-    this.player = createGridPlayer()
-    const shiftedGrid = this.createShiftedGrid()
-    const playerGrid = compressForPlayer(shiftedGrid)
-    this.player.play(playerGrid, {
-      noteLengthMs: 200,
-      loop: true,
-      volume: 0.1,
-      onNotePlayed: (row: number, col: number) => this.onNotePlayedShifted(row, col),
+    const song = this.compress()
+    console.log('song', song)
+    this.player = createSongPlayer(song)
+    this.player.play({
+      onNotesPlayed: (col: number) => this.onNotesPlayed(col),
     })
   }
 
@@ -329,57 +433,64 @@ class MusicComposer {
     this.updateStatus('Grid cleared')
   }
 
-  private onNotePlayed(row: number, col: number) {
-    const cellKey = `${row},${col}`
-    this.throbbingCells.add(cellKey)
+  // Import a song into the grid
+  public importSong(song: Song, baseNote: string = 'i') {
+    const importedGrid = this.uncompress(song, baseNote)
+
+    // Clear current grid
+    this.initializeGrid()
+
+    // Copy imported notes to current grid
+    for (let row = 0; row < Math.min(importedGrid.length, this.gridSize.rows); row++) {
+      for (let col = 0; col < Math.min(importedGrid[row].length, this.gridSize.cols); col++) {
+        if (importedGrid[row][col].occupied) {
+          this.grid[row][col].occupied = true
+        }
+      }
+    }
+
+    this.renderGrid()
+    this.updateOutput()
+    this.saveToStorage()
+    this.updateStatus(`Imported song with ${song.length} parts`)
+  }
+
+  private showImportDialog() {
+    const input = prompt('Paste song array (e.g., ["ace", "bd"]):')
+    if (!input) return
+
+    try {
+      const song = JSON.parse(input)
+      if (Array.isArray(song) && song.every((part) => typeof part === 'string')) {
+        this.importSong(song)
+      } else {
+        this.updateStatus('Invalid song format. Expected array of strings.')
+      }
+    } catch (error) {
+      this.updateStatus('Invalid JSON format.')
+    }
+  }
+
+  private onNotesPlayed(col: number) {
+    // Highlight all notes in this column
+    for (let row = 0; row < this.gridSize.rows; row++) {
+      if (this.grid[row][col].occupied) {
+        const cellKey = `${row},${col}`
+        this.throbbingCells.add(cellKey)
+      }
+    }
     this.renderGrid()
 
     // Remove the throb after animation
     setTimeout(() => {
-      this.throbbingCells.delete(cellKey)
+      for (let row = 0; row < this.gridSize.rows; row++) {
+        if (this.grid[row][col].occupied) {
+          const cellKey = `${row},${col}`
+          this.throbbingCells.delete(cellKey)
+        }
+      }
       this.renderGrid()
     }, 200)
-  }
-
-  private onNotePlayedShifted(row: number, col: number) {
-    // Convert shifted column back to original grid column
-    // The shifted grid has two sections:
-    // 1. Columns 0 to (highestCol - playheadPosition): original columns playheadPosition to highestCol
-    // 2. Columns (highestCol - playheadPosition + 1) to end: original columns 0 to (playheadPosition - 1)
-
-    // Find the highest column with notes
-    let highestCol = -1
-    for (let c = this.gridSize.cols - 1; c >= 0; c--) {
-      for (let r = 0; r < this.gridSize.rows; r++) {
-        if (this.grid[r][c].note) {
-          highestCol = c
-          break
-        }
-      }
-      if (highestCol !== -1) break
-    }
-
-    let originalCol: number
-    if (col <= highestCol - this.playheadPosition) {
-      // First section: map to original columns playheadPosition to highestCol
-      originalCol = col + this.playheadPosition
-    } else {
-      // Second section: map to original columns 0 to (playheadPosition - 1)
-      originalCol = col - (highestCol - this.playheadPosition + 1)
-    }
-
-    this.onNotePlayed(row, originalCol)
-  }
-
-  private hasNotesInGrid(): boolean {
-    for (let row = 0; row < this.gridSize.rows; row++) {
-      for (let col = 0; col < this.gridSize.cols; col++) {
-        if (this.grid[row][col].note) {
-          return true
-        }
-      }
-    }
-    return false
   }
 
   private saveToStorage() {
@@ -387,8 +498,7 @@ class MusicComposer {
       // Save the raw grid state
       const gridData = this.grid.map((row) =>
         row.map((cell) => ({
-          note: cell.note,
-          frequency: cell.frequency,
+          occupied: cell.occupied,
           isActive: false, // Don't save active state
         }))
       )
@@ -439,8 +549,13 @@ class MusicComposer {
       for (let col = 0; col < Math.min(gridData[row].length, this.gridSize.cols); col++) {
         if (gridData[row] && gridData[row][col]) {
           const cellData = gridData[row][col]
-          this.grid[row][col].note = cellData.note
-          this.grid[row][col].frequency = cellData.frequency
+          // Handle both old and new format for backward compatibility
+          if (cellData.occupied !== undefined) {
+            this.grid[row][col].occupied = cellData.occupied
+          } else if (cellData.note) {
+            // Old format: convert note to occupied
+            this.grid[row][col].occupied = true
+          }
           // Don't restore isActive state - it should always start as false
         }
       }
@@ -449,7 +564,7 @@ class MusicComposer {
 
   private updateOutput() {
     const output = document.getElementById('output')!
-    const song = compress(this.grid)
+    const song = this.compress()
 
     if (song.length === 0) {
       output.textContent = 'Click cells to place notes. Drag to move notes around.'

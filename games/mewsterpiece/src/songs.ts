@@ -7,9 +7,10 @@
  * - Each string is a melody line that plays simultaneously with other parts
  * - Example: 'aciif' plays notes a-c-i-i-f, 'G00G' plays G-silence-silence-G
  */
-import { createSongPlayer, SongPart } from './player'
 
-const transpose = (part: SongPart, semitones: number) =>
+import { createSongPlayer } from 'lab13-sdk'
+
+const transpose = (part: string, semitones: number) =>
   part
     .split('')
     .map((n) => {
@@ -22,4 +23,8 @@ const transpose = (part: SongPart, semitones: number) =>
     })
     .join('')
 
-export const level1Song = createSongPlayer(['ikmi0kmnk0mnpm0nprn0ui00'])
+export const level1Song = createSongPlayer([
+  'll0n0j0jYll00uYvusqs[p0pp00qpnlj0n0q00l0^p00s000v0u0s0pq',
+  'ii0j0e0e00i00q000Y^0T00dd000000g0j0n00]00`0000000000d0d',
+  '0Y0^000000Y000000000000``000000[0^0]0000000000000000`0`',
+])
