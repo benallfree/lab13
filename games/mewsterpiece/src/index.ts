@@ -6,6 +6,7 @@ import {
   onOpen,
   sendCommandMessageToAll,
   sendCommandMessageToClient,
+  useOnline,
   usePresence,
 } from 'lab13-sdk'
 import type { PartySocket } from 'partysocket'
@@ -19,20 +20,7 @@ import {
 } from './state'
 import './style.css'
 
-declare global {
-  interface Window {
-    PartySocket: typeof PartySocket
-    socket: PartySocket
-  }
-}
-
-// WebSocket connection
-window.socket = new window.PartySocket({
-  host: 'relay.js13kgames.com',
-  party: 'mewsterpiece',
-  room: 'mewsterpiece',
-})
-
+useOnline('mewsterpiece')
 usePresence()
 
 const sendStateToClient = (clientId: string) => {
