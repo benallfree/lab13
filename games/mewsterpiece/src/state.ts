@@ -1,4 +1,4 @@
-import { cats } from './cats'
+import { levels } from './levels'
 
 export type SharedState = {
   img: string
@@ -23,13 +23,16 @@ type GameState = {
   isInitialized: boolean
   completedPictures: Map<string, CompletedPicture> // Store completed pictures with unique IDs
   hasDrawnPixels: boolean // Track if any pixels have been drawn on current level
+  playerName: string // Player's chosen name
+  currentSong: any // Track the currently playing song
+  colorHistory: string[] // Store the 10 most recently picked colors
 }
 
 // Constants for simplified timing
 const LEVEL_DURATION = 60 * 1000 // 60 seconds
 const BREAK_DURATION = 10 * 1000 // 10 seconds
 
-export const state: GameState = {
+export const localState: GameState = {
   currentLevel: 0,
   timeRemaining: LEVEL_DURATION,
   isInLevel: true,
@@ -43,6 +46,9 @@ export const state: GameState = {
   isInitialized: false,
   completedPictures: new Map(),
   hasDrawnPixels: false,
+  playerName: 'Anonymous',
+  currentSong: null,
+  colorHistory: [],
 }
 
 // Load completed pictures from local storage
@@ -58,7 +64,7 @@ function loadCompletedPictures() {
         const pictureStored = localStorage.getItem(`mewsterpiece-picture-${id}`)
         if (pictureStored) {
           const picture = JSON.parse(pictureStored) as CompletedPicture
-          state.completedPictures.set(id, picture)
+          localState.completedPictures.set(id, picture)
         }
       })
     }
@@ -70,7 +76,7 @@ function loadCompletedPictures() {
 // Save completed pictures to local storage
 export function saveCompletedPicture(levelIndex: number, imageData: string, catName: string) {
   // Only save if pixels have been drawn on this level
-  if (!state.hasDrawnPixels) {
+  if (!localState.hasDrawnPixels) {
     return
   }
 
@@ -85,12 +91,12 @@ export function saveCompletedPicture(levelIndex: number, imageData: string, catN
   }
 
   // Save the individual picture
-  state.completedPictures.set(pictureId, picture)
+  localState.completedPictures.set(pictureId, picture)
   try {
     localStorage.setItem(`mewsterpiece-picture-${pictureId}`, JSON.stringify(picture))
 
     // Update the main index
-    const pictureIds = Array.from(state.completedPictures.keys())
+    const pictureIds = Array.from(localState.completedPictures.keys())
     localStorage.setItem('mewsterpiece-pictures-index', JSON.stringify(pictureIds))
   } catch (error) {
     console.error('Failed to save completed picture:', error)
@@ -99,13 +105,13 @@ export function saveCompletedPicture(levelIndex: number, imageData: string, catN
 
 // Delete a completed picture
 export function deleteCompletedPicture(pictureId: string) {
-  state.completedPictures.delete(pictureId)
+  localState.completedPictures.delete(pictureId)
   try {
     // Remove the individual picture
     localStorage.removeItem(`mewsterpiece-picture-${pictureId}`)
 
     // Update the main index
-    const pictureIds = Array.from(state.completedPictures.keys())
+    const pictureIds = Array.from(localState.completedPictures.keys())
     localStorage.setItem('mewsterpiece-pictures-index', JSON.stringify(pictureIds))
   } catch (error) {
     console.error('Failed to delete completed picture:', error)
@@ -116,14 +122,14 @@ export function deleteCompletedPicture(pictureId: string) {
 export function clearAllCompletedPictures() {
   try {
     // Get all picture IDs and remove them
-    const pictureIds = Array.from(state.completedPictures.keys())
+    const pictureIds = Array.from(localState.completedPictures.keys())
     pictureIds.forEach((id) => {
       localStorage.removeItem(`mewsterpiece-picture-${id}`)
     })
 
     // Clear the main index
     localStorage.removeItem('mewsterpiece-pictures-index')
-    state.completedPictures.clear()
+    localState.completedPictures.clear()
   } catch (error) {
     console.error('Failed to clear completed pictures:', error)
   }
@@ -132,7 +138,7 @@ export function clearAllCompletedPictures() {
 // Get current game state based on startedAt time
 export function getCurrentGameState(): GameState {
   const now = Date.now()
-  const startOffset = now - state.shared.startedAt
+  const startOffset = now - localState.shared.startedAt
 
   // Calculate total cycle time (level + break)
   const cycleTime = LEVEL_DURATION + BREAK_DURATION
@@ -144,7 +150,7 @@ export function getCurrentGameState(): GameState {
 
   // Calculate current level (cycles completed)
   const cyclesCompleted = Math.floor(startOffset / cycleTime)
-  const currentLevel = cyclesCompleted % cats.length
+  const currentLevel = cyclesCompleted % levels.length
 
   // Calculate time remaining
   let timeRemaining = 0
@@ -175,7 +181,7 @@ export function getCurrentGameState(): GameState {
   // )
 
   const newState = {
-    ...state,
+    ...localState,
     currentLevel,
     timeRemaining,
     isInLevel,
@@ -186,5 +192,74 @@ export function getCurrentGameState(): GameState {
   return newState
 }
 
-// Initialize completed pictures on module load
+// Color history functions
+function loadColorHistory() {
+  try {
+    const stored = localStorage.getItem('mewsterpiece-color-history')
+    if (stored) {
+      localState.colorHistory = JSON.parse(stored) as string[]
+    }
+  } catch (error) {
+    console.error('Failed to load color history:', error)
+    localState.colorHistory = []
+  }
+}
+
+function saveColorHistory() {
+  try {
+    localStorage.setItem('mewsterpiece-color-history', JSON.stringify(localState.colorHistory))
+  } catch (error) {
+    console.error('Failed to save color history:', error)
+  }
+}
+
+export function addColorToHistory(color: string) {
+  // Add the color to the beginning of the array
+  localState.colorHistory.unshift(color)
+
+  // Filter out duplicates, keeping the first occurrence (most recent)
+  const seen = new Set<string>()
+  localState.colorHistory = localState.colorHistory.filter((c) => {
+    if (seen.has(c)) {
+      return false
+    }
+    seen.add(c)
+    return true
+  })
+
+  // Keep only the 10 most recent colors
+  if (localState.colorHistory.length > 10) {
+    localState.colorHistory = localState.colorHistory.slice(0, 10)
+  }
+
+  // Save to localStorage
+  saveColorHistory()
+}
+
+// Player name localStorage functions
+function loadPlayerName() {
+  try {
+    const stored = localStorage.getItem('mewsterpiece-player-name')
+    if (stored) {
+      localState.playerName = stored
+    }
+  } catch (error) {
+    console.error('Failed to load player name:', error)
+  }
+}
+
+function savePlayerName(name: string) {
+  try {
+    localStorage.setItem('mewsterpiece-player-name', name)
+    localState.playerName = name
+  } catch (error) {
+    console.error('Failed to save player name:', error)
+  }
+}
+
+export { loadPlayerName, savePlayerName }
+
+// Initialize completed pictures, color history, and player name on module load
 loadCompletedPictures()
+loadColorHistory()
+loadPlayerName()

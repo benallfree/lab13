@@ -5,6 +5,20 @@
     <title>Mewsterpiece</title>
   </head>
   <body>
+    <!-- Splash Page -->
+    <div id="splashPage" class="splash-page">
+      <div class="splash-content">
+        <h1 class="splash-title">Mewsterpiece</h1>
+        <p class="splash-subtitle">Collaborative Cat Drawing Game</p>
+        <p class="splash-description">Draw cats together with other players in real-time!</p>
+        <div class="player-name-input">
+          <label for="playerNameInput">Your Name:</label>
+          <input type="text" id="playerNameInput" placeholder="Enter your name" maxlength="20" />
+        </div>
+        <button id="startGameBtn" class="start-game-btn">OK</button>
+      </div>
+    </div>
+
     <!-- Status indicator -->
     <div id="statusIndicator" class="status-indicator">
       <div class="status-content">
@@ -16,23 +30,27 @@
     <!-- Tab Navigation -->
     <div class="tab-navigation">
       <button id="drawTab" class="tab-button active">Draw</button>
-      <button id="finishedTab" class="tab-button">Finished</button>
+      <button id="archiveTab" class="tab-button">Archive</button>
+    </div>
+
+    <!-- Game Info Overlay (Upper Left) -->
+    <div class="game-info-overlay">
+      <div class="timer">
+        <span id="timerDisplay">5:00</span>
+      </div>
+      <div class="level-info">
+        <span id="levelDisplay">Level 1: Tilly</span>
+      </div>
     </div>
 
     <!-- Draw Tab Content -->
     <div id="drawContent" class="tab-content active">
-      <div class="level-ui">
-        <div class="timer">
-          <span id="timerDisplay">5:00</span>
-        </div>
-        <div class="level-info">
-          <span id="levelDisplay">Level 1: Tilly</span>
-        </div>
-      </div>
-
       <div class="controls">
-        <label for="colorPicker">Color:</label>
+        <label>Color:</label>
         <input type="color" id="colorPicker" value="#000000" />
+        <div id="colorHistory" class="color-history">
+          <!-- Color history items will be generated here -->
+        </div>
         <label for="radiusSlider">Size:</label>
         <input type="range" id="radiusSlider" min="1" max="60" step="1" value="5" />
         <span id="radiusValue">5</span>
@@ -45,11 +63,11 @@
       </div>
     </div>
 
-    <!-- Finished Tab Content -->
-    <div id="finishedContent" class="tab-content">
+    <!-- Archive Tab Content -->
+    <div id="archiveContent" class="tab-content">
       <div class="gallery-header">
-        <h2>Completed Pictures</h2>
-        <p>Your finished artwork, from newest to oldest</p>
+        <h2>Archived Pictures</h2>
+        <p>Your completed artwork, from newest to oldest</p>
       </div>
       <div id="galleryGrid" class="gallery-grid">
         <!-- Completed pictures will be generated here -->
