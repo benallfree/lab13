@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Music Composer</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: monospace;
+        background: #1a1a1a;
+        color: #fff;
+        overflow-x: auto;
+      }
+
+      .container {
+        padding: 20px;
+      }
+
+      .controls {
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .left-controls,
+      .right-controls {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+
+      button {
+        padding: 8px 16px;
+        background: #333;
+        color: #fff;
+        border: 1px solid #555;
+        border-radius: 4px;
+        cursor: pointer;
+        font-family: monospace;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      button:hover {
+        background: #444;
+      }
+
+      button:active {
+        background: #222;
+      }
+
+      .grid-container {
+        overflow: auto;
+        border: 1px solid #333;
+        background: #222;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 60px repeat(var(--cols, 64), 30px) 30px;
+        grid-template-rows: 30px repeat(51, 25px);
+        gap: 1px;
+        background: #333;
+        padding: 1px;
+      }
+
+      .cell {
+        background: #1a1a1a;
+        border: 1px solid #333;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        min-height: 25px;
+        position: relative;
+      }
+
+      .cell:hover {
+        background: #2a2a2a;
+      }
+
+      .cell.active {
+        background: #4a4a4a;
+      }
+
+      .cell.note {
+        background: #4a90e2;
+        color: #fff;
+      }
+
+      .cell.note:hover {
+        background: #5ba0f2;
+      }
+
+      .cell.throbbing {
+        background: #ff6b6b !important;
+        /* animation: throb 0.2s ease-out; */
+      }
+
+      @keyframes throb {
+        0% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.1);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+
+      .row-label {
+        background: #333;
+        color: #fff;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .col-label {
+        background: #333;
+        color: #fff;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .col-label.playhead {
+        background: #ff6b6b;
+        color: #fff;
+      }
+
+      .col-label.expand-btn {
+        background: #4a90e2;
+        color: #fff;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 14px;
+      }
+
+      .col-label.expand-btn:hover {
+        background: #5ba0f2;
+      }
+
+      .cell.expand-cell {
+        background: transparent;
+        border: none;
+        cursor: default;
+      }
+
+      .output {
+        margin-top: 20px;
+        padding: 10px;
+        background: #222;
+        border: 1px solid #333;
+        border-radius: 4px;
+        font-family: monospace;
+        white-space: pre-wrap;
+        max-height: 200px;
+        overflow-y: auto;
+      }
+
+      .status {
+        margin-left: 20px;
+        color: #888;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="controls">
+        <div class="left-controls">
+          <button id="playStopBtn" title="Play/Stop">
+            <svg id="playIcon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
+              <path fill="currentColor" d="M8 19V5l11 7z" />
+            </svg>
+            <svg
+              id="stopIcon"
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              style="display: none"
+            >
+              <path fill="currentColor" d="M6 18V6h12v12z" />
+            </svg>
+            <span id="playStopText">Play</span>
+          </button>
+          <span class="status" id="status">Ready</span>
+        </div>
+        <div class="right-controls">
+          <button id="shareBtn">Share</button>
+          <button id="importBtn">Import</button>
+          <button id="demoBtn">Demo</button>
+          <button id="clearBtn" title="Clear all notes">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
+              <path
+                fill="currentColor"
+                d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6zm2.46-7.12l1.41-1.41L12 12.59l2.12-2.12l1.41 1.41L13.41 14l2.12 2.12l-1.41 1.41L12 15.41l-2.12 2.12l-1.41-1.41L10.59 14zM15.5 4l-1-1h-5l-1 1H5v2h14V4z"
+              />
+            </svg>
+            Clear
+          </button>
+        </div>
+      </div>
+
+      <div class="grid-container">
+        <div class="grid" id="grid"></div>
+      </div>
+
+      <div class="output" id="output">Click cells to place notes. Drag to move notes around.</div>
+    </div>
+
+    <script type="module" src="src/composer.js"></script>
+  </body>
+</html>

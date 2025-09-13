@@ -1,0 +1,15 @@
+{
+  "name": "lab13-composer",
+  "private": true,
+  "scripts": {
+    "predeploy": "l13 build",
+    "build": "l13 build",
+    "deploy": "wrangler deploy",
+    "dev": "l13 dev"
+  },
+  "devDependencies": {
+    "l13": "workspace:^0.0.22",
+    "lab13-sdk": "workspace:^0.0.3",
+    "wrangler": "^4.36.0"
+  }
+}
