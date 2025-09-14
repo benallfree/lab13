@@ -11,7 +11,7 @@
     "@types/svg-path-bounds": "^1.0.2",
     "svg-path-bounds": "^1.0.2",
     "partysocket": "^1.1.5",
-    "lab13-sdk": "workspace:^0.0.3",
+    "lab13-sdk": "workspace:^0.0.4",
     "wrangler": "^4.31.0",
     "l13": "workspace:^0.0.22"
   }

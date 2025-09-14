@@ -1,5 +1,14 @@
 # lab13-sdk
 
+## 0.0.4
+
+### Patch Changes
+
+- c0cce65: Fix: use RAF+setTimeout for w.reset
+- e4bafd8: Add audio player
+- a9f4a70: Fix: onlly fire onAfterStateUpdated if state actually changed
+- 4d1a5dc: Fix: W.reset should set W.lastFrame to 0
+
 ## 0.0.3
 
 ### Patch Changes
