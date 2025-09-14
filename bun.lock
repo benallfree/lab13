@@ -53,7 +53,7 @@
     "games/cars": {
       "name": "lab13-cars",
       "devDependencies": {
-        "lab13-sdk": "workspace:^0.0.3",
+        "lab13-sdk": "workspace:^0.0.4",
         "partysocket": "^1.1.5",
         "type-fest": "^4.41.0",
       },
@@ -62,7 +62,7 @@
       "name": "lab13-cats",
       "devDependencies": {
         "@types/three": "^0.179.0",
-        "lab13-sdk": "workspace:^0.0.3",
+        "lab13-sdk": "workspace:^0.0.4",
         "partysocket": "^1.1.5",
       },
     },
@@ -70,7 +70,7 @@
       "name": "lab13-composer",
       "devDependencies": {
         "l13": "workspace:^0.0.22",
-        "lab13-sdk": "workspace:^0.0.3",
+        "lab13-sdk": "workspace:^0.0.4",
         "wrangler": "^4.36.0",
       },
     },
@@ -78,7 +78,7 @@
       "name": "lab13-flight",
       "devDependencies": {
         "@types/three": "^0.179.0",
-        "lab13-sdk": "workspace:^0.0.3",
+        "lab13-sdk": "workspace:^0.0.4",
         "partysocket": "^1.1.5",
         "three": "^0.179.1",
       },
@@ -89,13 +89,13 @@
         "partysocket": "^1.1.5",
       },
       "devDependencies": {
-        "lab13-sdk": "workspace:^0.0.3",
+        "lab13-sdk": "workspace:^0.0.4",
       },
     },
     "games/hello-mmo": {
       "name": "lab13-hello-mmo",
       "devDependencies": {
-        "lab13-sdk": "workspace:^0.0.3",
+        "lab13-sdk": "workspace:^0.0.4",
         "partysocket": "^1.1.5",
       },
     },
@@ -103,22 +103,24 @@
       "name": "lab13-mewsterpiece",
       "devDependencies": {
         "@types/svg-path-bounds": "^1.0.2",
-        "lab13-sdk": "workspace:^0.0.3",
+        "l13": "workspace:^0.0.22",
+        "lab13-sdk": "workspace:^0.0.4",
         "partysocket": "^1.1.5",
         "svg-path-bounds": "^1.0.2",
+        "wrangler": "^4.31.0",
       },
     },
     "games/presence": {
       "name": "lab13-presence",
       "devDependencies": {
-        "lab13-sdk": "workspace:^0.0.3",
+        "lab13-sdk": "workspace:^0.0.4",
         "partysocket": "^1.1.5",
         "vanjs-core": "^1.5.5",
       },
     },
     "sdk": {
       "name": "lab13-sdk",
-      "version": "0.0.3",
+      "version": "0.0.4",
       "bin": {
         "js13k": "./dist/index.js",
       },
@@ -1189,7 +1191,7 @@
 
     "buffer-from": ["buffer-from@1.1.2", "", {}, "sha512-E+XQCRwSbaaiChtv6k6Dwgc+bx+Bs6vuKJHHl5kox/BaKbhiXzqQOwK4cO22yElGp2OCmjwVhT3HmxgyPGnJfQ=="],
 
-    "bun-types": ["bun-types@1.2.21", "", { "dependencies": { "@types/node": "*" }, "peerDependencies": { "@types/react": "^19" } }, "sha512-sa2Tj77Ijc/NTLS0/Odjq/qngmEPZfbfnOERi0KRUYhT9R8M4VBioWVmMWE5GrYbKMc+5lVybXygLdibHaqVqw=="],
+    "bun-types": ["bun-types@1.2.22", "", { "dependencies": { "@types/node": "*" }, "peerDependencies": { "@types/react": "^19" } }, "sha512-hwaAu8tct/Zn6Zft4U9BsZcXkYomzpHJX28ofvx7k0Zz2HNz54n1n+tDgxoWFGB4PcFvJXJQloPhaV2eP3Q6EA=="],
 
     "bytes": ["bytes@3.1.2", "", {}, "sha512-/Nf7TyzTx6S3yRJObOAV7956r8cr2+Oj8AC5dt8wSP3BQAoeX58NoHyCU8P8zGkNXStjTSi6fzO6F0pBdcYbEg=="],
 
@@ -3134,6 +3136,8 @@
     "@poppinss/dumper/supports-color": ["supports-color@10.2.0", "", {}, "sha512-5eG9FQjEjDbAlI5+kdpdyPIBMRH4GfTVDGREVupaZHmVoppknhM29b/S9BkQz7cathp85BVgRi/As3Siln7e0Q=="],
 
     "@svgr/plugin-svgo/svgo": ["svgo@3.3.2", "", { "dependencies": { "@trysound/sax": "0.2.0", "commander": "^7.2.0", "css-select": "^5.1.0", "css-tree": "^2.3.1", "css-what": "^6.1.0", "csso": "^5.0.5", "picocolors": "^1.0.0" }, "bin": "./bin/svgo" }, "sha512-OoohrmuUlBs8B8o6MB2Aevn+pRIH9zDALSR+6hhqVfa6fRwG/Qw9VUMSMW9VNg2CFc/MTIfabtdOVl9ODIJjpw=="],
+
+    "@types/bun/bun-types": ["bun-types@1.2.21", "", { "dependencies": { "@types/node": "*" }, "peerDependencies": { "@types/react": "^19" } }, "sha512-sa2Tj77Ijc/NTLS0/Odjq/qngmEPZfbfnOERi0KRUYhT9R8M4VBioWVmMWE5GrYbKMc+5lVybXygLdibHaqVqw=="],
 
     "ansi-align/string-width": ["string-width@4.2.3", "", { "dependencies": { "emoji-regex": "^8.0.0", "is-fullwidth-code-point": "^3.0.0", "strip-ansi": "^6.0.1" } }, "sha512-wKyQRQpjJ0sIp62ErSZdGsjMJWsap5oRNihHhu6G7JVO/9jIB6UyevL+tXuOqrng8j/cxKTWyWUwvSTriiZz/g=="],
 
